@@ -27,7 +27,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "QFun"
+rootProject.name = "Kiora"
 include(
     ":app",
     ":annotation",

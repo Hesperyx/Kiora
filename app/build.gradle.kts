@@ -17,15 +17,15 @@ if (keystorePropertiesFile.exists()) {
 }
 
 extensions.configure<ApplicationExtension> {
-    namespace = "me.yxp.qfun"
+    namespace = "cn.hxy.kiora"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "me.yxp.qfun"
+        applicationId = "cn.hxy.kiora"
         minSdk = 26
         targetSdk = 37
-        versionCode = 26
-        versionName = "1.3.4"
+        versionCode = 27
+        versionName = "1.3.5"
 
         ndk {
             abiFilters.add("arm64-v8a")
@@ -140,7 +140,7 @@ val packageName = "com.tencent.mobileqq"
 // adb shell am force-stop com.tencent.mobileqq
 val killQQ = tasks.register<Exec>("killQQ") {
     description = ""
-    group = "qfun"
+    group = "kiora"
     commandLine(adb, "shell", "am", "force-stop", packageName)
     isIgnoreExitValue = true
 }

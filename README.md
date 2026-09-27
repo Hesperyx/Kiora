@@ -1,10 +1,10 @@
 <div align="center">
-    <h1>QFun</h1>
+    <h1>Kiora</h1>
 
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.3.0-7F52FF?style=flat-square&logo=kotlin&logoColor=white)
 ![Jetpack Compose](https://img.shields.io/badge/UI-Jetpack%20Compose-4285F4?style=flat-square&logo=android&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Android-3DDC84?style=flat-square&logo=android&logoColor=white)
-![GitHub Stars](https://img.shields.io/github/stars/oneQAQone/QFun?style=social)
+![GitHub Stars](https://img.shields.io/github/stars/oneQAQone/Kiora?style=social)
 
 </div>
 
@@ -92,19 +92,19 @@
 2.  **模块版本**
 3.  **运行框架及版本**
 
-> **💡 提示**：`Android/data/[宿主包名]/QFun/global/log/` 目录下的 **environment_info.txt** 已自动记录了完整的运行环境信息，建议在反馈时一同提交。
+> **💡 提示**：`Android/data/[宿主包名]/Kiora/global/log/` 目录下的 **environment_info.txt** 已自动记录了完整的运行环境信息，建议在反馈时一同提交。
 > 您也可以直接打包并反馈 **LSPosed 框架日志**（建议开启详细日志）。
 
 ### 1. 常规错误
 > 指功能异常、脚本报错等未导致应用闪退的情况。
 *   **文件**: `error_log.txt`
-*   **位置**: `Android/data/[宿主包名]/QFun/[当前QQ号]/log/`
+*   **位置**: `Android/data/[宿主包名]/Kiora/[当前QQ号]/log/`
 
 ### 2. 应用崩溃
 > 指应用直接停止运行、闪退的情况。
 *   **文件**: `crash_[时间戳].zip`
-*   **位置**: `Android/data/[宿主包名]/QFun/[当前QQ号]/crash/`
-    *   *(注：若未登录即闪退，请检查 `.../QFun/global/crash/` 目录)*
+*   **位置**: `Android/data/[宿主包名]/Kiora/[当前QQ号]/crash/`
+    *   *(注：若未登录即闪退，请检查 `.../Kiora/global/crash/` 目录)*
 *   **提示**: 闪退弹窗中**点击路径文字**即可直接复制完整路径。
 
 ### ⚠️ 关于路径
