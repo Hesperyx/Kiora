@@ -43,6 +43,8 @@ fun MainScreen(
     frameworkInfo: String,
     isIconVisible: Boolean,
     onToggleIcon: () -> Unit,
+    commitHash: String,
+    commitTime: String,
     modifier: Modifier = Modifier
 ) {
     val colors = KioraTheme.colors
@@ -123,6 +125,12 @@ fun MainScreen(
                 }
             }
         }
+
+        AdaptedVersionCard()
+
+        BuildInfoCard(commitHash, commitTime)
+
+        CreditsCard()
 
         Spacer(modifier = Modifier.height(40.dp))
     }

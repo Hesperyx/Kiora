@@ -58,7 +58,9 @@ class MainActivity : ComponentActivity() {
                     isActivated,
                     frameworkInfo,
                     isIconVisible,
-                    ::handleToggleIcon
+                    ::handleToggleIcon,
+                    BuildConfig.GIT_COMMIT,
+                    BuildConfig.GIT_COMMIT_TIME
                 )
 
                 ConfirmDialog(

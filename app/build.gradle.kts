@@ -16,6 +16,22 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
+/**
+ * 取构建时的 Git 信息（提交哈希 / 提交时间）。
+ *
+ * 打包机没有 git 或不在仓库里时返回 unknown，不阻断构建 ——
+ * 构建信息只用于展示，缺了不该让打包失败。
+ */
+fun gitValue(vararg args: String): String = runCatching {
+    val process = ProcessBuilder("git", *args)
+        .directory(rootProject.projectDir)
+        .redirectErrorStream(true)
+        .start()
+    val output = process.inputStream.bufferedReader().readText().trim()
+    val exitCode = process.waitFor()
+    if (exitCode == 0) output else "unknown"
+}.getOrDefault("unknown")
+
 extensions.configure<ApplicationExtension> {
     namespace = "cn.hxy.kiora"
     compileSdk = 37
@@ -26,6 +42,9 @@ extensions.configure<ApplicationExtension> {
         targetSdk = 37
         versionCode = 27
         versionName = "1.3.5"
+
+        buildConfigField("String", "GIT_COMMIT", "\"${gitValue("rev-parse", "HEAD")}\"")
+        buildConfigField("String", "GIT_COMMIT_TIME", "\"${gitValue("log", "-1", "--format=%cI")}\"")
 
         ndk {
             abiFilters.add("arm64-v8a")
