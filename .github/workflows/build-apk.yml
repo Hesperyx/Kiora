@@ -16,24 +16,30 @@ jobs:
       contents: write
     steps:
       - name: 检出代码
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           # 构建信息卡里的提交哈希与提交时间由 Gradle 读 git 得到，浅克隆会导致取不到
           fetch-depth: 0
 
       - name: 配置 JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
 
       - name: 配置 Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
+        with:
+          # 默认会把整段 SDK 许可证文本打进日志，关掉免得刷屏
+          log-accepted-android-sdk-licenses: false
 
       - name: 安装编译所需 SDK 组件
         run: |
-          sdkmanager --install "platforms;android-37" || sdkmanager --install "platforms;android-37.0" || true
-          sdkmanager --install "build-tools;37.0.0" || true
+          yes | sdkmanager --licenses > /dev/null
+          # 装不上就直接失败：早先写成 || true 会把问题吞掉，拖到 Gradle 阶段才报
+          # "Failed to find Platform SDK"，反而难定位
+          sdkmanager --install "platforms;android-37" || sdkmanager --install "platforms;android-37.0"
+          sdkmanager --install "build-tools;37.0.0"
 
       - name: 缓存 Gradle 依赖
         uses: gradle/actions/setup-gradle@v4
