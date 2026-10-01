@@ -31,11 +31,11 @@ object ModuleMeta {
     val developers = listOf(
         Developer(
             avatarUrl = "https://q1.qlogo.cn/g?b=qq&nk=551234445&s=640",
-            profileUrl = "tencent://ntqq-open?subCmd=profile&action=openMiniBuddyProfile&actionParams={\"uin\":\"551234445\",\"sourceType\":\"QrCodeShareBuddyLink\"}"
+            profileUrl = "mqqapi://card/show_pslcard?src_type=internal&version=1&uin=551234445"
         ),
         Developer(
             avatarUrl = "https://q1.qlogo.cn/g?b=qq&nk=2962772241&s=640",
-            profileUrl = "tencent://ntqq-open?subCmd=profile&action=openMiniBuddyProfile&actionParams={\"uin\":\"2962772241\",\"sourceType\":\"QrCodeShareBuddyLink\"}"
+            profileUrl = "mqqapi://card/show_pslcard?src_type=internal&version=1&uin=2962772241"
         ),
     )
 
