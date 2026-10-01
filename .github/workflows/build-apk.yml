@@ -54,18 +54,25 @@ jobs:
               echo "keyAlias=$KEY_ALIAS"
               echo "keyPassword=$KEY_PASSWORD"
             } >> local.properties
-            ./gradlew :app:assembleRelease
+            ./gradlew :app:assembleRelease :app:assembleDebug
           else
             ./gradlew :app:assembleDebug
           fi
 
       - uses: actions/upload-artifact@v4
         with:
-          name: apk-${{ startsWith(github.ref, 'refs/tags/') && 'release' || 'debug' }}
+          name: apk
           path: app/build/outputs/apk/**/*.apk
+
+      - name: 整理发布文件
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/release/app-release.apk "dist/Kiora-${{ github.ref_name }}.apk"
+          cp app/build/outputs/apk/debug/app-debug.apk "dist/Kiora-${{ github.ref_name }}-debug.apk"
 
       - if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: app/build/outputs/apk/release/*.apk
+          files: dist/*.apk
           generate_release_notes: true
