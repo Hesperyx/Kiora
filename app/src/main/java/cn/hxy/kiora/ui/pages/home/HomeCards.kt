@@ -52,9 +52,10 @@ fun BuildInfoCard(
     }
 }
 
-/** 开发者：在线头像，渐变描边圆形展示。 */
+/** 开发者：在线头像，点击跳转到对应 QQ 主页。 */
 @Composable
 fun DevelopersCard(modifier: Modifier = Modifier) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     InfoCard(title = "开发者", accent = DevAccent, modifier = modifier) {
         Row(
             modifier = Modifier
@@ -63,8 +64,16 @@ fun DevelopersCard(modifier: Modifier = Modifier) {
             horizontalArrangement = Arrangement.spacedBy(28.dp, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            ModuleMeta.developerAvatars.forEach { url ->
-                RingAvatar(url)
+            ModuleMeta.developers.forEach { dev ->
+                RingAvatar(url = dev.avatarUrl) {
+                    runCatching {
+                        val intent = android.content.Intent(
+                            android.content.Intent.ACTION_VIEW,
+                            android.net.Uri.parse(dev.profileUrl)
+                        )
+                        context.startActivity(intent)
+                    }
+                }
             }
         }
     }

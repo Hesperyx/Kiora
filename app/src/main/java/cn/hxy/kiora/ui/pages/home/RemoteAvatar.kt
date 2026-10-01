@@ -10,6 +10,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -113,7 +114,7 @@ private const val WaveDurationMillis = 2200
  * 相位在 [graphicsLayer] 里才读取，逐帧只刷新绘制层，不触发重组。
  */
 @Composable
-fun RingAvatar(url: String) {
+fun RingAvatar(url: String, onClick: () -> Unit = {}) {
     val colors = KioraTheme.colors
     val brush = remember(colors.accentBlue) {
         Brush.linearGradient(listOf(colors.accentBlue, DevAccent))
@@ -130,7 +131,9 @@ fun RingAvatar(url: String) {
     )
 
     Box(
-        modifier = Modifier.size(AvatarWaveSize),
+        modifier = Modifier
+            .size(AvatarWaveSize)
+            .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
         // 向外扩散的两圈波纹（相位相差半个周期）
@@ -149,11 +152,11 @@ fun RingAvatar(url: String) {
             )
         }
 
-        // 静态渐变描边 + 头像
+        // 头像底：不填充任何颜色，只让头像贴在此处，外圈波纹在其上扩散
         Box(
             modifier = Modifier
                 .size(AvatarRingSize)
-                .background(brush, CircleShape)
+                .background(Color.Transparent, CircleShape)
         )
         RemoteAvatar(url = url, size = AvatarSize)
     }
