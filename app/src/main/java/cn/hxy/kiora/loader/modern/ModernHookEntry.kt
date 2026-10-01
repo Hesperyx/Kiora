@@ -8,9 +8,9 @@ import io.github.libxposed.api.XposedInterfaceWrapper
 import io.github.libxposed.api.XposedModule
 import io.github.libxposed.api.XposedModuleInterface
 import cn.hxy.kiora.common.ModuleLoader
+import cn.hxy.kiora.host.HostAdapters
 import cn.hxy.kiora.loader.hookapi.HookEngineManager
 import cn.hxy.kiora.loader.legacy.LegacyHookEngine
-import cn.hxy.kiora.utils.qq.HostInfo
 import cn.hxy.kiora.utils.reflect.callMethod
 import cn.hxy.kiora.utils.reflect.getObject
 import cn.hxy.kiora.utils.reflect.setObject
@@ -39,7 +39,7 @@ class ModernHookEntry : XposedModule {
             val base = this.getObject("mBase", XposedInterfaceWrapper::class.java)
             val applicationInfo = base.callMethod("getApplicationInfo") as ApplicationInfo
 
-            if (packageName == HostInfo.PACKAGE_NAME_QQ || packageName == HostInfo.PACKAGE_NAME_TIM) {
+            if (HostAdapters.isLoadable(packageName)) {
                 if (param.isFirstPackage) {
                     ModuleLoader.initialize(
                         param.callMethod("getClassLoader") as ClassLoader,
@@ -75,7 +75,7 @@ class ModernHookEntry : XposedModule {
 
         val packageName = param.packageName
 
-        if (packageName == HostInfo.PACKAGE_NAME_QQ || packageName == HostInfo.PACKAGE_NAME_TIM) {
+        if (HostAdapters.isLoadable(packageName)) {
             if (param.isFirstPackage) {
                 HookEngineManager.engine = ModernHookEngine(this)
                 

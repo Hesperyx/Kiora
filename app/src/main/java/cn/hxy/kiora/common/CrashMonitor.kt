@@ -41,6 +41,15 @@ object CrashMonitor {
         Thread.UncaughtExceptionHandler {
 
         override fun uncaughtException(t: Thread, e: Throwable) {
+            // 重入保护：若崩溃发生在「崩溃处理链路」自身（最典型是 CrashActivity
+            // 渲染时又崩），绝不能再拉一次 CrashActivity —— 那会形成
+            // 「拉起 CrashActivity → 崩 → 再拉起 → 再崩」的无限循环，宿主表现为
+            // 反复闪退、完全打不开。此时直接把异常交还原处理器走系统崩溃流程。
+            if (!handling.compareAndSet(false, true)) {
+                originalHandler?.uncaughtException(t, e) ?: exitProcess(10)
+                return
+            }
+
             try {
                 val result = CrashReporter.generateReport(t, e)
 
@@ -62,6 +71,16 @@ object CrashMonitor {
                 innerEx.printStackTrace()
                 originalHandler?.uncaughtException(t, e)
             }
+        }
+
+        companion object {
+            /**
+             * 「正在处理崩溃」标记，跨实例共享。
+             *
+             * [CrashMonitor.init] 会按需重新包装默认处理器，因此不能用实例字段；
+             * 必须是静态的，才能在「CrashActivity 自身又崩」时命中重入判断。
+             */
+            private val handling = java.util.concurrent.atomic.AtomicBoolean(false)
         }
     }
 }

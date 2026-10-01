@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 
 import java.lang.reflect.Field;
 
+import cn.hxy.kiora.host.HostAdapters;
 import cn.hxy.kiora.loader.hookapi.HookEngineManager;
 import cn.hxy.kiora.utils.qq.HostInfo;
 
@@ -32,6 +33,7 @@ public class ModuleLoader {
 
         HostInfo.INSTANCE.setPackageName(packageName);
         HostInfo.INSTANCE.setProcessName(processName);
+        HostInfo.installAdapter(HostAdapters.INSTANCE.forPackage(packageName));
 
         Startup.init(hostClassLoader);
 

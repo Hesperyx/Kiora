@@ -2,7 +2,6 @@ package cn.hxy.kiora.common
 
 import android.content.Context
 import android.util.Log
-import com.tencent.common.app.BaseApplicationImpl
 import dalvik.system.BaseDexClassLoader
 import cn.hxy.kiora.BuildConfig
 import cn.hxy.kiora.hook.MainHook
@@ -25,15 +24,32 @@ object Startup {
 
     @JvmStatic
     fun init(initialLoader: ClassLoader) {
-        runCatching {
-            initialLoader.loadClass("com.tencent.common.app.QFixApplicationImplProxy")
-                .getDeclaredMethod("attachBaseContext", Context::class.java)
-        }.getOrNull()
-            ?.let { hookQFixAttach(it) }
-            ?: doRealStartup(initialLoader)
+        // 热更锚点从适配器取，不再写死 QFix 的类名：
+        // QQ 系 -> QFixApplicationImplProxy.attachBaseContext
+        // 微信   -> com.tencent.mm.app.Application.attachBaseContext (Tinker)
+        val hotfix = HostInfo.adapter?.hotfixAnchor
+        val hotfixName = hotfix?.methodName
+
+        val hotfixMethod = if (hotfix == null || hotfixName == null) {
+            null
+        } else {
+            // 仍在 initialLoader 上查找：此刻 ClassUtils.hostClassLoader 尚未赋值，
+            // 不能用 toClass。
+            runCatching {
+                initialLoader.loadClass(hotfix.className)
+                    .getDeclaredMethod(hotfixName, *hotfix.paramTypes.toTypedArray())
+            }.getOrNull()
+        }
+
+        if (hotfixMethod != null) {
+            hookHotfixAttach(hotfixMethod)
+        } else {
+            // 宿主无热更通路（或解析失败）：直接用初始 Loader 启动。
+            doRealStartup(initialLoader)
+        }
     }
 
-    private fun hookQFixAttach(attach: Method) {
+    private fun hookHotfixAttach(attach: Method) {
         val constructorUnhooks = mutableListOf<Unhook>()
 
         attach.hookBefore {
@@ -80,8 +96,29 @@ object Startup {
         ModuleLoader.injectClassLoader(realClassLoader)
         CrashMonitor.init()
 
+        val anchor = HostInfo.adapter?.startupAnchor
+        if (anchor == null) {
+            HookEngineManager.engine.log(
+                Log.WARN,
+                "[Kiora]",
+                "宿主 ${HostInfo.packageName} 未适配启动锚点，模块在此进程不生效"
+            )
+            return
+        }
+
+        val startupMethod = anchor.resolveMethod()
+        if (startupMethod == null) {
+            HookEngineManager.engine.log(
+                Log.ERROR,
+                "[Kiora]",
+                "启动锚点未命中: ${anchor.className}#${anchor.methodName}，" +
+                        "模块在当前宿主不生效"
+            )
+            return
+        }
+
         try {
-            BaseApplicationImpl::class.java.getDeclaredMethod("onCreate").hookAfter { param ->
+            startupMethod.hookAfter { param ->
                 if (isInit.compareAndSet(false, true)) {
                     val hostContext = param.thisObject as Context
                     HostInfo.init(hostContext)
@@ -100,7 +137,13 @@ object Startup {
                     Parasitics.initForStubActivity(hostContext)
                     Parasitics.injectModuleResources(hostContext.resources)
 
-                    if (DexKitCache.initCache() && DexKitFinder.missingKeys().isEmpty()) {
+                    // initCache 的返回值只表示「有没有读出一份缓存」，不能当作
+                    // 「能否加载 hook」的前提。宿主若一个 DexKit 任务都没有
+                    // （当前微信即如此），缓存文件永远不会生成；照旧写法会一直走
+                    // doFind() 分支，而 doFind() 在「无缺失」时立刻返回 ——
+                    // 结果是 MainHook.loadHook() 永远不被调用，模块静默失效。
+                    DexKitCache.initCache()
+                    if (DexKitFinder.missingKeys().isEmpty()) {
                         MainHook.loadHook()
                     } else {
                         DexKitFinder.doFind()

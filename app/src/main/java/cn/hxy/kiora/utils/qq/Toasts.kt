@@ -15,9 +15,17 @@ object Toasts {
     }
 
     fun qqToast(icon: Int, message: String?) {
+        message ?: return
+        // QQToastUtil 是 QQ 专属类，微信等非 QQ 宿主没有，直接引用会抛
+        // NoClassDefFoundError（Error，catch Exception 接不住）。按宿主分流：
+        // 只有 QQ/TIM 才用 QQ 图标 Toast，其余走通用 [toast]。
+        if (HostInfo.isWeChat || !HostInfo.isInHostProcess) {
+            toast(message)
+            return
+        }
         try {
-            message?.let { QQToastUtil.showQQToastInUiThread(icon, it) }
-        } catch (_: Exception) {
+            QQToastUtil.showQQToastInUiThread(icon, message)
+        } catch (_: Throwable) {
         }
     }
 }

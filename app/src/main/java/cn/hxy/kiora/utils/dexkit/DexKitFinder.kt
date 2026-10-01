@@ -1,7 +1,6 @@
 package cn.hxy.kiora.utils.dexkit
 
 import android.content.Context
-import android.os.Bundle
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
@@ -9,17 +8,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
-import com.tencent.mobileqq.activity.SplashActivity
 import cn.hxy.kiora.common.ModuleScope
 import cn.hxy.kiora.generated.HookRegistry
+import cn.hxy.kiora.hook.base.BaseHookItem
 import cn.hxy.kiora.ui.components.dialogs.CenterDialogContainerNoButton
 import cn.hxy.kiora.ui.core.compatibility.KioraCenterDialog
 import cn.hxy.kiora.ui.core.theme.KioraTheme
 import cn.hxy.kiora.utils.hook.hookAfter
-import cn.hxy.kiora.utils.json.MessageTool
 import cn.hxy.kiora.utils.log.LogUtils
 import cn.hxy.kiora.utils.qq.AppRestartUtils
-import cn.hxy.kiora.utils.qq.MsgTool
+import cn.hxy.kiora.utils.qq.HostInfo
 import cn.hxy.kiora.utils.reflect.TAG
 import org.luckypray.dexkit.DexKitBridge
 import org.luckypray.dexkit.query.FindClass
@@ -36,9 +34,17 @@ object DexKitFinder {
      *
      * 查找与缺失检查必须共用同一份名单。两边各写一份的话，新增任务时很容易变成
      * 「查了却不认」或者「认了却从没查过」—— 后者正是「当前环境不可用」的来源。
+     *
+     * 名单必须按**当前宿主**收窄：hook 项走 `shouldLoad()`（宿主 + 进程双重闸门），
+     * 工具类任务由宿主适配器提供（QQ 是 MsgTool/MessageTool，微信暂为空）。
+     * 否则在微信里会拿 QQ 的特征去搜，全是必然失败的查询，只会刷满错误日志。
      */
     private fun allTasks(): List<DexKitTask> =
-        HookRegistry.hookItems.filterIsInstance<DexKitTask>() + MsgTool + MessageTool
+        HookRegistry.hookItems
+            .filterIsInstance<BaseHookItem>()
+            .filter { it.shouldLoad() }
+            .filterIsInstance<DexKitTask>() +
+            HostInfo.adapter?.dexKitTasks().orEmpty()
 
     /** 某个任务在缓存里占用的键，形如 `FakePhoneNumber->fillPhone`。 */
     private fun keysOf(task: DexKitTask): List<String> =
@@ -68,30 +74,36 @@ object DexKitFinder {
 
     @Suppress("DEPRECATION")
     private fun showFindDialog() {
-        SplashActivity::class.java
-            .getDeclaredMethod("doOnCreate", Bundle::class.java)
-            .hookAfter {
-                val context = it.thisObject as Context
+        // 主界面锚点由宿主适配器给出，不再写死 QQ 的 SplashActivity ——
+        // 微信包内没有该类，写死会让弹窗这一步必然失败。
+        val method = HostInfo.adapter?.mainUiAnchor?.resolveMethod()
+        if (method == null) {
+            LogUtils.w("$TAG 当前宿主未提供主界面锚点，跳过 DexKit 查找弹窗")
+            return
+        }
 
-                KioraCenterDialog(context) {
-                    CenterDialogContainerNoButton(title = "查找方法中") {
-                        val colors = KioraTheme.colors
-                        Text(
-                            text = progressText,
-                            fontSize = 15.sp,
-                            color = colors.textSecondary,
-                            lineHeight = 22.sp,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                }.apply {
-                    setCanceledOnTouchOutside(false)
-                    setCancelable(false)
-                    show()
+        method.hookAfter {
+            val context = it.thisObject as Context
+
+            KioraCenterDialog(context) {
+                CenterDialogContainerNoButton(title = "查找方法中") {
+                    val colors = KioraTheme.colors
+                    Text(
+                        text = progressText,
+                        fontSize = 15.sp,
+                        color = colors.textSecondary,
+                        lineHeight = 22.sp,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
-
-                startFind(context)
+            }.apply {
+                setCanceledOnTouchOutside(false)
+                setCancelable(false)
+                show()
             }
+
+            startFind(context)
+        }
     }
 
     private fun startFind(context: Context) {

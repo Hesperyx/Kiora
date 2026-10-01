@@ -56,7 +56,18 @@ class SettingViewModel : ViewModel() {
     }
 
 
+    /**
+     * 设置页要展示的功能项。
+     *
+     * 按当前宿主过滤：多宿主下，QQ 的功能不该出现在微信的设置页里，反之亦然。
+     * 适配器未装配时（理论上不会出现在宿主进程，但设置页另有入口）
+     * **不过滤** —— 宁可多显示，也不要把整个列表清空。
+     */
     private val allHookItems = MainHook.switchHookItemList
+        .let { items ->
+            if (HostInfo.adapter == null) items
+            else items.filter { it.isInTargetHost() }
+        }
 
     /**
      * 进入设置页时，各"重启生效"功能的开关与配置快照（见 [restartState]）。

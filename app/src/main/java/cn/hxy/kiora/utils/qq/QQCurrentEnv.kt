@@ -51,7 +51,7 @@ object QQCurrentEnv {
 
 
     val currentDir: String
-        get() = "${HostInfo.moduleDataPath}$currentUin/"
+        get() = "${HostInfo.moduleDataPath}${HostInfo.adapter?.currentAccount ?: currentUin}/"
 
     val currentUin: String
         get() = runCatching {

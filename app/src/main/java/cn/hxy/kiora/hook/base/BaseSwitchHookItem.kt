@@ -27,8 +27,15 @@ abstract class BaseSwitchHookItem : BaseHookItem() {
 
     fun init() {
         try {
+            // 先过宿主闸门再跑 onInit()：onInit() 通常要摸宿主特有的类，
+            // 在别的宿主里跑纯属白费力，还会刷一堆"类不存在"。
+            if (!isInTargetHost()) {
+                isAvailable = false
+                return
+            }
+
             isAvailable = onInit()
-            if (isAvailable && isInTargetProcess()) {
+            if (isAvailable && shouldLoad()) {
                 if (this is BaseClickableHookItem<*>) initData()
                 onHook()
             }
@@ -58,7 +65,7 @@ abstract class BaseSwitchHookItem : BaseHookItem() {
     companion object {
         val prefs: SharedPreferences
             get() = HostInfo.hostContext.getSharedPreferences(
-                "Kiora_Config_${QQCurrentEnv.currentUin}",
+                "Kiora_Config_${HostInfo.adapter?.currentAccount ?: QQCurrentEnv.currentUin}",
                 Context.MODE_MULTI_PROCESS
             )
 

@@ -18,6 +18,7 @@ import cn.hxy.kiora.ui.core.theme.KioraTheme
 import cn.hxy.kiora.ui.pages.settings.SettingsScreen
 import cn.hxy.kiora.ui.viewmodel.SettingViewModel
 import cn.hxy.kiora.utils.qq.AppRestartUtils
+import cn.hxy.kiora.utils.qq.HostInfo
 import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import cn.hxy.kiora.utils.qq.Toasts
 import java.text.SimpleDateFormat
@@ -100,7 +101,10 @@ class SettingActivity : BaseComposeActivity() {
 
     private fun startExportConfig() {
         val dateStr = SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault()).format(Date())
-        val fileName = "Kiora_Backup_${QQCurrentEnv.currentUin}_$dateStr.zip"
+        // 文件名带宿主账号：QQ 用 QQ 号、微信用微信号（adapter.currentAccount），
+        // 与配置文件层级一致；取不到账号再回退 QQ 的 currentUin。
+        val account = HostInfo.adapter?.currentAccount ?: QQCurrentEnv.currentUin
+        val fileName = "Kiora_Backup_${account}_$dateStr.zip"
         
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)

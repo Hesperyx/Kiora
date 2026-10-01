@@ -30,5 +30,21 @@ abstract class BaseHookItem {
         return currentProcess == "${HostInfo.packageName}$target"
     }
 
+    /**
+     * 本 hook 是否应在当前宿主生效。
+     *
+     * 依据 [HookItemAnnotation.hosts] 判定：注解缺失或 hosts 为空视为不限宿主。
+     * 适配器未装配时返回 false —— 宁可不加载，也不要误跑。
+     *
+     * 之所以需要这道门禁：`process` 为空串时 [isInTargetProcess] 会退化成
+     * 「主进程即命中」，若宿主换成微信，存量 QQ hook 会全部尝试执行。
+     */
+    fun isInTargetHost(): Boolean {
+        val hosts = annotation?.hosts ?: return true
+        if (hosts.isEmpty()) return true
+        return HostInfo.adapter?.matchesTag(hosts) ?: false
+    }
 
+    /** 加载门禁：宿主与进程须同时命中。所有加载路径都应走这里。 */
+    fun shouldLoad(): Boolean = isInTargetHost() && isInTargetProcess()
 }

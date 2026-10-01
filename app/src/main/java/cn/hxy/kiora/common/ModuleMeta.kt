@@ -13,8 +13,18 @@ object ModuleMeta {
     /** 适配的 TIM 最低版本（旧版架构，仅部分兼容）。 */
     const val ADAPTED_TIM_VERSION = "4.0.95"
 
-    /** 开发基线版本：新增功能主要基于该版本开发。 */
-    const val DEV_BASELINE_VERSION = "9.3.70"
+    /** 适配的微信版本（8.0.78 arm64 已真机验证）。 */
+    const val ADAPTED_WECHAT_VERSION = "8.0.78"
+
+    /**
+     * 开发者头像（在线加载，不打包进 APK）。
+     *
+     * QQ 头像 CDN 直链，`s=640` 取 640×640 原图，显示端缩到 60dp。
+     */
+    val developerAvatars = listOf(
+        "https://q1.qlogo.cn/g?b=qq&nk=551234445&s=640",
+        "https://q1.qlogo.cn/g?b=qq&nk=2962772241&s=640"
+    )
 
     /** 模块用到的开源项目（顺序同 README 致谢表）。 */
     val ossCredits = listOf(
@@ -25,6 +35,7 @@ object ModuleMeta {
         "AndroidLiquidGlass",
         "BeanShell",
         "QAuxiliary",
-        "TCQT"
+        "TCQT",
+        "WAuxiliary"
     )
 }

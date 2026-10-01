@@ -153,6 +153,19 @@ fun Class<*>.findMethods(block: MethodSearcher.() -> Unit): List<Method> {
 class FieldSearcher(private val ownerClass: Class<*>) {
     var name: String? = null
     var type: Class<*>? = null
+
+    /**
+     * 按**类型名字符串**匹配，与 [type] 互为补充。
+     *
+     * 为什么需要它：宿主里大量类型没有编译期桩（微信侧的
+     * `com.tencent.mm.api.IEmojiInfo` 就是），拿不到 `Class<*>` 就没法用 [type]。
+     * 而字段名每次混淆都换，「按类型名找」才是跨版本站得住的判据。
+     *
+     * 匹配规则：字段**声明类型**的名字相等，或其父类/接口链上有同名类型
+     * （后者用于字段声明成实现类、但按接口名来找的场景）。
+     */
+    var typeName: String? = null
+
     var isStatic: Boolean? = null
     var visibility: Visibility? = null
     var inParent: Class<*>? = null
@@ -164,6 +177,7 @@ class FieldSearcher(private val ownerClass: Class<*>) {
             append(targetClass.name).append("#F")
             append(name ?: "*")
             append(type?.name ?: "*")
+            append(typeName ?: "*")
             isStatic?.let { append(if (it) ":static" else ":instance") }
             visibility?.let { append(":$it") }
         }
@@ -203,6 +217,7 @@ fun Class<*>.findField(block: FieldSearcher.() -> Unit): Field {
 
 private fun checkField(field: Field, searcher: FieldSearcher): Boolean {
     if (searcher.type != null && !searcher.type!!.isCompatibleWith(field.type)) return false
+    if (searcher.typeName != null && !field.type.matchesTypeName(searcher.typeName!!)) return false
     if (searcher.isStatic != null && Modifier.isStatic(field.modifiers) != searcher.isStatic) return false
 
     if (searcher.visibility != null) {
@@ -218,4 +233,13 @@ private fun checkField(field: Field, searcher: FieldSearcher): Boolean {
         if (!isMatch) return false
     }
     return true
+}
+
+/** [FieldSearcher.typeName] 的匹配实现：声明类型自身、其父类链、其接口链任一命中即可。 */
+private fun Class<*>.matchesTypeName(expected: String): Boolean {
+    if (name == expected) return true
+    if (generateSequence(superclass) { it.superclass }.any { it.name == expected }) return true
+    return generateSequence(this) { it.superclass }
+        .flatMap { it.interfaces.asSequence() }
+        .any { it.matchesTypeName(expected) }
 }

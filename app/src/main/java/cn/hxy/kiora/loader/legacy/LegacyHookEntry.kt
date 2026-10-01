@@ -6,8 +6,8 @@ import de.robv.android.xposed.IXposedHookZygoteInit
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 import cn.hxy.kiora.BuildConfig
 import cn.hxy.kiora.common.ModuleLoader
+import cn.hxy.kiora.host.HostAdapters
 import cn.hxy.kiora.loader.hookapi.HookEngineManager
-import cn.hxy.kiora.utils.qq.HostInfo
 
 @Keep
 class LegacyHookEntry : IXposedHookLoadPackage, IXposedHookZygoteInit {
@@ -25,7 +25,7 @@ class LegacyHookEntry : IXposedHookLoadPackage, IXposedHookZygoteInit {
             LegacyHookStatusInit.init(lpparam.classLoader)
         }
 
-        if (packageName == HostInfo.PACKAGE_NAME_QQ || packageName == HostInfo.PACKAGE_NAME_TIM) {
+        if (HostAdapters.isLoadable(packageName)) {
             
             if (HookEngineManager.isInitialized) return
 

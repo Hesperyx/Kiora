@@ -6,6 +6,10 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 
+import java.util.Collections;
+import java.util.List;
+
+import cn.hxy.kiora.host.IHostAdapter;
 import cn.hxy.kiora.utils.qq.HostInfo;
 
 public class CounterfeitActivityInfoFactory {
@@ -14,8 +18,14 @@ public class CounterfeitActivityInfoFactory {
         try {
             Context ctx = HostInfo.INSTANCE.getHostContext();
             Class<?> cl = Class.forName(className);
-            String[] candidates = new String[]{"com.tencent.mobileqq.activity.QQSettingSettingActivity",
-                    "com.tencent.mobileqq.activity.QPublicFragmentActivity"};
+
+            // 模板 Activity 由宿主适配器给出，不再写死 QQ 的两个类名 ——
+            // 微信包内不存在 com.tencent.mobileqq.*，写死会让查询必定抛异常。
+            IHostAdapter adapter = HostInfo.INSTANCE.getAdapter();
+            List<String> candidates = adapter == null
+                    ? Collections.<String>emptyList()
+                    : adapter.getCounterfeitCandidates();
+
             PackageManager.NameNotFoundException last = null;
             for (String activityName : candidates) {
                 try {
@@ -28,7 +38,9 @@ public class CounterfeitActivityInfoFactory {
                     last = e;
                 }
             }
-            throw new IllegalStateException("QQSettingSettingActivity not found, are we in the host?", last);
+            throw new IllegalStateException(
+                    "no counterfeit ActivityInfo template found in " + ctx.getPackageName()
+                            + " (candidates=" + candidates + ")", last);
         } catch (ClassNotFoundException e) {
             return null;
         }
@@ -46,4 +58,3 @@ public class CounterfeitActivityInfoFactory {
         return ai;
     }
 }
-
