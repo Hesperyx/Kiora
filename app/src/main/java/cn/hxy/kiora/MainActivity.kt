@@ -17,16 +17,18 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.launch
+import cn.hxy.kiora.host.HostAdapters
 import cn.hxy.kiora.ui.components.dialogs.ConfirmDialog
 import cn.hxy.kiora.ui.core.theme.KioraTheme
+import cn.hxy.kiora.ui.pages.home.ActivationState
+import cn.hxy.kiora.ui.pages.home.HostActivation
 import cn.hxy.kiora.ui.pages.home.MainScreen
 import cn.hxy.kiora.utils.hook.hookstatus.HookStatus
-import cn.hxy.kiora.utils.qq.HostInfo
 
 @Suppress("DEPRECATION")
 class MainActivity : ComponentActivity() {
 
-    private var isActivated by mutableStateOf(false)
+    private var activations by mutableStateOf<List<HostActivation>>(emptyList())
     private var frameworkInfo by mutableStateOf("")
     private var isIconVisible by mutableStateOf(true)
     private var showHideConfirmDialog by mutableStateOf(false)
@@ -37,6 +39,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        // 浅色主题下固定深色状态栏图标，保证系统栏文字可读。
+        WindowCompat.getInsetsController(window, window.decorView).isAppearanceLightStatusBars = true
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
 
         HookStatus.init(this)
@@ -55,7 +59,7 @@ class MainActivity : ComponentActivity() {
                 MainScreen(
                     BuildConfig.VERSION_NAME,
                     BuildConfig.VERSION_CODE,
-                    isActivated,
+                    activations,
                     frameworkInfo,
                     isIconVisible,
                     ::handleToggleIcon,
@@ -98,30 +102,38 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun updateActivationStatus() {
-        isActivated = checkHookStatus()
+        activations = buildActivations()
         updateFrameworkInfo()
     }
 
-    private fun checkHookStatus(): Boolean {
-        val isEnabledByLegacyApi = HookStatus.isModuleEnabled() || HostInfo.isInHostProcess
-        val isEnabledByLibXposedApi = checkLibXposedStatus()
-        return isEnabledByLegacyApi || isEnabledByLibXposedApi
-    }
-
-    private fun checkLibXposedStatus(): Boolean {
-        val xposedService = HookStatus.getXposedService().value ?: return false
-        val targetScope = setOf(HostInfo.PACKAGE_NAME_QQ, HostInfo.PACKAGE_NAME_TIM)
-        return xposedService.scope.intersect(targetScope).isNotEmpty()
+    /**
+     * 逐宿主算激活状态。
+     *
+     * 唯一能区分宿主的信号是 LSPosed 作用域（`XposedService.scope`）：里面
+     * 有哪个宿主的包名，就说明该宿主被勾选了作用域。框架不提供该服务时
+     * （Taichi / 老 EdXposed / 部分 LSPatch）拿不到 scope，整列显示「未知」，
+     * 不做猜测。
+     */
+    private fun buildActivations(): List<HostActivation> {
+        val scope = HookStatus.getXposedService().value?.scope
+        return HostAdapters.all.map { adapter ->
+            HostActivation(
+                adapter.displayName,
+                when {
+                    scope == null -> ActivationState.UNKNOWN
+                    adapter.scopePackages.any { it in scope } -> ActivationState.ACTIVE
+                    else -> ActivationState.INACTIVE
+                }
+            )
+        }
     }
 
     private fun updateFrameworkInfo() {
-        if (!isActivated) {
-            frameworkInfo = HookStatus.getHookProviderNameForLegacyApi()
-            return
+        val service = HookStatus.getXposedService().value
+        frameworkInfo = if (service != null) {
+            "${service.frameworkName} ${service.frameworkVersion} (${service.frameworkVersionCode}), API ${service.apiVersion}"
+        } else {
+            HookStatus.getHookProviderNameForLegacyApi()
         }
-        val xposedService = HookStatus.getXposedService().value
-        frameworkInfo = if (xposedService != null) {
-            "${xposedService.frameworkName} ${xposedService.frameworkVersion} (${xposedService.frameworkVersionCode}), API ${xposedService.apiVersion}"
-        } else HookStatus.getHookProviderNameForLegacyApi()
     }
 }
