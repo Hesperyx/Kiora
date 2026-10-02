@@ -40,13 +40,7 @@ class CrashActivity : BaseComposeActivity() {
         }
     }
 
-    /**
-     * 重启宿主。
-     *
-     * 与 [SettingActivity.confirmRestart] 同理：本 Activity 也在宿主进程内由
-     * [cn.hxy.kiora.lifecycle.Parasitics] 实例化，故按当前宿主分发重启通路，
-     * 不直接复用 QQ 的实现。
-     */
+    /** 重启宿主；同 [SettingActivity]，按当前宿主分发通路。 */
     private fun restartApp() {
         HostInfo.adapter?.restartHost(this, "恢复中...")
     }

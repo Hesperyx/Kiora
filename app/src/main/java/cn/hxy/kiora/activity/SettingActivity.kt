@@ -154,14 +154,7 @@ class SettingActivity : BaseComposeActivity() {
     private fun openUrl(url: String) =
         runCatching { startActivity(Intent(Intent.ACTION_VIEW, url.toUri())) }
 
-    /**
-     * 保存并重启宿主。
-     *
-     * 走 adapter 分发，**不直接调** `utils/qq/AppRestartUtils`：本 Activity 由
-     * [cn.hxy.kiora.lifecycle.Parasitics] 在**宿主进程内**实例化（清单里没声明它，
-     * 只有组件包名被换成宿主包名才过得了 AMS），所以 `HostInfo.adapter` 必然已装配。
-     * QQ 系宿主重启走自带的重启加载页，微信没有对应 Activity，得走微信自己的通路。
-     */
+    /** 保存并重启宿主。本 Activity 由 Parasitics 在宿主进程内实例化，故按 adapter 分发。 */
     private fun confirmRestart() {
         HostInfo.adapter?.restartHost(this)
     }

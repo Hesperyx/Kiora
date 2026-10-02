@@ -135,18 +135,9 @@ interface IHostAdapter {
     fun dexKitTasks(): List<DexKitTask>
 
     /**
-     * 重启宿主应用。
+     * 重启宿主应用。各宿主通路不通用，由适配器各自实现，不做共享。
      *
-     * 各宿主的重启通路**互不通用**，所以由适配器各自实现、不做共享：
-     * - QQ / TIM：宿主自带重启加载页，可带截图与提示（`utils/qq/AppRestartUtils`）；
-     * - 微信：清单里没有任何重启/重新加载类 Activity，只能「拉起入口 + 结束进程」
-     *   （`utils/wx/WxRestartUtils`）。
-     *
-     * 调用点都在宿主进程内（DexKit 首轮查找完成、模块被覆盖安装），
-     * 此时 [cn.hxy.kiora.utils.qq.HostInfo.adapter] 一定已装配。
-     *
-     * @param tipText 重启期间展示给用户的提示。QQ 显示在重启加载页上，
-     *   微信没有加载页，改为弹 Toast。
+     * @param tipText 重启期间的提示；QQ 显示在重启加载页上，微信弹 Toast。
      */
     fun restartHost(context: Context, tipText: String = "重启中...")
 

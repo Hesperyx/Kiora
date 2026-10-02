@@ -136,8 +136,7 @@ object DexKitFinder {
             progressText = "查找完成，保存并重启应用"
             DexKitCache.saveCache()
             ModuleScope.launchMain {
-                // 重启通路各宿主不通用，交给 adapter 分发：QQ 走重启加载页，
-                // 微信没有对应 Activity，走它自己的「拉起入口 + 结束进程」。
+                // 重启通路各宿主不通用，交给 adapter 分发
                 val adapter = HostInfo.adapter
                 if (adapter == null) {
                     LogUtils.w("$TAG 宿主适配器缺失，无法重启应用")

@@ -17,7 +17,7 @@ object ModuleUpdateMonitor {
             if (intent.action == Intent.ACTION_PACKAGE_REPLACED) {
                 val packageName = intent.data?.schemeSpecificPart ?: return
                 if (packageName == BuildConfig.APPLICATION_ID) {
-                    // 重启通路各宿主不通用，交给 adapter 分发（见 IHostAdapter.restartHost）。
+                    // 重启通路各宿主不通用，交给 adapter 分发
                     HostInfo.adapter?.restartHost(context, "模块更新中...")
                 }
             }
