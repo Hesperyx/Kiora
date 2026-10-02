@@ -1,5 +1,6 @@
 package cn.hxy.kiora.hook.social
 
+import cn.hxy.kiora.host.HostEnv
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -17,7 +18,6 @@ import cn.hxy.kiora.utils.hook.hookReplace
 import cn.hxy.kiora.utils.hook.invokeOriginal
 import cn.hxy.kiora.utils.hook.returnConstant
 import cn.hxy.kiora.host.HostInfo
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import cn.hxy.kiora.utils.reflect.findMethod
 import cn.hxy.kiora.utils.reflect.toClass
 import java.lang.reflect.Method
@@ -58,7 +58,7 @@ object MultiOnlineNudge : BaseSwitchHookItem() {
     }
 
     private fun showDialog(param: Chain) {
-        val activity = QQCurrentEnv.activity ?: return
+        val activity = HostEnv.activity ?: return
 
         KioraCenterDialog(activity) { dismiss ->
             var count by remember { mutableStateOf("1") }

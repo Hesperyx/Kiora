@@ -1,5 +1,6 @@
 package cn.hxy.kiora.hook.chat
 
+import cn.hxy.kiora.host.HostEnv
 import android.annotation.SuppressLint
 import android.net.Uri
 import android.text.Spannable
@@ -15,7 +16,6 @@ import cn.hxy.kiora.hook.base.BaseSwitchHookItem
 import cn.hxy.kiora.utils.dexkit.DexKitTask
 import cn.hxy.kiora.utils.hook.hookAfter
 import cn.hxy.kiora.host.HostInfo
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import cn.hxy.kiora.utils.reflect.findMethod
 import cn.hxy.kiora.utils.reflect.instance
 import org.luckypray.dexkit.query.FindClass
@@ -86,7 +86,7 @@ object MixedEmoAndText : BaseSwitchHookItem(), SendMsgListener, DexKitTask {
 
     @SuppressLint("DiscouragedApi")
     private fun getInputEdit() = runCatching {
-        val activity = QQCurrentEnv.activity ?: return@runCatching null
+        val activity = HostEnv.activity ?: return@runCatching null
         activity.findViewById<EditText>(
             activity.resources.getIdentifier(
                 "input",

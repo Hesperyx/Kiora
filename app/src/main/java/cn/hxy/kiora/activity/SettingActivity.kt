@@ -1,5 +1,6 @@
 package cn.hxy.kiora.activity
 
+import cn.hxy.kiora.host.HostEnv
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -18,8 +19,7 @@ import cn.hxy.kiora.ui.core.theme.KioraTheme
 import cn.hxy.kiora.ui.pages.settings.SettingsScreen
 import cn.hxy.kiora.ui.viewmodel.SettingViewModel
 import cn.hxy.kiora.host.HostInfo
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
-import cn.hxy.kiora.utils.qq.Toasts
+import cn.hxy.kiora.utils.ui.Toasts
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -102,7 +102,7 @@ class SettingActivity : BaseComposeActivity() {
         val dateStr = SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault()).format(Date())
         // 文件名带宿主账号：QQ 用 QQ 号、微信用微信号（adapter.currentAccount），
         // 与配置文件层级一致；取不到账号再回退 QQ 的 currentUin。
-        val account = HostInfo.adapter?.currentAccount ?: QQCurrentEnv.currentUin
+        val account = HostInfo.adapter?.currentAccount ?: HostEnv.currentAccount
         val fileName = "Kiora_Backup_${account}_$dateStr.zip"
         
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
@@ -137,8 +137,8 @@ class SettingActivity : BaseComposeActivity() {
     private fun handleImagePick(uri: Uri) {
         runCatching {
             RepeatMsg.bitmap = MediaStore.Images.Media.getBitmap(contentResolver, uri)
-            Toasts.qqToast(2, "加一图标导入成功")
-        }.onFailure { Toasts.qqToast(1, "加一图标导入失败") }
+            Toasts.iconToast(2, "加一图标导入成功")
+        }.onFailure { Toasts.iconToast(1, "加一图标导入失败") }
     }
 
     private fun performExport(uri: Uri) {

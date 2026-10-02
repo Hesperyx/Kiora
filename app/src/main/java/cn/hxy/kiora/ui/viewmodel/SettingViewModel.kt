@@ -20,7 +20,7 @@ import cn.hxy.kiora.ui.pages.settings.FunctionData
 import cn.hxy.kiora.utils.io.BackupManager
 import cn.hxy.kiora.utils.net.UpdateManager
 import cn.hxy.kiora.host.HostInfo
-import cn.hxy.kiora.utils.qq.Toasts
+import cn.hxy.kiora.utils.ui.Toasts
 
 class SettingViewModel : ViewModel() {
 
@@ -205,8 +205,8 @@ class SettingViewModel : ViewModel() {
     fun performExport(context: Context, uri: Uri) {
         viewModelScope.launch {
             BackupManager.performExport(context, uri).fold(
-                onSuccess = { Toasts.qqToast(2, "备份导出成功") },
-                onFailure = { Toasts.qqToast(1, "导出失败: ${it.message}") }
+                onSuccess = { Toasts.iconToast(2, "备份导出成功") },
+                onFailure = { Toasts.iconToast(1, "导出失败: ${it.message}") }
             )
         }
     }
@@ -216,9 +216,9 @@ class SettingViewModel : ViewModel() {
             BackupManager.performImport(context, uri).fold(
                 onSuccess = {
                     refreshCategories()
-                    Toasts.qqToast(2, "配置导入成功")
+                    Toasts.iconToast(2, "配置导入成功")
                 },
-                onFailure = { Toasts.qqToast(1, "导入失败: ${it.message}") }
+                onFailure = { Toasts.iconToast(1, "导入失败: ${it.message}") }
             )
         }
     }

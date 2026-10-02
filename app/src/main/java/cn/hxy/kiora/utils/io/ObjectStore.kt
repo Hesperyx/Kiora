@@ -1,9 +1,9 @@
 package cn.hxy.kiora.utils.io
 
+import cn.hxy.kiora.host.HostEnv
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import java.io.File
 
 object ObjectStore {
@@ -15,7 +15,7 @@ object ObjectStore {
     }
 
     fun <T : Any> save(dir: String, fileName: String, obj: T, serializer: KSerializer<T>): Boolean {
-        val file = File("${QQCurrentEnv.currentDir}$dir", fileName)
+        val file = File("${HostEnv.currentDir}$dir", fileName)
         return save(file, obj, serializer)
     }
 
@@ -28,7 +28,7 @@ object ObjectStore {
     }
 
     fun <T : Any> load(dir: String, fileName: String, serializer: KSerializer<T>): T? {
-        val file = File("${QQCurrentEnv.currentDir}$dir", fileName)
+        val file = File("${HostEnv.currentDir}$dir", fileName)
         return load(file, serializer)
     }
 

@@ -1,5 +1,6 @@
 package cn.hxy.kiora.hook.chat
 
+import cn.hxy.kiora.host.HostEnv
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.view.View
@@ -21,7 +22,7 @@ import cn.hxy.kiora.ui.pages.configs.RepeatMsgPage
 import cn.hxy.kiora.utils.hook.hookAfter
 import cn.hxy.kiora.utils.io.FileUtils
 import cn.hxy.kiora.utils.qq.QQCurrentEnv
-import cn.hxy.kiora.utils.qq.Toasts
+import cn.hxy.kiora.utils.ui.Toasts
 import cn.hxy.kiora.utils.reflect.callMethod
 import cn.hxy.kiora.utils.reflect.findMethod
 import cn.hxy.kiora.utils.reflect.getObjectByType
@@ -147,7 +148,7 @@ object RepeatMsg : BaseClickableHookItem<RepeatConfig>(RepeatConfig.serializer()
     }
 
     override fun initData() {
-        val file = File("${QQCurrentEnv.currentDir}data/repeat")
+        val file = File("${HostEnv.currentDir}data/repeat")
         if (file.exists()) {
             bitmap = BitmapFactory.decodeFile(file.absolutePath)
         }
@@ -155,7 +156,7 @@ object RepeatMsg : BaseClickableHookItem<RepeatConfig>(RepeatConfig.serializer()
     }
 
     override fun saveData() {
-        val file = File("${QQCurrentEnv.currentDir}data/repeat")
+        val file = File("${HostEnv.currentDir}data/repeat")
         if (FileUtils.ensureFile(file)) {
             FileOutputStream(file).use {
                 bitmap?.compress(Bitmap.CompressFormat.PNG, 100, it)

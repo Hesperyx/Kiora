@@ -1,12 +1,12 @@
 package cn.hxy.kiora.hook.chat
 
+import cn.hxy.kiora.host.HostEnv
 import com.tencent.qqnt.kernel.nativeinterface.MsgAttributeInfo
 import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
 import cn.hxy.kiora.annotation.HookCategory
 import cn.hxy.kiora.annotation.HookItemAnnotation
 import cn.hxy.kiora.hook.api.GetMsgRecordListener
 import cn.hxy.kiora.hook.base.BaseSwitchHookItem
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
 
 @HookItemAnnotation(
     "默认气泡和字体",
@@ -16,7 +16,7 @@ import cn.hxy.kiora.utils.qq.QQCurrentEnv
 object DefaultBubbleAndFont : BaseSwitchHookItem(), GetMsgRecordListener {
 
     override fun onGet(msgRecord: MsgRecord) {
-        if (msgRecord.senderUin != QQCurrentEnv.currentUin.toLong())
+        if (msgRecord.senderUin != HostEnv.currentAccount.toLong())
             msgRecord.msgAttrs = HashMap<Int, MsgAttributeInfo>()
 
     }

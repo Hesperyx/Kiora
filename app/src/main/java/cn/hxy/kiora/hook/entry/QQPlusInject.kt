@@ -1,5 +1,6 @@
 package cn.hxy.kiora.hook.entry
 
+import cn.hxy.kiora.host.HostEnv
 import android.annotation.SuppressLint
 import android.content.Intent
 import com.tencent.widget.PopupMenuDialog
@@ -14,7 +15,6 @@ import cn.hxy.kiora.hook.base.BaseApiHookItem
 import cn.hxy.kiora.hook.base.Listener
 import cn.hxy.kiora.utils.hook.hookBefore
 import cn.hxy.kiora.host.HostInfo
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import cn.hxy.kiora.utils.reflect.findMethod
 
 @HookItemAnnotation("QQ加号入口")
@@ -41,7 +41,7 @@ object QQPlusInject : BaseApiHookItem<Listener>() {
                 name = "conversationPlusBuild"
             }.hookBefore(this) { param ->
 
-                val activity = QQCurrentEnv.activity ?: return@hookBefore
+                val activity = HostEnv.activity ?: return@hookBefore
                 val menuItemList = param.args[1] as MutableList<MenuItem>
 
                 menuItemList.apply {

@@ -1,5 +1,6 @@
 package cn.hxy.kiora.hook.wx
 
+import cn.hxy.kiora.host.HostEnv
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
@@ -22,7 +23,6 @@ import cn.hxy.kiora.utils.hook.hookAfter
 import cn.hxy.kiora.utils.hook.hookBefore
 import cn.hxy.kiora.utils.hook.hookReplace
 import cn.hxy.kiora.utils.log.LogUtils
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import cn.hxy.kiora.utils.reflect.findMethodOrNull
 import cn.hxy.kiora.utils.reflect.toClass
 import cn.hxy.kiora.utils.wx.WeChatDexKit
@@ -207,7 +207,7 @@ object WxLocation : BaseClickableHookItem<WxLocationConfig>(WxLocationConfig.ser
      * 比崩掉好，而且用户重开一次即可。
      */
     fun openMapPicker() {
-        val activity = QQCurrentEnv.activity ?: run {
+        val activity = HostEnv.activity ?: run {
             LogUtils.w("$name 拿不到顶层 Activity，无法打开地图选点")
             return
         }

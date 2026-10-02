@@ -1,5 +1,6 @@
 package cn.hxy.kiora.hook.chat
 
+import cn.hxy.kiora.host.HostEnv
 import android.view.View
 import android.widget.LinearLayout
 import com.tencent.mobileqq.aio.msg.AIOMsgItem
@@ -17,8 +18,7 @@ import cn.hxy.kiora.utils.hook.hookAfter
 import cn.hxy.kiora.utils.log.LogUtils
 import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.qq.MsgTool
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
-import cn.hxy.kiora.utils.qq.Toasts
+import cn.hxy.kiora.utils.ui.Toasts
 import cn.hxy.kiora.utils.reflect.findMethod
 import cn.hxy.kiora.utils.reflect.getObject
 import cn.hxy.kiora.utils.reflect.instance
@@ -132,15 +132,15 @@ object MultiRecall : BaseSwitchHookItem(), DexKitTask {
                     if (size > 10) delay(300.milliseconds)
                 }
             }
-            Toasts.qqToast(2, "开始撤回 $size 条消息...")
+            Toasts.iconToast(2, "开始撤回 $size 条消息...")
 
 
         } catch (t: Throwable) {
             LogUtils.e(this, t)
-            Toasts.qqToast(1, "批量撤回失败: ${t.message}")
+            Toasts.iconToast(1, "批量撤回失败: ${t.message}")
         }
 
-        QQCurrentEnv.activity?.onBackPressed()
+        HostEnv.activity?.onBackPressed()
 
     }
 

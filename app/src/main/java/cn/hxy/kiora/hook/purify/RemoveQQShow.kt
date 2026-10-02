@@ -1,11 +1,11 @@
 package cn.hxy.kiora.hook.purify
 
+import cn.hxy.kiora.host.HostEnv
 import cn.hxy.kiora.annotation.HookCategory
 import cn.hxy.kiora.annotation.HookItemAnnotation
 import cn.hxy.kiora.hook.base.BaseSwitchHookItem
 import cn.hxy.kiora.utils.hook.hookAfter
 import cn.hxy.kiora.host.HostInfo
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import cn.hxy.kiora.utils.reflect.toClass
 
 @HookItemAnnotation(
@@ -25,7 +25,7 @@ object RemoveQQShow : BaseSwitchHookItem() {
                 Long::class.java
             )
             .hookAfter(this) {
-                if (it.args[0] != QQCurrentEnv.currentUin.toLong()) it.result = false
+                if (it.args[0] != HostEnv.currentAccount.toLong()) it.result = false
             }
     }
 }

@@ -1,5 +1,6 @@
 package cn.hxy.kiora.plugin.loader
 
+import cn.hxy.kiora.host.HostEnv
 import kotlinx.coroutines.delay
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
@@ -9,7 +10,6 @@ import cn.hxy.kiora.utils.reflect.TAG
 import cn.hxy.kiora.utils.io.FileUtils
 import cn.hxy.kiora.utils.io.ObjectStore
 import cn.hxy.kiora.utils.log.PluginError
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import java.io.File
 
 object PluginManager {
@@ -18,7 +18,7 @@ object PluginManager {
     private val listSerializer = ListSerializer(String.serializer())
 
     private val pluginDir: File
-        get() = File(QQCurrentEnv.currentDir, "plugin").apply { mkdirs() }
+        get() = File(HostEnv.currentDir, "plugin").apply { mkdirs() }
 
     private const val DEFAULT_DESC = "这是一个自动生成的示例脚本。"
     private val DEFAULT_CODE = """
@@ -188,7 +188,7 @@ object PluginManager {
     }
 
     fun installPluginFromZip(zipFile: File): String? {
-        val tempDir = File(QQCurrentEnv.currentDir, "cache/temp_install_${System.currentTimeMillis()}")
+        val tempDir = File(HostEnv.currentDir, "cache/temp_install_${System.currentTimeMillis()}")
         try {
             if (!FileUtils.unzip(zipFile, tempDir)) {
                 return "解压失败"
@@ -210,7 +210,7 @@ object PluginManager {
                     oldPlugin.compiler.stop(true)
                 }
                 val oldConfigDir = File(finalTargetDir, "config")
-                val tempConfigBackup = File(QQCurrentEnv.currentDir, "cache/config_backup_${newInfo.id}")
+                val tempConfigBackup = File(HostEnv.currentDir, "cache/config_backup_${newInfo.id}")
                 if (oldConfigDir.exists()) {
                     FileUtils.copy(oldConfigDir, tempConfigBackup)
                 }

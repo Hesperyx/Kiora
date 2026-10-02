@@ -1,5 +1,6 @@
 package cn.hxy.kiora.hook.msg
 
+import cn.hxy.kiora.host.HostEnv
 import android.graphics.Color
 import android.widget.FrameLayout
 import android.widget.TextView
@@ -24,7 +25,6 @@ import cn.hxy.kiora.utils.log.LogUtils
 import cn.hxy.kiora.utils.qq.FriendTool
 import cn.hxy.kiora.utils.qq.MsgTool
 import cn.hxy.kiora.utils.qq.NtGrayTipJsonBuilder
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import cn.hxy.kiora.utils.qq.TroopTool
 import cn.hxy.kiora.utils.reflect.findMethod
 import top.artmoe.inao.entries.InfoSyncPushOuterClass
@@ -187,7 +187,7 @@ object AntiRevoke : BaseSwitchHookItem(), AIOViewUpdateListener {
         if (isTimeExpired(msgTime)) return
         if (isAlreadyRevoked(groupPeerId, msgSeq)) return
 
-        val selfUid = FriendTool.getUidFromUin(QQCurrentEnv.currentUin)
+        val selfUid = FriendTool.getUidFromUin(HostEnv.currentAccount)
         if (operatorUid == selfUid) return
 
         recordRevoke(groupPeerId, msgSeq)
@@ -250,7 +250,7 @@ object AntiRevoke : BaseSwitchHookItem(), AIOViewUpdateListener {
         if (isTimeExpired(msgTime)) return
         if (isAlreadyRevoked(operatorUid, msgSeq)) return
 
-        val selfUid = FriendTool.getUidFromUin(QQCurrentEnv.currentUin)
+        val selfUid = FriendTool.getUidFromUin(HostEnv.currentAccount)
         if (operatorUid == selfUid) return
 
         recordRevoke(operatorUid, msgSeq)

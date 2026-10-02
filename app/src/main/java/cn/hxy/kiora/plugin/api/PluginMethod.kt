@@ -2,6 +2,7 @@
 
 package cn.hxy.kiora.plugin.api
 
+import cn.hxy.kiora.host.HostEnv
 import android.app.Activity
 import bsh.classpath.BshLoaderManager
 import com.tencent.mobileqq.data.troop.TroopInfo
@@ -20,8 +21,7 @@ import cn.hxy.kiora.utils.log.PluginError
 import cn.hxy.kiora.utils.qq.CookieTool
 import cn.hxy.kiora.utils.qq.FriendTool
 import cn.hxy.kiora.utils.qq.MsgTool
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
-import cn.hxy.kiora.utils.qq.Toasts
+import cn.hxy.kiora.utils.ui.Toasts
 import cn.hxy.kiora.utils.qq.TroopTool
 import cn.hxy.kiora.utils.reflect.ClassUtils
 import java.io.File
@@ -35,14 +35,14 @@ class PluginMethod(private val compiler: PluginCompiler) {
         FileUtils.writeText(File(compiler.info.dirPath, fileName), "$msg\n", true)
     }
 
-    fun getNowActivity(): Activity? = QQCurrentEnv.activity
+    fun getNowActivity(): Activity? = HostEnv.activity
 
     fun toast(msg: Any?) {
         Toasts.toast("$msg")
     }
 
     fun qqToast(icon: Int, msg: Any?) {
-        Toasts.qqToast(icon, "$msg")
+        Toasts.iconToast(icon, "$msg")
     }
 
     fun addItem(name: String, callback: String) {

@@ -1,5 +1,6 @@
 package cn.hxy.kiora.hook.msg
 
+import cn.hxy.kiora.host.HostEnv
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -33,7 +34,7 @@ import cn.hxy.kiora.utils.hook.invokeOriginal
 import cn.hxy.kiora.utils.json.ProtoData
 import cn.hxy.kiora.utils.log.LogUtils
 import cn.hxy.kiora.utils.qq.QQCurrentEnv
-import cn.hxy.kiora.utils.qq.Toasts
+import cn.hxy.kiora.utils.ui.Toasts
 import cn.hxy.kiora.utils.reflect.findMethod
 import org.json.JSONObject
 import java.lang.reflect.Method
@@ -97,12 +98,12 @@ object CustomRandomFace : BaseSwitchHookItem() {
         param: Chain
     ) {
         ModuleScope.launchMain {
-            val activity = QQCurrentEnv.activity ?: return@launchMain
+            val activity = HostEnv.activity ?: return@launchMain
 
             KioraCenterDialog(activity) { dismiss ->
                 CenterDialogContainerNoButton(title) {
                     SelectionList(values.toList()) { index ->
-                        Toasts.qqToast(2, "已发送: ${values[index]}")
+                        Toasts.iconToast(2, "已发送: ${values[index]}")
                         dismiss()
                         try {
                             if (index == 0) {
@@ -129,7 +130,7 @@ object CustomRandomFace : BaseSwitchHookItem() {
 
         val toServiceMsg = ToServiceMsg(
             "mobileqq.service",
-            QQCurrentEnv.currentUin,
+            HostEnv.currentAccount,
             "MessageSvc.PbSendMsg"
         )
 

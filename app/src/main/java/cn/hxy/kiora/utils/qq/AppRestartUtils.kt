@@ -1,5 +1,6 @@
 package cn.hxy.kiora.utils.qq
 
+import cn.hxy.kiora.host.HostEnv
 import android.app.Activity
 import android.app.ActivityManager
 import android.app.AlarmManager
@@ -25,7 +26,7 @@ object AppRestartUtils {
 
     private const val QQ_RESTART_ACTIVITY = "com.tencent.mobileqq.login.restart.MainProcessRestartLoadingActivity"
 
-    fun restartApp(context: Context = QQCurrentEnv.activity ?: HostInfo.hostContext, tipText: String = "重启中...") {
+    fun restartApp(context: Context = HostEnv.activity ?: HostInfo.hostContext, tipText: String = "重启中...") {
 
         val activity = context as? Activity
         killSubProcesses(context)

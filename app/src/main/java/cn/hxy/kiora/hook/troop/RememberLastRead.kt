@@ -1,5 +1,6 @@
 package cn.hxy.kiora.hook.troop
 
+import cn.hxy.kiora.host.HostEnv
 import android.widget.FrameLayout
 import com.tencent.mvi.base.route.MsgIntent
 import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
@@ -13,7 +14,6 @@ import cn.hxy.kiora.hook.base.BaseSwitchHookItem
 import cn.hxy.kiora.plugin.view.PluginViewLoader
 import cn.hxy.kiora.utils.hook.hookAfter
 import cn.hxy.kiora.utils.io.ObjectStore
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import cn.hxy.kiora.utils.reflect.findMethod
 import cn.hxy.kiora.utils.reflect.newInstanceWithArgs
 import cn.hxy.kiora.utils.reflect.toClass
@@ -76,7 +76,7 @@ object RememberLastRead : BaseSwitchHookItem(), AIOViewUpdateListener {
     }
 
     private fun isFromHistory(): Boolean {
-        val intent = QQCurrentEnv.activity?.intent ?: return false
+        val intent = HostEnv.activity?.intent ?: return false
         return intent.getStringExtra("preAct") == "NTChatHistoryActivity"
     }
 

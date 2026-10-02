@@ -1,5 +1,6 @@
 package cn.hxy.kiora.activity
 
+import cn.hxy.kiora.host.HostEnv
 import android.os.Bundle
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -46,8 +47,7 @@ import cn.hxy.kiora.ui.components.molecules.SearchTopBar
 import cn.hxy.kiora.ui.core.theme.KioraTheme
 import cn.hxy.kiora.utils.io.FileUtils
 import cn.hxy.kiora.host.HostInfo
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
-import cn.hxy.kiora.utils.qq.Toasts
+import cn.hxy.kiora.utils.ui.Toasts
 import cn.hxy.kiora.utils.ui.HighlightUtils
 import java.io.File
 import java.util.Locale
@@ -169,9 +169,9 @@ class StorageCleanActivity : BaseComposeActivity() {
                 try {
                     FileUtils.clearDir(File(path))
                     sizeMap[name] = 0L
-                    Toasts.qqToast(4, "已清理: $name")
+                    Toasts.iconToast(4, "已清理: $name")
                 } catch (e: Exception) {
-                    Toasts.qqToast(1, "清理失败: ${e.message}")
+                    Toasts.iconToast(1, "清理失败: ${e.message}")
                 } finally {
                     cleaningItem = null
                 }
@@ -312,7 +312,7 @@ class StorageCleanActivity : BaseComposeActivity() {
         return template
             .replace("%extra%", extra)
             .replace("%private%", private)
-            .replace("%uin%", QQCurrentEnv.currentUin)
+            .replace("%uin%", HostEnv.currentAccount)
     }
 
     private fun formatSize(bytes: Long): String {

@@ -83,7 +83,7 @@ import cn.hxy.kiora.ui.core.theme.AccentGreen
 import cn.hxy.kiora.ui.core.theme.AccentRed
 import cn.hxy.kiora.ui.core.theme.KioraTheme
 import cn.hxy.kiora.host.HostInfo
-import cn.hxy.kiora.utils.qq.Toasts
+import cn.hxy.kiora.utils.ui.Toasts
 import cn.hxy.kiora.utils.ui.CodeHighlighter
 
 /** 输入区与悬浮 Tab 之间留出的呼吸空间。 */
@@ -275,7 +275,7 @@ fun AgentPage(
                     val next = if (mode == AgentMode.QA) AgentMode.TASK else AgentMode.QA
                     onSelectMode(next)
                     // 切模式是个状态切换，给一句明确反馈，别让人猜点没点中
-                    Toasts.qqToast(0, "已切换到「${next.label}」模式")
+                    Toasts.iconToast(0, "已切换到「${next.label}」模式")
                 },
                 onSend = { text ->
                     onSendMessage(text)
@@ -2005,14 +2005,14 @@ private fun ManifestLine(name: String, content: String, blankHint: String) {
 
 private fun copyToClipboard(context: Context, text: String) {
     if (text.isBlank()) {
-        Toasts.qqToast(1, "当前文件为空")
+        Toasts.iconToast(1, "当前文件为空")
         return
     }
     runCatching {
         val cb = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         cb.setPrimaryClip(ClipData.newPlainText("KioraScript", text))
-        Toasts.qqToast(2, "已复制到剪贴板")
+        Toasts.iconToast(2, "已复制到剪贴板")
     }.onFailure {
-        Toasts.qqToast(1, "复制失败: ${it.message}")
+        Toasts.iconToast(1, "复制失败: ${it.message}")
     }
 }

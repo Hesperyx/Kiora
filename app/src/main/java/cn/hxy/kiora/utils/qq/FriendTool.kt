@@ -1,5 +1,6 @@
 package cn.hxy.kiora.utils.qq
 
+import cn.hxy.kiora.host.HostEnv
 import com.tencent.mobileqq.app.CardHandler
 import com.tencent.qqnt.ntrelation.friendsinfo.api.IFriendsInfoService
 import com.tencent.relation.common.api.IRelationNTUinAndUidApi
@@ -56,7 +57,7 @@ object FriendTool {
 
         sendZan.callOriginal(
             handler<CardHandler>(),
-            QQCurrentEnv.currentUin.toLong(),
+            HostEnv.currentAccount.toLong(),
             uin.toLong(),
             createRequestData(uin),
             if (isFriend(uin)) 1 else 5,

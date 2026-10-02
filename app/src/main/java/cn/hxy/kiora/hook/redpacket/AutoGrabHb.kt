@@ -1,5 +1,6 @@
 package cn.hxy.kiora.hook.redpacket
 
+import cn.hxy.kiora.host.HostEnv
 import androidx.compose.runtime.Composable
 import com.tencent.qqnt.kernel.nativeinterface.MsgElement
 import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
@@ -13,7 +14,6 @@ import cn.hxy.kiora.plugin.bean.MsgData
 import cn.hxy.kiora.plugin.bean.RedPacketContext
 import cn.hxy.kiora.ui.pages.configs.AutoGrabHbPage
 import cn.hxy.kiora.utils.log.LogUtils
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
 
 /**
  * 自动抢红包：监听接收消息，命中红包消息后自动抢。
@@ -54,7 +54,7 @@ object AutoGrabHb : BaseClickableHookItem<RedPacketConfig>(RedPacketConfig.seria
         // 专属红包（channel 1024）：只领取自己的，grapUin 首元素为指定收礼人 uin
         if (channel == 1024) {
             val specifyUin = walletElement.grapUin?.firstOrNull()?.toString()
-            if (specifyUin != QQCurrentEnv.currentUin) {
+            if (specifyUin != HostEnv.currentAccount) {
                 LogUtils.d("[RedPacket] 专属红包非指定收礼人（指定=$specifyUin），跳过")
                 return
             }

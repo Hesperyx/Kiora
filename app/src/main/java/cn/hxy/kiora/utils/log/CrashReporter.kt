@@ -1,8 +1,8 @@
 package cn.hxy.kiora.utils.log
 
+import cn.hxy.kiora.host.HostEnv
 import cn.hxy.kiora.utils.io.FileUtils
 import cn.hxy.kiora.host.HostInfo
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -25,7 +25,7 @@ object CrashReporter {
 
     fun generateReport(t: Thread, e: Throwable): CrashAnalysisResult {
         val baseDir = try {
-            QQCurrentEnv.currentDir
+            HostEnv.currentDir
         } catch (_: Exception) {
             if (HostInfo.moduleDataPath.isNotEmpty()) {
                 HostInfo.moduleDataPath + "global/"

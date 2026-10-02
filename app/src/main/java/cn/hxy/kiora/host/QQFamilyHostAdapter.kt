@@ -1,7 +1,10 @@
 package cn.hxy.kiora.host
 
+import cn.hxy.kiora.host.HostEnv
 import android.content.Context
 import android.os.Bundle
+import com.tencent.mobileqq.vas.theme.api.ThemeUtil
+import com.tencent.util.QQToastUtil
 import cn.hxy.kiora.utils.dexkit.DexKitTask
 import cn.hxy.kiora.utils.json.MessageTool
 import cn.hxy.kiora.utils.qq.AppRestartUtils
@@ -68,7 +71,7 @@ abstract class QQFamilyHostAdapter(
      * 存量用户的全部开关与配置都会读不到。故此处直接委托原有取值入口。
      */
     override val currentAccount: String
-        get() = QQCurrentEnv.currentUin
+        get() = HostEnv.currentAccount
 
     /** 改造前的常量原值，行为不变。 */
     override val stubActivityCandidates: List<String>
@@ -88,4 +91,14 @@ abstract class QQFamilyHostAdapter(
     override fun restartHost(context: Context, tipText: String) {
         AppRestartUtils.restartApp(context, tipText)
     }
+
+    /** QQ / TIM 有原生带图标 Toast。`QQToastUtil` 的引用只出现在这里。 */
+    override fun showIconToast(icon: Int, message: String): Boolean {
+        runCatching { QQToastUtil.showQQToastInUiThread(icon, message) }
+        return true
+    }
+
+    /** QQ / TIM 有原生夜间模式。`ThemeUtil` 的引用只出现在这里。 */
+    override fun hostNightMode(): Boolean? =
+        runCatching { ThemeUtil.isInNightMode(QQCurrentEnv.qQAppInterface) }.getOrNull()
 }

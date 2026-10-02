@@ -69,7 +69,7 @@ import cn.hxy.kiora.ui.components.molecules.TopBarMenuItem
 import cn.hxy.kiora.ui.core.theme.AccentGreen
 import cn.hxy.kiora.ui.core.theme.KioraTheme
 import cn.hxy.kiora.ui.viewmodel.PluginViewModel
-import cn.hxy.kiora.utils.qq.Toasts
+import cn.hxy.kiora.utils.ui.Toasts
 
 @Immutable
 data class LocalPluginData(
@@ -543,7 +543,7 @@ private fun PluginCreatedDialog(
                                     path
                                 )
                             )
-                            Toasts.qqToast(2, "路径已复制")
+                            Toasts.iconToast(2, "路径已复制")
                         }
                 ) {
                     Column(

@@ -6,7 +6,7 @@ import cn.hxy.kiora.common.ModuleScope
 import cn.hxy.kiora.hook.base.BaseSwitchHookItem
 import cn.hxy.kiora.utils.hook.hookAfter
 import cn.hxy.kiora.utils.log.LogUtils
-import cn.hxy.kiora.utils.qq.Toasts
+import cn.hxy.kiora.utils.ui.Toasts
 import cn.hxy.kiora.utils.reflect.ClassUtils
 import cn.hxy.kiora.utils.reflect.findMethodOrNull
 import com.tencent.mobileqq.mini.servlet.MiniAppSSOCmdHelper

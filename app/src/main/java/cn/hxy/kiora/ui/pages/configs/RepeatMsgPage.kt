@@ -1,5 +1,6 @@
 package cn.hxy.kiora.ui.pages.configs
 
+import cn.hxy.kiora.host.HostEnv
 import android.content.Intent
 import android.graphics.Bitmap
 import androidx.compose.animation.AnimatedVisibility
@@ -31,7 +32,6 @@ import cn.hxy.kiora.ui.components.listitems.SelectionItem
 import cn.hxy.kiora.ui.components.listitems.SwitchItem
 import cn.hxy.kiora.ui.components.scaffold.ConfigPageScaffold
 import cn.hxy.kiora.ui.core.theme.KioraTheme
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
 
 @Composable
 fun RepeatMsgPage(
@@ -40,7 +40,7 @@ fun RepeatMsgPage(
     onSave: (RepeatConfig) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val context = QQCurrentEnv.activity
+    val context = HostEnv.activity
     var tempConfig by remember(currentConfig) { mutableStateOf(currentConfig) }
     val colors = KioraTheme.colors
 

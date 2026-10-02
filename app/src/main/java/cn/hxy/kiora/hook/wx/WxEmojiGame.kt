@@ -1,5 +1,6 @@
 package cn.hxy.kiora.hook.wx
 
+import cn.hxy.kiora.host.HostEnv
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -28,7 +29,6 @@ import cn.hxy.kiora.utils.hook.hookAfter
 import cn.hxy.kiora.utils.hook.hookReplace
 import cn.hxy.kiora.utils.hook.invokeOriginal
 import cn.hxy.kiora.utils.log.LogUtils
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import cn.hxy.kiora.utils.wx.WeChatDexKit
 import cn.hxy.kiora.utils.wx.WeChatHookContracts
 import java.lang.reflect.Method
@@ -153,12 +153,12 @@ object WxEmojiGame : BaseSwitchHookItem() {
      * 列表首项固定是「随机」：它不写预设（[pending] 置空），原点击照常跑，
      * 出什么交回宿主；其余项写 `index - 1`（列表比 [names] 多出一个「随机」头）。
      *
-     * [QQCurrentEnv.activity] 只是沿用了类名：它读的是 ActivityThread 的
+     * [HostEnv.activity] 只是沿用了类名：它读的是 ActivityThread 的
      * `mActivities`，本身与宿主无关，微信侧同样可用。
      */
     private fun showChooser(title: String, names: List<String>, chain: Chain) {
         ModuleScope.launchMain {
-            val activity = QQCurrentEnv.activity
+            val activity = HostEnv.activity
             if (activity == null) {
                 // 拿不到界面就没有可弹的窗 —— 直接放行比静默吃掉点击好。
                 resume(chain)

@@ -1,5 +1,6 @@
 package cn.hxy.kiora.utils.qq
 
+import cn.hxy.kiora.host.HostEnv
 import com.tencent.mobileqq.paiyipai.PaiYiPaiHandler
 import com.tencent.qqnt.kernel.nativeinterface.IKernelMsgService
 import com.tencent.qqnt.kernel.nativeinterface.MsgAttributeInfo
@@ -47,7 +48,7 @@ object MsgTool : DexKitTask {
         if (path.startsWith("http")) {
 
             val fileName = "net_img_${System.currentTimeMillis()}_${path.hashCode()}.jpg"
-            val savePath = "${QQCurrentEnv.currentDir}cache/images/$fileName"
+            val savePath = "${HostEnv.currentDir}cache/images/$fileName"
 
             if (HttpUtils.downloadSync(path, savePath)) {
                 return savePath

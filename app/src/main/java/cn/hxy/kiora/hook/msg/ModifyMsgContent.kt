@@ -1,5 +1,6 @@
 package cn.hxy.kiora.hook.msg
 
+import cn.hxy.kiora.host.HostEnv
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,8 +21,7 @@ import cn.hxy.kiora.ui.components.atoms.DialogTextField
 import cn.hxy.kiora.ui.components.dialogs.CenterDialogContainer
 import cn.hxy.kiora.ui.core.compatibility.KioraCenterDialog
 import cn.hxy.kiora.utils.log.LogUtils
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
-import cn.hxy.kiora.utils.qq.Toasts
+import cn.hxy.kiora.utils.ui.Toasts
 
 @HookItemAnnotation(
     "修改本地消息文本",
@@ -72,7 +72,7 @@ object ModifyMsgContent : BaseSwitchHookItem(), GetMsgRecordListener, MenuClickL
     }
 
     private fun showEditDialog(msgId: Long, items: Map<Int, String>) {
-        val activity = QQCurrentEnv.activity ?: return
+        val activity = HostEnv.activity ?: return
 
         KioraCenterDialog(activity) { dismiss ->
             val editValues =
@@ -91,7 +91,7 @@ object ModifyMsgContent : BaseSwitchHookItem(), GetMsgRecordListener, MenuClickL
                     currentMods.putAll(modifications)
                     msgMap[msgId] = currentMods
                 }
-                Toasts.qqToast(2, "滑动或重进刷新")
+                Toasts.iconToast(2, "滑动或重进刷新")
             }) {
                 LazyColumn(
                     Modifier

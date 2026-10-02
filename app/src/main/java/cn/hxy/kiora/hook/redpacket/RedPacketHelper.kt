@@ -1,5 +1,6 @@
 package cn.hxy.kiora.hook.redpacket
 
+import cn.hxy.kiora.host.HostEnv
 import android.os.Bundle
 import com.tencent.mobileqq.qroute.QRoute
 import com.tencent.mobileqq.qwallet.api.INewQWalletApi
@@ -40,7 +41,7 @@ import cn.hxy.kiora.utils.qq.CookieTool
 import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.qq.MsgTool
 import cn.hxy.kiora.utils.qq.QQCurrentEnv
-import cn.hxy.kiora.utils.qq.Toasts
+import cn.hxy.kiora.utils.ui.Toasts
 import cn.hxy.kiora.utils.qq.TroopTool
 import cn.hxy.kiora.utils.reflect.findMethod
 import cn.hxy.kiora.utils.reflect.newInstanceWithArgs
@@ -207,7 +208,7 @@ object RedPacketHelper {
     // 预抢（旧 API）：SSO hb_pre_grap 加密
     // ------------------------------------------------------------------
     private suspend fun preGrabOld(ctx: RedPacketContext): JSONObject {
-        val currentUin = QQCurrentEnv.currentUin
+        val currentUin = HostEnv.currentAccount
         val transSeq = kotlin.math.abs(Random.nextInt()) % 0x10
 
         val params = linkedMapOf(
@@ -339,7 +340,7 @@ object RedPacketHelper {
             "name" to (QQCurrentEnv.currentNickName ?: ""),
             "answer" to "",
             "authkey" to ctx.authKey,
-            "uin" to QQCurrentEnv.currentUin,
+            "uin" to HostEnv.currentAccount,
             "channel" to ctx.channel.toString(),
             "senderuin" to ctx.msgData.userUin,
             "agreement" to readAgreement(),
@@ -371,7 +372,7 @@ object RedPacketHelper {
             return
         }
 
-        val silkPath = "${QQCurrentEnv.currentDir}cache/voice_temp.slk"
+        val silkPath = "${HostEnv.currentDir}cache/voice_temp.slk"
         LogUtils.d("[RedPacket] handleVoiceRedPacket: 开始合成语音口令 title=$voiceText, path=$silkPath")
         val ok = AudioConverterUtil.ttsToSilk(voiceText, silkPath)
         if (!ok) {
@@ -472,7 +473,7 @@ object RedPacketHelper {
             "answer" to "",
             "subchannel" to "",
             "authkey" to ctx.authKey,
-            "uin" to QQCurrentEnv.currentUin,
+            "uin" to HostEnv.currentAccount,
             "senderuin" to ctx.msgData.userUin,
             "agreement" to readAgreement(),
             "hb_from" to "0",
@@ -496,7 +497,7 @@ object RedPacketHelper {
     /** 读取用户协议签署状态（qb_tenpay_hb_<uin> / agree_wallet_contrace），默认 "0" */
     private fun readAgreement(): String = runCatching {
         val sp = HostInfo.hostContext.getSharedPreferences(
-            "qb_tenpay_hb_${QQCurrentEnv.currentUin}", 0
+            "qb_tenpay_hb_${HostEnv.currentAccount}", 0
         )
         if (sp.getBoolean("agree_wallet_contrace", false)) "1" else "0"
     }.getOrDefault("0")
@@ -533,7 +534,7 @@ object RedPacketHelper {
 
             LogUtils.d("[RedPacket] httpRequest: 发起请求 url=$url, params=$params")
 
-            NetSender.with(null, url, params, QQCurrentEnv.currentUin)
+            NetSender.with(null, url, params, HostEnv.currentAccount)
                 .comeFrom("2")
                 .encrypt(true)
                 .tokenID(null)
@@ -612,12 +613,12 @@ object RedPacketHelper {
     // ------------------------------------------------------------------
     private fun onSuccess(ctx: RedPacketContext, total: Double, recv: String) {
         val label = if (ctx.isAuto) "自动" else "手动"
-        Toasts.qqToast(2, "${label}抢红包成功")
+        Toasts.iconToast(2, "${label}抢红包成功")
 
         if (ctx.isAuto) {
             ModuleScope.launchIO("RedPacket_Reply") {
                 MsgTool.sendMsg(
-                    QQCurrentEnv.currentUin,
+                    HostEnv.currentAccount,
                     buildSuccessMsg(ctx, total, recv), 1
                 )
                 ctx.config.autoReply.randomOrNull()?.let {

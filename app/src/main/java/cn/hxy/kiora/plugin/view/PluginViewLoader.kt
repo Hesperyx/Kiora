@@ -1,5 +1,6 @@
 package cn.hxy.kiora.plugin.view
 
+import cn.hxy.kiora.host.HostEnv
 import android.annotation.SuppressLint
 import com.tencent.mobileqq.activity.ScaleAIOActivity
 import com.tencent.qqnt.aio.activity.AIODelegate
@@ -10,7 +11,6 @@ import cn.hxy.kiora.hook.base.Listener
 import cn.hxy.kiora.plugin.loader.PluginManager
 import cn.hxy.kiora.utils.hook.hookAfter
 import cn.hxy.kiora.utils.qq.FriendTool
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
 
 @HookItemAnnotation("监听聊天界面")
 object PluginViewLoader : BaseApiHookItem<Listener>() {
@@ -47,7 +47,7 @@ object PluginViewLoader : BaseApiHookItem<Listener>() {
             }
         AIODelegate::class.java.getDeclaredMethod("hide")
             .hookAfter(this) {
-                if (QQCurrentEnv.activity !is ScaleAIOActivity) hideView()
+                if (HostEnv.activity !is ScaleAIOActivity) hideView()
             }
 
     }
@@ -67,7 +67,7 @@ object PluginViewLoader : BaseApiHookItem<Listener>() {
             peerUid
         } else {
             FriendTool.getUinFromUid(peerUid).ifEmpty {
-                QQCurrentEnv.activity?.intent?.getStringExtra("key_peerUin") ?: ""
+                HostEnv.activity?.intent?.getStringExtra("key_peerUin") ?: ""
             }
         }
 
@@ -83,7 +83,7 @@ object PluginViewLoader : BaseApiHookItem<Listener>() {
     private fun showView() {
 
         ModuleScope.launchMainDelayed(1) {
-            val activity = QQCurrentEnv.activity ?: return@launchMainDelayed
+            val activity = HostEnv.activity ?: return@launchMainDelayed
 
             if (PluginManager.plugins.any { it.isRunning && it.compiler.menuItems.isNotEmpty() }) {
                 currentPluginView = PluginView(activity)

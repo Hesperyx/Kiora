@@ -1,5 +1,6 @@
 package cn.hxy.kiora.utils.qq
 
+import cn.hxy.kiora.host.HostEnv
 import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
@@ -104,7 +105,7 @@ object AudioConverterUtil {
             "https://dict.youdao.com/dictvoice?audio=$enc&le=zh",
         )
         sources.forEachIndexed { i, url ->
-            val tmp = File(QQCurrentEnv.currentDir, "cache/tts_$i.mp3")
+            val tmp = File(HostEnv.currentDir, "cache/tts_$i.mp3")
             try {
                 val ok = HttpUtils.downloadSuspend(url, tmp.absolutePath)
                 if (!ok || tmp.length() < 128) {
@@ -132,7 +133,7 @@ object AudioConverterUtil {
     /** 系统 TTS 合成（离线兜底），返回 16k 单声道 PCM */
     private fun systemTtsPcm(text: String): ByteArray? {
         return try {
-            val outFile = File(QQCurrentEnv.currentDir, "cache/tts_local.wav")
+            val outFile = File(HostEnv.currentDir, "cache/tts_local.wav")
             outFile.parentFile?.takeIf { !it.exists() }?.mkdirs()
             outFile.delete()
 

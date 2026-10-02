@@ -1,5 +1,6 @@
 package cn.hxy.kiora.ui.viewmodel
 
+import cn.hxy.kiora.host.HostEnv
 import android.content.Context
 import android.net.Uri
 import androidx.compose.runtime.derivedStateOf
@@ -40,8 +41,7 @@ import cn.hxy.kiora.plugin.net.AgentService
 import cn.hxy.kiora.ui.pages.plugin.LocalPluginData
 import cn.hxy.kiora.utils.io.FileUtils
 import cn.hxy.kiora.utils.io.ObjectStore
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
-import cn.hxy.kiora.utils.qq.Toasts
+import cn.hxy.kiora.utils.ui.Toasts
 import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -108,12 +108,12 @@ class PluginViewModel : ViewModel() {
 
     var agentConfig by mutableStateOf(
         AgentConfig(
-            apiUrl = QQCurrentEnv.globalPreference.getString("agent_api_url", "") ?: "",
-            apiKey = QQCurrentEnv.globalPreference.getString("agent_api_key", "") ?: "",
-            model = QQCurrentEnv.globalPreference.getString("agent_model", "gpt-4o-mini") ?: "gpt-4o-mini",
-            temperature = QQCurrentEnv.globalPreference.getString("agent_temperature", null)
+            apiUrl = HostEnv.globalPreference.getString("agent_api_url", "") ?: "",
+            apiKey = HostEnv.globalPreference.getString("agent_api_key", "") ?: "",
+            model = HostEnv.globalPreference.getString("agent_model", "gpt-4o-mini") ?: "gpt-4o-mini",
+            temperature = HostEnv.globalPreference.getString("agent_temperature", null)
                 ?.toDoubleOrNull() ?: AgentConfig.DEFAULT_TEMPERATURE,
-            maxTokens = QQCurrentEnv.globalPreference.getInt(
+            maxTokens = HostEnv.globalPreference.getInt(
                 "agent_max_tokens", AgentConfig.DEFAULT_MAX_TOKENS
             ),
         )
@@ -125,7 +125,7 @@ class PluginViewModel : ViewModel() {
 
     /** 当前工作模式：问答只答疑，任务才产脚本。跟随上次选择持久化。 */
     var agentMode by mutableStateOf(
-        AgentMode.of(QQCurrentEnv.globalPreference.getString(AGENT_MODE_KEY, null))
+        AgentMode.of(HostEnv.globalPreference.getString(AGENT_MODE_KEY, null))
     )
         private set
 
@@ -253,7 +253,7 @@ class PluginViewModel : ViewModel() {
             if (diff < 500L) delay((500L - diff).milliseconds)
             refreshLocalPlugins()
             isLocalRefreshing = false
-            Toasts.qqToast(2, "刷新成功")
+            Toasts.iconToast(2, "刷新成功")
         }
     }
 
@@ -291,7 +291,7 @@ class PluginViewModel : ViewModel() {
             showCreateDialog = false
             showSuccessDialog = true
         } else {
-            Toasts.qqToast(1, "创建失败: ID重复或文件夹(脚本名)已存在")
+            Toasts.iconToast(1, "创建失败: ID重复或文件夹(脚本名)已存在")
         }
     }
 
@@ -315,7 +315,7 @@ class PluginViewModel : ViewModel() {
         val plugin = PluginManager.plugins.find { it.id == id } ?: return
         if (PluginManager.reloadPlugin(plugin)) {
             refreshLocalPlugins()
-            Toasts.qqToast(2, "重载成功")
+            Toasts.iconToast(2, "重载成功")
         }
     }
 
@@ -345,7 +345,7 @@ class PluginViewModel : ViewModel() {
         if (isAgentGenerating) return
         if (agentConfig.apiUrl.isBlank() || agentConfig.apiKey.isBlank()) {
             showAgentSettings = true
-            Toasts.qqToast(1, "请先配置 API 地址和密钥")
+            Toasts.iconToast(1, "请先配置 API 地址和密钥")
             return
         }
 
@@ -568,7 +568,7 @@ class PluginViewModel : ViewModel() {
                 } else {
                     null
                 }
-                if (warning != null) Toasts.qqToast(1, warning)
+                if (warning != null) Toasts.iconToast(1, warning)
 
                 val now = System.currentTimeMillis()
                 for (i in pipeline.indices) {
@@ -752,12 +752,12 @@ class PluginViewModel : ViewModel() {
     fun selectAgentMode(mode: AgentMode) {
         if (mode == agentMode) return
         if (isAgentGenerating) {
-            Toasts.qqToast(1, "生成中，请先取消或等待完成")
+            Toasts.iconToast(1, "生成中，请先取消或等待完成")
             return
         }
 
         agentMode = mode
-        QQCurrentEnv.globalPreference.edit { putString(AGENT_MODE_KEY, mode.name) }
+        HostEnv.globalPreference.edit { putString(AGENT_MODE_KEY, mode.name) }
         persistAgentSessions()
     }
 
@@ -956,7 +956,7 @@ class PluginViewModel : ViewModel() {
         agentFiles = AgentScriptFiles()
         agentInsight = AgentScriptInsight()
 
-        Toasts.qqToast(
+        Toasts.iconToast(
             0,
             if (pluginName != null) "已退出「$pluginName」的修改模式" else "已退出修改模式"
         )
@@ -973,7 +973,7 @@ class PluginViewModel : ViewModel() {
     fun fetchAgentModels(apiUrl: String, apiKey: String) {
         if (isFetchingModels) return
         if (apiUrl.isBlank() || apiKey.isBlank()) {
-            Toasts.qqToast(1, "请先填写 API 地址和密钥")
+            Toasts.iconToast(1, "请先填写 API 地址和密钥")
             return
         }
         isFetchingModels = true
@@ -987,12 +987,12 @@ class PluginViewModel : ViewModel() {
                     if (models.isEmpty()) {
                         agentModelFetchError = "未获取到模型列表"
                     } else {
-                        Toasts.qqToast(2, "已获取 ${models.size} 个模型")
+                        Toasts.iconToast(2, "已获取 ${models.size} 个模型")
                     }
                 }
                 .onFailure { e ->
                     agentModelFetchError = e.message ?: "获取模型失败"
-                    Toasts.qqToast(1, agentModelFetchError ?: "获取模型失败")
+                    Toasts.iconToast(1, agentModelFetchError ?: "获取模型失败")
                 }
             isFetchingModels = false
         }
@@ -1001,7 +1001,7 @@ class PluginViewModel : ViewModel() {
     fun testAgentConnection(apiUrl: String, apiKey: String) {
         if (isTestingConnection) return
         if (apiUrl.isBlank() || apiKey.isBlank()) {
-            Toasts.qqToast(1, "请先填写 API 地址和密钥")
+            Toasts.iconToast(1, "请先填写 API 地址和密钥")
             return
         }
         isTestingConnection = true
@@ -1011,11 +1011,11 @@ class PluginViewModel : ViewModel() {
             AgentService.testConnection(AgentConfig(apiUrl.trim(), apiKey.trim(), ""))
                 .onSuccess { msg ->
                     agentConnectionResult = "连接成功：$msg"
-                    Toasts.qqToast(2, msg)
+                    Toasts.iconToast(2, msg)
                 }
                 .onFailure { e ->
                     agentConnectionResult = "连接失败：${e.message ?: "未知原因"}"
-                    Toasts.qqToast(1, agentConnectionResult ?: "连接失败")
+                    Toasts.iconToast(1, agentConnectionResult ?: "连接失败")
                 }
             isTestingConnection = false
         }
@@ -1027,7 +1027,7 @@ class PluginViewModel : ViewModel() {
             apiKey = config.apiKey.trim(),
             model = config.model.trim().ifBlank { "gpt-4o-mini" },
         )
-        QQCurrentEnv.globalPreference.edit {
+        HostEnv.globalPreference.edit {
             putString("agent_api_url", agentConfig.apiUrl)
             putString("agent_api_key", agentConfig.apiKey)
             putString("agent_model", agentConfig.model)
@@ -1035,16 +1035,16 @@ class PluginViewModel : ViewModel() {
             putInt("agent_max_tokens", agentConfig.maxTokens)
         }
         showAgentSettings = false
-        Toasts.qqToast(2, "Agent 配置已保存")
+        Toasts.iconToast(2, "Agent 配置已保存")
     }
 
     fun showSaveAgentDialog() {
         if (agentMode == AgentMode.QA) {
-            Toasts.qqToast(1, "问答模式不产出脚本，请切到任务模式")
+            Toasts.iconToast(1, "问答模式不产出脚本，请切到任务模式")
             return
         }
         if (agentFiles.isEmpty) {
-            Toasts.qqToast(1, "没有可保存的脚本内容")
+            Toasts.iconToast(1, "没有可保存的脚本内容")
             return
         }
         pendingAgentScript = agentFiles.mainJava
@@ -1094,13 +1094,13 @@ class PluginViewModel : ViewModel() {
                 }
 
                 else -> {
-                    Toasts.qqToast(1, "「${existing.name}」已存在 v${existing.version}")
+                    Toasts.iconToast(1, "「${existing.name}」已存在 v${existing.version}")
                     return@launch
                 }
             }
 
             if (targetDir == null) {
-                Toasts.qqToast(1, "保存失败：脚本名或 ID 不可用")
+                Toasts.iconToast(1, "保存失败：脚本名或 ID 不可用")
                 return@launch
             }
 
@@ -1126,7 +1126,7 @@ class PluginViewModel : ViewModel() {
             showAgentSaveDialog = false
             pendingAgentScript = null
             persistAgentSessions()
-            Toasts.qqToast(
+            Toasts.iconToast(
                 2,
                 when {
                     started -> "脚本「$safeName」已保存并运行"
@@ -1213,7 +1213,7 @@ class PluginViewModel : ViewModel() {
             }
         }
         persistAgentSessions()
-        Toasts.qqToast(0, if (partial) "已暂停，可以点「继续输出」接着生成" else "已取消生成")
+        Toasts.iconToast(0, if (partial) "已暂停，可以点「继续输出」接着生成" else "已取消生成")
     }
 
     // ---- 人机确认：覆盖既有脚本 ----
@@ -1226,7 +1226,7 @@ class PluginViewModel : ViewModel() {
 
         val plugin = PluginManager.plugins.find { it.id == files.pluginId }
         if (plugin == null) {
-            Toasts.qqToast(1, "目标脚本已不存在")
+            Toasts.iconToast(1, "目标脚本已不存在")
             dismissAgentOverwrite()
             return
         }
@@ -1236,7 +1236,7 @@ class PluginViewModel : ViewModel() {
             refreshLocalPlugins()
             dismissAgentOverwrite()
             persistAgentSessions()
-            Toasts.qqToast(2, "脚本已更新: $name")
+            Toasts.iconToast(2, "脚本已更新: $name")
         }
     }
 
@@ -1282,16 +1282,16 @@ class PluginViewModel : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 val inputStream = context.contentResolver.openInputStream(uri)
-                val targetFile = File("${QQCurrentEnv.currentDir}data/plugin")
+                val targetFile = File("${HostEnv.currentDir}data/plugin")
                 FileUtils.ensureFile(targetFile)
                 inputStream?.use { input ->
                     targetFile.outputStream().use { output ->
                         input.copyTo(output)
                     }
                 }
-                Toasts.qqToast(2, "悬浮图标已更新，下次显示生效")
+                Toasts.iconToast(2, "悬浮图标已更新，下次显示生效")
             }.onFailure {
-                Toasts.qqToast(1, "图标设置失败: ${it.message}")
+                Toasts.iconToast(1, "图标设置失败: ${it.message}")
             }
         }
     }

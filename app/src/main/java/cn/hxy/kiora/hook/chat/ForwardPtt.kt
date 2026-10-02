@@ -1,5 +1,6 @@
 package cn.hxy.kiora.hook.chat
 
+import cn.hxy.kiora.host.HostEnv
 import android.app.Activity
 import android.content.Intent
 import android.os.Parcelable
@@ -20,7 +21,6 @@ import cn.hxy.kiora.utils.hook.invokeOriginal
 import cn.hxy.kiora.utils.log.LogUtils
 import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.qq.MsgTool
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import cn.hxy.kiora.utils.reflect.findMethod
 import cn.hxy.kiora.utils.reflect.getObject
 import cn.hxy.kiora.utils.reflect.getObjectByType
@@ -104,7 +104,7 @@ object ForwardPtt : BaseSwitchHookItem(), DexKitTask {
             val menu = param.result as MutableList<Any>
             val component = param.thisObject
             val aioMsgItem = component.getObjectByType<AIOMsgItem>(component.javaClass.superclass)
-            val activity = QQCurrentEnv.activity ?: return@hookAfter
+            val activity = HostEnv.activity ?: return@hookAfter
 
             val menuItem =
                 forwardMenuItem.newInstanceWithArgs(activity, aioMsgItem, component, null)

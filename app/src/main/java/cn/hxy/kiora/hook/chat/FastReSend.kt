@@ -1,5 +1,6 @@
 package cn.hxy.kiora.hook.chat
 
+import cn.hxy.kiora.host.HostEnv
 import com.tencent.qqnt.kernel.nativeinterface.MsgElement
 import cn.hxy.kiora.annotation.HookCategory
 import cn.hxy.kiora.annotation.HookItemAnnotation
@@ -12,7 +13,6 @@ import cn.hxy.kiora.utils.hook.hookAfter
 import cn.hxy.kiora.utils.net.HttpUtils
 import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.qq.MsgTool
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import cn.hxy.kiora.utils.reflect.findMethod
 import cn.hxy.kiora.utils.reflect.findMethodOrNull
 import cn.hxy.kiora.utils.reflect.toClass
@@ -37,7 +37,7 @@ object FastReSend : BaseSwitchHookItem(), MenuClickListener {
 
     override fun onClick(msgData: MsgData) {
 
-        if (msgData.userUin != QQCurrentEnv.currentUin) return
+        if (msgData.userUin != HostEnv.currentAccount) return
 
         val elements = msgData.data.elements
 
@@ -72,7 +72,7 @@ object FastReSend : BaseSwitchHookItem(), MenuClickListener {
                 val rkey = if (chatType == 2) OnGetRKey.groupRkey else OnGetRKey.friendRkey
                 val url = "https://multimedia.nt.qq.com.cn${it.originImageUrl}$rkey"
                 val fileName = "net_img_${it.md5HexStr}"
-                val savePath = "${QQCurrentEnv.currentDir}cache/images/$fileName"
+                val savePath = "${HostEnv.currentDir}cache/images/$fileName"
                 if (File(savePath).exists() || HttpUtils.downloadSuspend(url, savePath)) {
                     it.fileName = savePath
                 }

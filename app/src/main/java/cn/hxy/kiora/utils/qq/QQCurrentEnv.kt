@@ -1,64 +1,33 @@
 package cn.hxy.kiora.utils.qq
 
-import android.app.Activity
-import android.content.Context
-import android.content.SharedPreferences
 import com.tencent.mobileqq.app.BusinessHandler
 import com.tencent.mobileqq.app.QQAppInterface
 import com.tencent.mobileqq.qroute.QRoute
 import com.tencent.mobileqq.qroute.QRouteApi
 import com.tencent.qqnt.kernel.api.IKernelService
 import com.tencent.qqnt.kernel.api.impl.KernelServiceImpl
-import cn.hxy.kiora.host.HostInfo
-import cn.hxy.kiora.utils.reflect.callStaticMethod
-import cn.hxy.kiora.utils.reflect.getObject
-import cn.hxy.kiora.utils.reflect.toClass
+import cn.hxy.kiora.host.HostEnv
 import mqq.app.MobileQQ
 import mqq.app.api.IRuntimeService
 
+/**
+ * QQ / TIM 专属的宿主环境。
+ *
+ * 宿主无关的部分（当前 Activity、全局偏好、账号与数据目录）已抽到
+ * [cn.hxy.kiora.host.HostEnv]；这里只留 QQ 独有的：`QQAppInterface`、Uin、昵称、
+ * 内核服务，以及三个反射入口。
+ */
 @Suppress("DEPRECATION")
 object QQCurrentEnv {
 
-    val globalPreference: SharedPreferences by lazy {
-        HostInfo.hostContext.getSharedPreferences(
-            "Kiora_Config_global",
-            Context.MODE_MULTI_PROCESS
-        )
-    }
-
     val qQAppInterface
         get() = MobileQQ.getMobileQQ().peekAppRuntime() as QQAppInterface
-
-    val activity: Activity?
-        get() = runCatching {
-
-            val activityThreadClass = "android.app.ActivityThread".toClass
-            val activityThread = activityThreadClass.callStaticMethod("currentActivityThread")
-            val activities =
-                activityThread?.getObject("mActivities") as? Map<*, *>
-                    ?: return@runCatching null
-
-            activities.values.firstNotNullOfOrNull { record ->
-                record ?: return@firstNotNullOfOrNull null
-
-                val paused = record.getObject("paused") as Boolean
-                if (!paused) {
-                    record.getObject("activity") as Activity
-                } else {
-                    null
-                }
-            }
-        }.getOrNull()
-
-
-    val currentDir: String
-        get() = "${HostInfo.moduleDataPath}${HostInfo.adapter?.currentAccount ?: currentUin}/"
 
     val currentUin: String
         get() = runCatching {
             qQAppInterface.currentUin
         }.getOrElse {
-            globalPreference.getString("currentUin", "global")!!
+            HostEnv.globalPreference.getString("currentUin", "global")!!
         }
 
     val currentNickName: String?

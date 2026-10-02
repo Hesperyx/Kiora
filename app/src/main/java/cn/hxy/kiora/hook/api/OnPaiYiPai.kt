@@ -1,5 +1,6 @@
 package cn.hxy.kiora.hook.api
 
+import cn.hxy.kiora.host.HostEnv
 import com.tencent.qphone.base.remote.FromServiceMsg
 import cn.hxy.kiora.annotation.HookItemAnnotation
 import cn.hxy.kiora.hook.base.BaseApiHookItem
@@ -10,7 +11,6 @@ import cn.hxy.kiora.utils.json.arr
 import cn.hxy.kiora.utils.json.obj
 import cn.hxy.kiora.utils.json.str
 import cn.hxy.kiora.utils.json.walk
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import mqq.app.MSFServlet
 import org.json.JSONArray
 
@@ -67,7 +67,7 @@ object OnPaiYiPai : BaseApiHookItem<PaiYiPaiListener>() {
                     else -> return@hookAfter
                 }
 
-                if (!isValidQQ(fromUin) || toUin != QQCurrentEnv.currentUin) return@hookAfter
+                if (!isValidQQ(fromUin) || toUin != HostEnv.currentAccount) return@hookAfter
                 forEachChecked { it.onPai(peerUin, chatType, fromUin) }
             }
     }

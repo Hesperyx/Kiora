@@ -1,5 +1,6 @@
 package cn.hxy.kiora.utils.io
 
+import cn.hxy.kiora.host.HostEnv
 import android.content.Context
 import android.net.Uri
 import androidx.core.content.edit
@@ -9,7 +10,6 @@ import cn.hxy.kiora.BuildConfig
 import cn.hxy.kiora.hook.MainHook
 import cn.hxy.kiora.hook.base.BaseSwitchHookItem
 import cn.hxy.kiora.utils.log.LogUtils
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import org.json.JSONObject
 import java.io.File
 
@@ -38,10 +38,10 @@ object BackupManager {
                     .filter { it.isInTargetHost() }
                     .forEach { prefsData.put(it.name, it.isEnable) }
                 prefsData.put("_version_code", BuildConfig.VERSION_CODE)
-                prefsData.put("_uin", QQCurrentEnv.currentUin)
+                prefsData.put("_uin", HostEnv.currentAccount)
                 FileUtils.writeText(configFile, prefsData.toString())
 
-                val currentEnvDir = File(QQCurrentEnv.currentDir)
+                val currentEnvDir = File(HostEnv.currentDir)
                 if (currentEnvDir.exists() && currentEnvDir.isDirectory) {
                     val dataDir = File(backupDir, "data")
                     FileUtils.ensureDir(dataDir)
@@ -118,7 +118,7 @@ object BackupManager {
 
                 val dataDir = File(backupDir, "data")
                 if (dataDir.exists() && dataDir.isDirectory) {
-                    val targetDir = File(QQCurrentEnv.currentDir)
+                    val targetDir = File(HostEnv.currentDir)
                     FileUtils.ensureDir(targetDir)
                     // 与导出端对称：旧备份可能带 crash 转储，跳过不还原。
                     dataDir.listFiles()?.forEach { file ->

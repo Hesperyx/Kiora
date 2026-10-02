@@ -1,5 +1,6 @@
 package cn.hxy.kiora.plugin.view
 
+import cn.hxy.kiora.host.HostEnv
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.res.ColorStateList
@@ -44,8 +45,7 @@ import cn.hxy.kiora.ui.core.theme.AccentGreen
 import cn.hxy.kiora.ui.core.theme.Dimens
 import cn.hxy.kiora.ui.core.theme.KioraTheme
 import cn.hxy.kiora.utils.log.PluginError
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
-import cn.hxy.kiora.utils.qq.Toasts
+import cn.hxy.kiora.utils.ui.Toasts
 import cn.hxy.kiora.utils.reflect.TAG
 import cn.hxy.kiora.utils.ui.ThemeHelper
 import java.io.File
@@ -62,7 +62,7 @@ class PluginView(private val activity: Activity) {
     private var initialTouchY = 0
     private var isDragging = false
 
-    private val prefs by lazy { QQCurrentEnv.globalPreference }
+    private val prefs by lazy { HostEnv.globalPreference }
 
     fun show() {
         ThemeHelper.applyTheme(activity)
@@ -89,7 +89,7 @@ class PluginView(private val activity: Activity) {
         }
 
         val imageView = ImageView(activity).apply {
-            val customIconFile = File("${QQCurrentEnv.currentDir}data/plugin")
+            val customIconFile = File("${HostEnv.currentDir}data/plugin")
             if (customIconFile.exists()) {
                 try {
                     val bitmap = BitmapFactory.decodeFile(customIconFile.absolutePath)
@@ -225,12 +225,12 @@ class PluginView(private val activity: Activity) {
             PluginMenuContent(menuItems, dismiss) { pluginId ->
                 val plugin = PluginManager.plugins.find { it.id == pluginId }
                 if (plugin != null) {
-                    Toasts.qqToast(2, "正在重载: ${plugin.name}...")
+                    Toasts.iconToast(2, "正在重载: ${plugin.name}...")
                     dismiss()
                     ModuleScope.launchIO(TAG) {
                         try {
                             PluginManager.reloadPlugin(plugin)
-                            Toasts.qqToast(2, "${plugin.name} 重载成功")
+                            Toasts.iconToast(2, "${plugin.name} 重载成功")
                         } catch (e: Exception) {
                             PluginError.evalError(e, plugin)
                         }

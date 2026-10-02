@@ -1,5 +1,6 @@
 package cn.hxy.kiora.hook
 
+import cn.hxy.kiora.host.HostEnv
 import android.util.Log
 import androidx.core.content.edit
 import cn.hxy.kiora.generated.HookRegistry
@@ -14,7 +15,6 @@ import cn.hxy.kiora.ui.pages.configs.ConfigUiRegistry
 import cn.hxy.kiora.utils.hook.hookAfter
 import cn.hxy.kiora.utils.log.LogUtils
 import cn.hxy.kiora.host.HostInfo
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
 
 object MainHook {
 
@@ -116,7 +116,7 @@ object MainHook {
 
         ctor.hookAfter {
             val account = HostInfo.adapter?.currentAccount ?: return@hookAfter
-            QQCurrentEnv.globalPreference.edit {
+            HostEnv.globalPreference.edit {
                 putString("currentUin", account)
             }
             processDataForCurrent("init")

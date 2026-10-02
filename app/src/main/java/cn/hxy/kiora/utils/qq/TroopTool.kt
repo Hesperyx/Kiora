@@ -1,5 +1,7 @@
 package cn.hxy.kiora.utils.qq
 
+import cn.hxy.kiora.utils.ui.Toasts
+import cn.hxy.kiora.host.HostEnv
 import com.tencent.mobileqq.data.troop.TroopInfo
 import com.tencent.mobileqq.troop.api.ITroopInfoService
 import com.tencent.mobileqq.troop.clockin.handler.TroopClockInHandler
@@ -34,7 +36,7 @@ object TroopTool {
         clockIn.invoke(
             handler<TroopClockInHandler>(),
             troopUin,
-            QQCurrentEnv.currentUin
+            HostEnv.currentAccount
         )
     }
 
@@ -67,9 +69,9 @@ object TroopTool {
         ) { errCode, errMsg ->
             if (errCode == 0) {
                 val actionText = if (enable) "已开启全体禁言" else "已关闭全体禁言"
-                Toasts.qqToast(2, actionText)
+                Toasts.iconToast(2, actionText)
             } else {
-                Toasts.qqToast(1, "操作失败: $errMsg ($errCode)")
+                Toasts.iconToast(1, "操作失败: $errMsg ($errCode)")
             }
         }
     }
@@ -89,9 +91,9 @@ object TroopTool {
         ) { errCode, errMsg ->
             if (errCode == 0) {
                 val actionText = if (time == 0L) "已解除禁言" else "禁言成功"
-                Toasts.qqToast(2, actionText)
+                Toasts.iconToast(2, actionText)
             } else {
-                Toasts.qqToast(1, "禁言失败: $errMsg ($errCode)")
+                Toasts.iconToast(1, "禁言失败: $errMsg ($errCode)")
             }
         }
     }
@@ -118,7 +120,7 @@ object TroopTool {
 
             val toServiceMsg = ToServiceMsg(
                 "mobileqq.service",
-                QQCurrentEnv.currentUin,
+                HostEnv.currentAccount,
                 "OidbSvc.0x55c_1"
             ).apply {
                 putWupBuffer(wupBuffer)
@@ -127,7 +129,7 @@ object TroopTool {
 
             QQCurrentEnv.qQAppInterface.sendToService(toServiceMsg)
             val actionText = if (enable) "设置管理成功" else "取消管理成功"
-            Toasts.qqToast(2, actionText)
+            Toasts.iconToast(2, actionText)
             return
         }
 
@@ -142,9 +144,9 @@ object TroopTool {
         ) { errCode, errMsg ->
             if (errCode == 0) {
                 val actionText = if (enable) "设置管理成功" else "取消管理成功"
-                Toasts.qqToast(2, actionText)
+                Toasts.iconToast(2, actionText)
             } else {
-                Toasts.qqToast(1, "操作失败: $errMsg ($errCode)")
+                Toasts.iconToast(1, "操作失败: $errMsg ($errCode)")
             }
         }
     }
@@ -162,9 +164,9 @@ object TroopTool {
         ) { errCode, errMsg, _ ->
             if (errCode == 0) {
                 val actionText = if (block) "黑踢群员成功" else "已将群员踢出"
-                Toasts.qqToast(2, actionText)
+                Toasts.iconToast(2, actionText)
             } else {
-                Toasts.qqToast(1, "踢人失败: $errMsg ($errCode)")
+                Toasts.iconToast(1, "踢人失败: $errMsg ($errCode)")
             }
         }
     }
@@ -178,9 +180,9 @@ object TroopTool {
             name
         ) { errCode, errMsg ->
             if (errCode == 0) {
-                Toasts.qqToast(2, "修改群名片成功")
+                Toasts.iconToast(2, "修改群名片成功")
             } else {
-                Toasts.qqToast(1, "修改失败: $errMsg ($errCode)")
+                Toasts.iconToast(1, "修改失败: $errMsg ($errCode)")
             }
         }
     }
@@ -207,7 +209,7 @@ object TroopTool {
 
         val toServiceMsg = ToServiceMsg(
             "mobileqq.service",
-            QQCurrentEnv.currentUin,
+            HostEnv.currentAccount,
             "OidbSvc.0x8fc_2"
         ).apply {
             putWupBuffer(bytes)
@@ -215,7 +217,7 @@ object TroopTool {
         }
 
         QQCurrentEnv.qQAppInterface.sendToService(toServiceMsg)
-        Toasts.qqToast(2, "设置头衔成功")
+        Toasts.iconToast(2, "设置头衔成功")
     }
 
     fun isShutUp(troopUin: String): Boolean {

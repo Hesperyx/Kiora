@@ -3,7 +3,7 @@ package cn.hxy.kiora.utils.log
 import android.util.Log
 import cn.hxy.kiora.plugin.bean.PluginInfo
 import cn.hxy.kiora.utils.io.FileUtils
-import cn.hxy.kiora.utils.qq.Toasts
+import cn.hxy.kiora.utils.ui.Toasts
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date

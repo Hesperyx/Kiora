@@ -1,5 +1,6 @@
 package cn.hxy.kiora.plugin.loader
 
+import cn.hxy.kiora.host.HostEnv
 import bsh.BshMethod
 import bsh.Interpreter
 import cn.hxy.kiora.hook.api.MenuClickListener
@@ -17,7 +18,6 @@ import cn.hxy.kiora.plugin.bean.MsgData
 import cn.hxy.kiora.plugin.bean.PluginInfo
 import cn.hxy.kiora.utils.log.PluginError
 import cn.hxy.kiora.host.HostInfo
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import cn.hxy.kiora.utils.reflect.ClassUtils
 import java.io.File
 import java.lang.reflect.Modifier
@@ -48,7 +48,7 @@ class PluginCompiler(val info: PluginInfo) {
 
             interpreter.apply {
                 set("context", HostInfo.hostContext)
-                set("myUin", QQCurrentEnv.currentUin)
+                set("myUin", HostEnv.currentAccount)
                 set("classLoader", ClassUtils.hostClassLoader)
                 set("pluginPath", info.dirPath)
                 set("pluginId", info.id)

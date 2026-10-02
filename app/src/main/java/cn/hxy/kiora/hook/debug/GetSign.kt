@@ -1,5 +1,6 @@
 package cn.hxy.kiora.hook.debug
 
+import cn.hxy.kiora.host.HostEnv
 import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -15,7 +16,6 @@ import cn.hxy.kiora.utils.dexkit.DexKitTask
 import cn.hxy.kiora.utils.hook.hookAfter
 import cn.hxy.kiora.utils.log.LogUtils
 import cn.hxy.kiora.host.HostInfo
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import cn.hxy.kiora.utils.reflect.findField
 import cn.hxy.kiora.utils.reflect.newInstanceWithArgs
 import com.tencent.mobileqq.msf.service.MsfService
@@ -111,7 +111,7 @@ object GetSign : BaseSwitchHookItem(), DexKitTask {
         }
 
         Intent(ACTION_REQUEST_SIGN).apply {
-            putExtra("uin", QQCurrentEnv.currentUin)
+            putExtra("uin", HostEnv.currentAccount)
             putExtra("cmd", cmd)
             setPackage(HostInfo.packageName)
         }.also {
@@ -214,7 +214,7 @@ object GetSign : BaseSwitchHookItem(), DexKitTask {
     @SuppressLint("DiscouragedApi")
     private fun getAIOEditText(): EditText? {
         return runCatching {
-            QQCurrentEnv.activity?.let { activity ->
+            HostEnv.activity?.let { activity ->
                 val resId = activity.resources.getIdentifier("input", "id", activity.packageName)
                 if (resId != 0) {
                     activity.findViewById<EditText>(resId)

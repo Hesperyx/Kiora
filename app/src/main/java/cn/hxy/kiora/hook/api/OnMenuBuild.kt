@@ -1,5 +1,6 @@
 package cn.hxy.kiora.hook.api
 
+import cn.hxy.kiora.host.HostEnv
 import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
@@ -100,7 +101,7 @@ object OnMenuBuild : BaseApiHookItem<MenuClickListener>(), DexKitTask {
         key: String,
         aioMsgItem: AIOMsgItem
     ) {
-        val context = QQCurrentEnv.activity ?: QQCurrentEnv.qQAppInterface.application
+        val context = HostEnv.activity ?: QQCurrentEnv.qQAppInterface.application
         val newItem = itemClass.newInstanceWithArgs(context, aioMsgItem)
         newItem.setObjectByType(key)
         items.add(0, newItem)
@@ -112,7 +113,7 @@ object OnMenuBuild : BaseApiHookItem<MenuClickListener>(), DexKitTask {
         expandable: QQCustomMenuExpandableLayout
     ): View {
 
-        val activity = QQCurrentEnv.activity ?: throw IllegalStateException("Activity is null")
+        val activity = HostEnv.activity ?: throw IllegalStateException("Activity is null")
         val args = menuKey.split(",")
         val menuName = args[2]
 

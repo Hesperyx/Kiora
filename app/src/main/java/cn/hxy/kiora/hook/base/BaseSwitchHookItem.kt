@@ -1,12 +1,12 @@
 package cn.hxy.kiora.hook.base
 
+import cn.hxy.kiora.host.HostEnv
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import cn.hxy.kiora.annotation.HookCategory
 import cn.hxy.kiora.utils.log.LogUtils
 import cn.hxy.kiora.host.HostInfo
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -65,7 +65,7 @@ abstract class BaseSwitchHookItem : BaseHookItem() {
     companion object {
         val prefs: SharedPreferences
             get() = HostInfo.hostContext.getSharedPreferences(
-                "Kiora_Config_${HostInfo.adapter?.currentAccount ?: QQCurrentEnv.currentUin}",
+                "Kiora_Config_${HostInfo.adapter?.currentAccount ?: HostEnv.currentAccount}",
                 Context.MODE_MULTI_PROCESS
             )
 

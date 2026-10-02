@@ -141,6 +141,26 @@ interface IHostAdapter {
      */
     fun restartHost(context: Context, tipText: String = "重启中...")
 
+    /**
+     * 宿主原生带图标 Toast。
+     *
+     * 存在的理由：QQ 的 `QQToastUtil` 是宿主专属类，共享层直接引用会在微信下抛
+     * `NoClassDefFoundError`（Error，`catch Exception` 接不住）。把引用收进 QQ 适配器，
+     * 共享层只问「能不能处理」。
+     *
+     * @return true 表示已由宿主实现处理；false 表示不支持，调用方回退通用 Toast。
+     */
+    fun showIconToast(icon: Int, message: String): Boolean = false
+
+    /**
+     * 宿主原生夜间模式。
+     *
+     * 同理：QQ 的 `ThemeUtil` 是宿主专属类，共享层不能直接引用。
+     *
+     * @return null 表示不支持，调用方回退系统 `uiMode`。
+     */
+    fun hostNightMode(): Boolean? = null
+
     /** 某个包名是否属于本宿主。 */
     fun matches(pkg: String): Boolean = pkg in scopePackages
 

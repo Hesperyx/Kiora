@@ -1,5 +1,6 @@
 package cn.hxy.kiora.hook.chat
 
+import cn.hxy.kiora.host.HostEnv
 import android.text.Spannable
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
@@ -18,7 +19,6 @@ import cn.hxy.kiora.annotation.HookItemAnnotation
 import cn.hxy.kiora.hook.api.AIOViewUpdateListener
 import cn.hxy.kiora.hook.base.BaseSwitchHookItem
 import cn.hxy.kiora.plugin.bean.MsgData
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import cn.hxy.kiora.utils.qq.api
 
 @HookItemAnnotation(
@@ -93,7 +93,7 @@ object ShowAtTarget : BaseSwitchHookItem(), AIOViewUpdateListener {
     }
 
     private fun openUserProfileCard(msgRecord: MsgRecord) {
-        QQCurrentEnv.activity?.let {
+        HostEnv.activity?.let {
             api<IContactApi>().openProfileCard(it, AIOMsgItem(msgRecord))
         }
     }

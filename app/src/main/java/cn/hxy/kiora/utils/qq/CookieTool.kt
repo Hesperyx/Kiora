@@ -1,5 +1,6 @@
 package cn.hxy.kiora.utils.qq
 
+import cn.hxy.kiora.host.HostEnv
 import com.tencent.mobileqq.pskey.api.IPskeyManager
 import cn.hxy.kiora.hook.api.OnGetRKey
 import cn.hxy.kiora.utils.reflect.callMethod
@@ -11,10 +12,10 @@ object CookieTool {
     private val manager
         get() = QQCurrentEnv.qQAppInterface.getManager(2) as TicketManager
 
-    fun getRealSkey(): String? = manager.getRealSkey(QQCurrentEnv.currentUin)
-    fun getSkey(): String? = manager.getSkey(QQCurrentEnv.currentUin)
-    fun getStweb(): String? = manager.getStweb(QQCurrentEnv.currentUin)
-    fun getPt4Token(url: String): String? = manager.getPt4Token(QQCurrentEnv.currentUin, url)
+    fun getRealSkey(): String? = manager.getRealSkey(HostEnv.currentAccount)
+    fun getSkey(): String? = manager.getSkey(HostEnv.currentAccount)
+    fun getStweb(): String? = manager.getStweb(HostEnv.currentAccount)
+    fun getPt4Token(url: String): String? = manager.getPt4Token(HostEnv.currentAccount, url)
 
     @Suppress("UNCHECKED_CAST")
     fun getPskey(url: String): String? {

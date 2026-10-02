@@ -1,5 +1,6 @@
 package cn.hxy.kiora.utils.log
 
+import cn.hxy.kiora.host.HostEnv
 import android.os.Build
 import android.util.Log
 import cn.hxy.kiora.BuildConfig
@@ -8,7 +9,6 @@ import cn.hxy.kiora.hook.base.BaseHookItem
 import cn.hxy.kiora.loader.hookapi.HookEngineManager
 import cn.hxy.kiora.utils.io.FileUtils
 import cn.hxy.kiora.host.HostInfo
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -92,7 +92,7 @@ object LogUtils {
     }
 
     private fun saveCrashLog(tag: String, content: String) {
-        val dir = QQCurrentEnv.currentDir
+        val dir = HostEnv.currentDir
         ModuleScope.launchIO("WriteLog") {
             val time = dateFormat.format(Date())
             val logContent = "\n=== $time [$tag] ===\n$content\n"
