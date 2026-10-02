@@ -6,7 +6,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import cn.hxy.kiora.BuildConfig
-import cn.hxy.kiora.utils.qq.AppRestartUtils
+import cn.hxy.kiora.utils.qq.HostInfo
 
 object ModuleUpdateMonitor {
 
@@ -17,7 +17,8 @@ object ModuleUpdateMonitor {
             if (intent.action == Intent.ACTION_PACKAGE_REPLACED) {
                 val packageName = intent.data?.schemeSpecificPart ?: return
                 if (packageName == BuildConfig.APPLICATION_ID) {
-                    AppRestartUtils.restartApp(context, "模块更新中...")
+                    // 重启通路各宿主不通用，交给 adapter 分发（见 IHostAdapter.restartHost）。
+                    HostInfo.adapter?.restartHost(context, "模块更新中...")
                 }
             }
         }

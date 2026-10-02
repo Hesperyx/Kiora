@@ -16,7 +16,6 @@ import cn.hxy.kiora.ui.core.compatibility.KioraCenterDialog
 import cn.hxy.kiora.ui.core.theme.KioraTheme
 import cn.hxy.kiora.utils.hook.hookAfter
 import cn.hxy.kiora.utils.log.LogUtils
-import cn.hxy.kiora.utils.qq.AppRestartUtils
 import cn.hxy.kiora.utils.qq.HostInfo
 import cn.hxy.kiora.utils.reflect.TAG
 import org.luckypray.dexkit.DexKitBridge
@@ -137,7 +136,14 @@ object DexKitFinder {
             progressText = "查找完成，保存并重启应用"
             DexKitCache.saveCache()
             ModuleScope.launchMain {
-                AppRestartUtils.restartApp(context)
+                // 重启通路各宿主不通用，交给 adapter 分发：QQ 走重启加载页，
+                // 微信没有对应 Activity，走它自己的「拉起入口 + 结束进程」。
+                val adapter = HostInfo.adapter
+                if (adapter == null) {
+                    LogUtils.w("$TAG 宿主适配器缺失，无法重启应用")
+                } else {
+                    adapter.restartHost(context)
+                }
             }
         }
     }

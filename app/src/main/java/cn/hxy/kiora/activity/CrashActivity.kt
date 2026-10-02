@@ -5,7 +5,6 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import cn.hxy.kiora.ui.core.theme.KioraTheme
 import cn.hxy.kiora.ui.pages.crash.CrashScreen
-import cn.hxy.kiora.utils.qq.AppRestartUtils
 import cn.hxy.kiora.utils.qq.HostInfo
 
 class CrashActivity : BaseComposeActivity() {
@@ -41,8 +40,15 @@ class CrashActivity : BaseComposeActivity() {
         }
     }
 
+    /**
+     * 重启宿主。
+     *
+     * 与 [SettingActivity.confirmRestart] 同理：本 Activity 也在宿主进程内由
+     * [cn.hxy.kiora.lifecycle.Parasitics] 实例化，故按当前宿主分发重启通路，
+     * 不直接复用 QQ 的实现。
+     */
     private fun restartApp() {
-        AppRestartUtils.restartApp(this, "恢复中...")
+        HostInfo.adapter?.restartHost(this, "恢复中...")
     }
 
 }

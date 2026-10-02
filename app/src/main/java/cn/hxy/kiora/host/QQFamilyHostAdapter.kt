@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import cn.hxy.kiora.utils.dexkit.DexKitTask
 import cn.hxy.kiora.utils.json.MessageTool
+import cn.hxy.kiora.utils.qq.AppRestartUtils
 import cn.hxy.kiora.utils.qq.MsgTool
 import cn.hxy.kiora.utils.qq.QQCurrentEnv
 
@@ -82,4 +83,14 @@ abstract class QQFamilyHostAdapter(
 
     /** QQ 系宿主的 DexKit 任务：注册表由 DexKitFinder 另行拼接，这里补两个工具单例。 */
     override fun dexKitTasks(): List<DexKitTask> = listOf<DexKitTask>(MsgTool, MessageTool)
+
+    /**
+     * QQ / TIM 的重启：直接委托改造前就在用的 [AppRestartUtils]，实现逐字不动。
+     *
+     * 它的核心是宿主自带的重启加载页（`MainProcessRestartLoadingActivity`），
+     * 这条通路只有 QQ 系宿主有，微信不得复用（见 [WeChatHostAdapter]）。
+     */
+    override fun restartHost(context: Context, tipText: String) {
+        AppRestartUtils.restartApp(context, tipText)
+    }
 }

@@ -5,6 +5,7 @@ import android.os.Bundle
 import cn.hxy.kiora.common.ModuleMeta
 import cn.hxy.kiora.utils.dexkit.DexKitTask
 import cn.hxy.kiora.utils.wx.WeChatDexKit
+import cn.hxy.kiora.utils.wx.WxRestartUtils
 
 /**
  * 微信宿主适配器。
@@ -145,4 +146,16 @@ object WeChatHostAdapter : IHostAdapter {
      * QQ 侧的 `MsgTool` / `MessageTool` 是纯 QQ NT 结构，不能拿到微信来跑。
      */
     override fun dexKitTasks(): List<DexKitTask> = listOf(WeChatDexKit)
+
+    /**
+     * 微信的重启：走 [WxRestartUtils]，**不复用** QQ 的 `AppRestartUtils`。
+     *
+     * QQ 那套依赖宿主自带的重启加载页，微信清单里没有对应 Activity
+     * （8.0.78 的 2097 个 Activity 中 `restart` / `relaunch` 零命中），
+     * 复用只会先抛异常再退化成另一条路径，等于把两套不通用的通路捆在一起。
+     * 详见 [WxRestartUtils] 的类注释。
+     */
+    override fun restartHost(context: Context, tipText: String) {
+        WxRestartUtils.restartApp(context, tipText)
+    }
 }
