@@ -1,7 +1,7 @@
 package cn.hxy.kiora.hook.ui.liquidglass
 
 import android.os.Build
-import cn.hxy.kiora.conf.FloatingBarConfig
+import cn.hxy.kiora.qq.conf.FloatingBarConfig
 
 /** 悬浮底栏的两种实现。 */
 internal enum class BottomBarImplementation {

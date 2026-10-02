@@ -9,7 +9,7 @@ import org.luckypray.dexkit.query.base.BaseMatcher
 import org.luckypray.dexkit.query.matchers.ClassMatcher
 import cn.hxy.kiora.annotation.HookCategory
 import cn.hxy.kiora.annotation.HookItemAnnotation
-import cn.hxy.kiora.conf.RedPacketConfig
+import cn.hxy.kiora.qq.conf.RedPacketConfig
 import cn.hxy.kiora.hook.api.MenuClickListener
 import cn.hxy.kiora.hook.base.BaseSwitchHookItem
 import cn.hxy.kiora.plugin.bean.MsgData

@@ -4,9 +4,9 @@ import android.os.Bundle
 import androidx.compose.runtime.Composable
 import cn.hxy.kiora.annotation.HookCategory
 import cn.hxy.kiora.annotation.HookItemAnnotation
-import cn.hxy.kiora.conf.PhoneConfig
+import cn.hxy.kiora.qq.conf.PhoneConfig
 import cn.hxy.kiora.hook.base.BaseClickableHookItem
-import cn.hxy.kiora.ui.pages.configs.FakePhonePage
+import cn.hxy.kiora.qq.ui.FakePhonePage
 import cn.hxy.kiora.utils.dexkit.DexKitTask
 import cn.hxy.kiora.utils.hook.hookBefore
 import cn.hxy.kiora.utils.reflect.findMethod

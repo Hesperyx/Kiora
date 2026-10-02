@@ -10,7 +10,7 @@ import cn.hxy.kiora.hook.base.BaseApiHookItem
 import cn.hxy.kiora.hook.base.Listener
 import cn.hxy.kiora.plugin.loader.PluginManager
 import cn.hxy.kiora.utils.hook.hookAfter
-import cn.hxy.kiora.utils.qq.FriendTool
+import cn.hxy.kiora.qq.util.FriendTool
 
 @HookItemAnnotation("监听聊天界面")
 object PluginViewLoader : BaseApiHookItem<Listener>() {

@@ -22,10 +22,10 @@ import cn.hxy.kiora.plugin.bean.MsgData
 import cn.hxy.kiora.utils.hook.hookBefore
 import cn.hxy.kiora.utils.io.ObjectStore
 import cn.hxy.kiora.utils.log.LogUtils
-import cn.hxy.kiora.utils.qq.FriendTool
-import cn.hxy.kiora.utils.qq.MsgTool
-import cn.hxy.kiora.utils.qq.NtGrayTipJsonBuilder
-import cn.hxy.kiora.utils.qq.TroopTool
+import cn.hxy.kiora.qq.util.FriendTool
+import cn.hxy.kiora.qq.util.MsgTool
+import cn.hxy.kiora.qq.util.NtGrayTipJsonBuilder
+import cn.hxy.kiora.qq.util.TroopTool
 import cn.hxy.kiora.utils.reflect.findMethod
 import top.artmoe.inao.entries.InfoSyncPushOuterClass
 import top.artmoe.inao.entries.MsgPushOuterClass

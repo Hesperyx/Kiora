@@ -1,6 +1,6 @@
 package cn.hxy.kiora.plugin.bean
 
-import cn.hxy.kiora.conf.RedPacketConfig
+import cn.hxy.kiora.qq.conf.RedPacketConfig
 
 data class RedPacketContext(
     @JvmField val msgData: MsgData,

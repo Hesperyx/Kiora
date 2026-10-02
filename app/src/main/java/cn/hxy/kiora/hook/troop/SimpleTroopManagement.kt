@@ -14,8 +14,8 @@ import cn.hxy.kiora.utils.dexkit.DexKitTask
 import cn.hxy.kiora.utils.hook.hookReplace
 import cn.hxy.kiora.utils.hook.invokeOriginal
 import cn.hxy.kiora.utils.log.LogUtils
-import cn.hxy.kiora.utils.qq.MsgTool
-import cn.hxy.kiora.utils.qq.TroopTool
+import cn.hxy.kiora.qq.util.MsgTool
+import cn.hxy.kiora.qq.util.TroopTool
 import cn.hxy.kiora.utils.reflect.getObjectByType
 import org.luckypray.dexkit.query.FindClass
 import org.luckypray.dexkit.query.base.BaseMatcher

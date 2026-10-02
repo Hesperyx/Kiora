@@ -6,7 +6,7 @@ import android.view.View
 import androidx.compose.runtime.Composable
 import cn.hxy.kiora.annotation.HookCategory
 import cn.hxy.kiora.annotation.HookItemAnnotation
-import cn.hxy.kiora.conf.FloatingBarConfig
+import cn.hxy.kiora.qq.conf.FloatingBarConfig
 import cn.hxy.kiora.hook.base.BaseClickableHookItem
 import cn.hxy.kiora.hook.base.ExclusiveGroup
 import cn.hxy.kiora.hook.ui.liquidglass.BottomBarImplementation
@@ -14,7 +14,7 @@ import cn.hxy.kiora.hook.ui.liquidglass.FloatingBottomBarConfigStore
 import cn.hxy.kiora.hook.ui.liquidglass.GlassBarInstaller
 import cn.hxy.kiora.hook.ui.liquidglass.NewViewBarInstaller
 import cn.hxy.kiora.hook.ui.liquidglass.QQTabLocator
-import cn.hxy.kiora.ui.pages.configs.FloatingBottomBarPage
+import cn.hxy.kiora.qq.ui.FloatingBottomBarPage
 import cn.hxy.kiora.utils.hook.hookAfter
 import cn.hxy.kiora.utils.hook.hookBefore
 import cn.hxy.kiora.utils.log.LogUtils

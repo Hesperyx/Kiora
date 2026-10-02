@@ -9,7 +9,7 @@ import cn.hxy.kiora.hook.base.BaseApiHookItem
 import cn.hxy.kiora.hook.base.Listener
 import cn.hxy.kiora.utils.dexkit.DexKitTask
 import cn.hxy.kiora.utils.hook.hookAfter
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
+import cn.hxy.kiora.qq.util.QQCurrentEnv
 import cn.hxy.kiora.utils.reflect.findMethod
 import org.luckypray.dexkit.query.FindClass
 import org.luckypray.dexkit.query.base.BaseMatcher

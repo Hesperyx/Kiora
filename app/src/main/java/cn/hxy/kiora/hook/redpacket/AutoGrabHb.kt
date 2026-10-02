@@ -7,12 +7,12 @@ import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
 import com.tencent.qqnt.kernel.nativeinterface.WalletElement
 import cn.hxy.kiora.annotation.HookCategory
 import cn.hxy.kiora.annotation.HookItemAnnotation
-import cn.hxy.kiora.conf.RedPacketConfig
+import cn.hxy.kiora.qq.conf.RedPacketConfig
 import cn.hxy.kiora.hook.api.ReceiveMsgListener
 import cn.hxy.kiora.hook.base.BaseClickableHookItem
 import cn.hxy.kiora.plugin.bean.MsgData
 import cn.hxy.kiora.plugin.bean.RedPacketContext
-import cn.hxy.kiora.ui.pages.configs.AutoGrabHbPage
+import cn.hxy.kiora.qq.ui.AutoGrabHbPage
 import cn.hxy.kiora.utils.log.LogUtils
 
 /**

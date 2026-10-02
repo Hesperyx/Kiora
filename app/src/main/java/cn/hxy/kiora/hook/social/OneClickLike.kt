@@ -12,15 +12,15 @@ import com.tencent.mobileqq.profilecard.base.component.AbsProfileHeaderComponent
 import com.tencent.mobileqq.vas.api.IVasSingedApi
 import cn.hxy.kiora.annotation.HookCategory
 import cn.hxy.kiora.annotation.HookItemAnnotation
-import cn.hxy.kiora.conf.OneClickLikeConfig
+import cn.hxy.kiora.qq.conf.OneClickLikeConfig
 import cn.hxy.kiora.hook.base.BaseClickableHookItem
-import cn.hxy.kiora.ui.pages.configs.OneClickLikePage
+import cn.hxy.kiora.qq.ui.OneClickLikePage
 import cn.hxy.kiora.utils.hook.hookBefore
 import cn.hxy.kiora.utils.hook.hookReplace
 import cn.hxy.kiora.utils.hook.invokeOriginal
 import cn.hxy.kiora.utils.log.LogUtils
 import cn.hxy.kiora.host.HostInfo
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
+import cn.hxy.kiora.qq.util.QQCurrentEnv
 import cn.hxy.kiora.utils.reflect.findField
 import cn.hxy.kiora.utils.reflect.findMethod
 

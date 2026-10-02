@@ -4,10 +4,10 @@ import androidx.compose.runtime.Composable
 import cn.hxy.kiora.annotation.HookCategory
 import cn.hxy.kiora.annotation.HookItemAnnotation
 import cn.hxy.kiora.common.ModuleScope
-import cn.hxy.kiora.conf.TroopSetConfig
+import cn.hxy.kiora.qq.conf.TroopSetConfig
 import cn.hxy.kiora.hook.base.BaseClickableHookItem
-import cn.hxy.kiora.ui.pages.configs.TroopSelectorPage
-import cn.hxy.kiora.utils.qq.TroopTool
+import cn.hxy.kiora.qq.ui.TroopSelectorPage
+import cn.hxy.kiora.qq.util.TroopTool
 import cn.hxy.kiora.utils.scheduler.PrecisionScheduler
 import cn.hxy.kiora.utils.scheduler.ScheduledTask
 

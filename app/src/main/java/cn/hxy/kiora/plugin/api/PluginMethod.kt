@@ -18,11 +18,11 @@ import cn.hxy.kiora.plugin.loader.PluginCompiler
 import cn.hxy.kiora.utils.io.FileUtils
 import cn.hxy.kiora.utils.json.JsonConfigUtils
 import cn.hxy.kiora.utils.log.PluginError
-import cn.hxy.kiora.utils.qq.CookieTool
-import cn.hxy.kiora.utils.qq.FriendTool
-import cn.hxy.kiora.utils.qq.MsgTool
+import cn.hxy.kiora.qq.util.CookieTool
+import cn.hxy.kiora.qq.util.FriendTool
+import cn.hxy.kiora.qq.util.MsgTool
 import cn.hxy.kiora.utils.ui.Toasts
-import cn.hxy.kiora.utils.qq.TroopTool
+import cn.hxy.kiora.qq.util.TroopTool
 import cn.hxy.kiora.utils.reflect.ClassUtils
 import java.io.File
 

@@ -6,9 +6,9 @@ import androidx.compose.runtime.Composable
 import com.tencent.qqnt.aio.shortcutbar.PanelIconLinearLayout
 import cn.hxy.kiora.annotation.HookCategory
 import cn.hxy.kiora.annotation.HookItemAnnotation
-import cn.hxy.kiora.conf.ShortcutConfig
+import cn.hxy.kiora.qq.conf.ShortcutConfig
 import cn.hxy.kiora.hook.base.BaseClickableHookItem
-import cn.hxy.kiora.ui.pages.configs.ShortcutBarPage
+import cn.hxy.kiora.qq.ui.ShortcutBarPage
 import cn.hxy.kiora.utils.hook.hookAfter
 import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.reflect.findMethod

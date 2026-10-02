@@ -44,7 +44,7 @@ import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.kyant.backdrop.catalog.components.LiquidBottomTab
 import com.kyant.backdrop.catalog.components.LiquidBottomTabs
 import com.tencent.mobileqq.vas.theme.api.ThemeUtil
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
+import cn.hxy.kiora.qq.util.QQCurrentEnv
 import kotlin.math.roundToInt
 import android.graphics.Color as AndroidColor
 

@@ -4,10 +4,10 @@ import androidx.compose.runtime.Composable
 import cn.hxy.kiora.annotation.HookCategory
 import cn.hxy.kiora.annotation.HookItemAnnotation
 import cn.hxy.kiora.common.ModuleScope
-import cn.hxy.kiora.conf.SparkConfig
+import cn.hxy.kiora.qq.conf.SparkConfig
 import cn.hxy.kiora.hook.base.BaseClickableHookItem
-import cn.hxy.kiora.ui.pages.configs.AutoKeepSparkPage
-import cn.hxy.kiora.utils.qq.MsgTool
+import cn.hxy.kiora.qq.ui.AutoKeepSparkPage
+import cn.hxy.kiora.qq.util.MsgTool
 import cn.hxy.kiora.utils.scheduler.PrecisionScheduler
 import cn.hxy.kiora.utils.scheduler.ScheduledTask
 import java.util.Calendar

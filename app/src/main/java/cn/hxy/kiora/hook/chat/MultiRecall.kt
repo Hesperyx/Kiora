@@ -17,7 +17,7 @@ import cn.hxy.kiora.utils.dexkit.DexKitTask
 import cn.hxy.kiora.utils.hook.hookAfter
 import cn.hxy.kiora.utils.log.LogUtils
 import cn.hxy.kiora.host.HostInfo
-import cn.hxy.kiora.utils.qq.MsgTool
+import cn.hxy.kiora.qq.util.MsgTool
 import cn.hxy.kiora.utils.ui.Toasts
 import cn.hxy.kiora.utils.reflect.findMethod
 import cn.hxy.kiora.utils.reflect.getObject

@@ -4,9 +4,9 @@ import androidx.compose.runtime.Composable
 import com.tencent.qmethod.pandoraex.monitor.DeviceInfoMonitor
 import cn.hxy.kiora.annotation.HookCategory
 import cn.hxy.kiora.annotation.HookItemAnnotation
-import cn.hxy.kiora.conf.DeviceConfig
+import cn.hxy.kiora.qq.conf.DeviceConfig
 import cn.hxy.kiora.hook.base.BaseClickableHookItem
-import cn.hxy.kiora.ui.pages.configs.CustomDevicePage
+import cn.hxy.kiora.qq.ui.CustomDevicePage
 import cn.hxy.kiora.utils.hook.returnConstant
 
 @HookItemAnnotation(

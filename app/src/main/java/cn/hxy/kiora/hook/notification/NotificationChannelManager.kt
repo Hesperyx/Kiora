@@ -4,9 +4,9 @@ import android.app.NotificationManager
 import androidx.compose.runtime.Composable
 import cn.hxy.kiora.annotation.HookCategory
 import cn.hxy.kiora.annotation.HookItemAnnotation
-import cn.hxy.kiora.conf.NotificationChannelConfig
+import cn.hxy.kiora.qq.conf.NotificationChannelConfig
 import cn.hxy.kiora.hook.base.BaseClickableHookItem
-import cn.hxy.kiora.ui.pages.configs.NotificationChannelPage
+import cn.hxy.kiora.qq.ui.NotificationChannelPage
 import cn.hxy.kiora.host.HostInfo
 
 /**

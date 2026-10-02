@@ -7,10 +7,10 @@ import androidx.compose.runtime.Composable
 import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
 import cn.hxy.kiora.annotation.HookCategory
 import cn.hxy.kiora.annotation.HookItemAnnotation
-import cn.hxy.kiora.conf.TimeConfig
+import cn.hxy.kiora.qq.conf.TimeConfig
 import cn.hxy.kiora.hook.api.AIOViewUpdateListener
 import cn.hxy.kiora.hook.base.BaseClickableHookItem
-import cn.hxy.kiora.ui.pages.configs.ShowMsgTimePage
+import cn.hxy.kiora.qq.ui.ShowMsgTimePage
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

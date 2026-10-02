@@ -11,7 +11,7 @@ import cn.hxy.kiora.utils.json.num
 import cn.hxy.kiora.utils.json.obj
 import cn.hxy.kiora.utils.json.str
 import cn.hxy.kiora.utils.json.walk
-import cn.hxy.kiora.utils.qq.FriendTool
+import cn.hxy.kiora.qq.util.FriendTool
 import mqq.app.MSFServlet
 
 @HookItemAnnotation("监听群禁言")

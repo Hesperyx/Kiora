@@ -12,9 +12,9 @@ import android.telephony.TelephonyManager
 import androidx.annotation.RequiresApi
 import cn.hxy.kiora.annotation.HookCategory
 import cn.hxy.kiora.annotation.HookItemAnnotation
-import cn.hxy.kiora.conf.FakeNetworkConfig
+import cn.hxy.kiora.qq.conf.FakeNetworkConfig
 import cn.hxy.kiora.hook.base.BaseClickableHookItem
-import cn.hxy.kiora.ui.pages.configs.FakeNetworkStatusPage
+import cn.hxy.kiora.qq.ui.FakeNetworkStatusPage
 import cn.hxy.kiora.utils.hook.hookBefore
 import cn.hxy.kiora.utils.log.LogUtils
 import cn.hxy.kiora.utils.reflect.callOriginal

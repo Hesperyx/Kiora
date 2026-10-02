@@ -14,14 +14,14 @@ import com.tencent.qqnt.kernelpublic.nativeinterface.Contact
 import cn.hxy.kiora.R
 import cn.hxy.kiora.annotation.HookCategory
 import cn.hxy.kiora.annotation.HookItemAnnotation
-import cn.hxy.kiora.conf.RepeatConfig
+import cn.hxy.kiora.qq.conf.RepeatConfig
 import cn.hxy.kiora.hook.api.MenuClickListener
 import cn.hxy.kiora.hook.base.BaseClickableHookItem
 import cn.hxy.kiora.plugin.bean.MsgData
-import cn.hxy.kiora.ui.pages.configs.RepeatMsgPage
+import cn.hxy.kiora.qq.ui.RepeatMsgPage
 import cn.hxy.kiora.utils.hook.hookAfter
 import cn.hxy.kiora.utils.io.FileUtils
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
+import cn.hxy.kiora.qq.util.QQCurrentEnv
 import cn.hxy.kiora.utils.ui.Toasts
 import cn.hxy.kiora.utils.reflect.callMethod
 import cn.hxy.kiora.utils.reflect.findMethod

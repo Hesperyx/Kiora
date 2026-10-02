@@ -350,7 +350,7 @@ object Parasitics {
      *
      * 模块包 id 是 0x44，与宿主 0x7F 不冲突，所以宿主里 `getDrawable(0x44050020)` /
      * `setImageResource(0x44050020)` 都能取到模块自己的图 —— 这也是 QQ 侧
-     * [cn.hxy.kiora.hook.entry.QQSettingInject] 直接把 `R.drawable.ic_launcher`
+     * [cn.hxy.kiora.qq.hook.entry.QQSettingInject] 直接把 `R.drawable.ic_launcher`
      * 交给宿主处理器后能显示出图标的前提。
      */
     private fun addModuleAssetPath(res: Resources, path: String) {

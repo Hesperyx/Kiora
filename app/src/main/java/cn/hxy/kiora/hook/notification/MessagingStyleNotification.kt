@@ -5,9 +5,9 @@ import android.app.NotificationManager
 import androidx.compose.runtime.Composable
 import cn.hxy.kiora.annotation.HookCategory
 import cn.hxy.kiora.annotation.HookItemAnnotation
-import cn.hxy.kiora.conf.MessagingStyleConfig
+import cn.hxy.kiora.qq.conf.MessagingStyleConfig
 import cn.hxy.kiora.hook.base.BaseClickableHookItem
-import cn.hxy.kiora.ui.pages.configs.MessagingStylePage
+import cn.hxy.kiora.qq.ui.MessagingStylePage
 import cn.hxy.kiora.utils.hook.hookAfter
 import cn.hxy.kiora.utils.hook.hookBefore
 import cn.hxy.kiora.utils.log.LogUtils

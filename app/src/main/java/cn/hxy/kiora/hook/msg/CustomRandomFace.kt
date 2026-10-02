@@ -33,7 +33,7 @@ import cn.hxy.kiora.utils.hook.hookReplace
 import cn.hxy.kiora.utils.hook.invokeOriginal
 import cn.hxy.kiora.utils.json.ProtoData
 import cn.hxy.kiora.utils.log.LogUtils
-import cn.hxy.kiora.utils.qq.QQCurrentEnv
+import cn.hxy.kiora.qq.util.QQCurrentEnv
 import cn.hxy.kiora.utils.ui.Toasts
 import cn.hxy.kiora.utils.reflect.findMethod
 import org.json.JSONObject

@@ -5,10 +5,10 @@ import com.tencent.qqnt.kernel.nativeinterface.MsgElement
 import cn.hxy.kiora.annotation.HookCategory
 import cn.hxy.kiora.annotation.HookItemAnnotation
 import cn.hxy.kiora.common.ModuleScope
-import cn.hxy.kiora.conf.SummaryConfig
+import cn.hxy.kiora.qq.conf.SummaryConfig
 import cn.hxy.kiora.hook.api.SendMsgListener
 import cn.hxy.kiora.hook.base.BaseClickableHookItem
-import cn.hxy.kiora.ui.pages.configs.ModifyPicSummaryPage
+import cn.hxy.kiora.qq.ui.ModifyPicSummaryPage
 import cn.hxy.kiora.utils.json.findFirstValueByKey
 import cn.hxy.kiora.utils.net.HttpUtils
 import org.json.JSONArray

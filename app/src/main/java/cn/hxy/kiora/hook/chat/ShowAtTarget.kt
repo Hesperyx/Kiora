@@ -19,7 +19,7 @@ import cn.hxy.kiora.annotation.HookItemAnnotation
 import cn.hxy.kiora.hook.api.AIOViewUpdateListener
 import cn.hxy.kiora.hook.base.BaseSwitchHookItem
 import cn.hxy.kiora.plugin.bean.MsgData
-import cn.hxy.kiora.utils.qq.api
+import cn.hxy.kiora.qq.util.api
 
 @HookItemAnnotation(
     "显示艾特对象",

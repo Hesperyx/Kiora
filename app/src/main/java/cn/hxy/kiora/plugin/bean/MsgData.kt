@@ -4,7 +4,7 @@ import com.tencent.qqnt.kernel.nativeinterface.MsgElement
 import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
 import com.tencent.qqnt.kernelpublic.nativeinterface.Contact
 import cn.hxy.kiora.hook.api.OnGetRKey
-import cn.hxy.kiora.utils.qq.FriendTool
+import cn.hxy.kiora.qq.util.FriendTool
 
 class MsgData(@JvmField val data: MsgRecord) {
 

@@ -3,9 +3,9 @@ package cn.hxy.kiora.hook.purify
 import androidx.compose.runtime.Composable
 import cn.hxy.kiora.annotation.HookCategory
 import cn.hxy.kiora.annotation.HookItemAnnotation
-import cn.hxy.kiora.conf.SimplifyDrawerConfig
+import cn.hxy.kiora.qq.conf.SimplifyDrawerConfig
 import cn.hxy.kiora.hook.base.BaseClickableHookItem
-import cn.hxy.kiora.ui.pages.configs.SimplifyDrawerPage
+import cn.hxy.kiora.qq.ui.SimplifyDrawerPage
 import cn.hxy.kiora.utils.hook.hookAfter
 import cn.hxy.kiora.utils.reflect.findFieldOrNull
 import cn.hxy.kiora.utils.reflect.findMethodOrNull

@@ -1,5 +1,8 @@
 package cn.hxy.kiora.host
 
+import cn.hxy.kiora.qq.host.QQHostAdapter
+import cn.hxy.kiora.qq.host.TIMHostAdapter
+import cn.hxy.kiora.wx.host.WeChatHostAdapter
 /**
  * 宿主适配器注册与查找。
  *

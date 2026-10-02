@@ -14,9 +14,9 @@ import cn.hxy.kiora.hook.base.BaseSwitchHookItem
 import cn.hxy.kiora.utils.dexkit.DexKitTask
 import cn.hxy.kiora.utils.hook.hookAfter
 import cn.hxy.kiora.utils.hook.hookBefore
-import cn.hxy.kiora.utils.qq.api
-import cn.hxy.kiora.utils.qq.handler
-import cn.hxy.kiora.utils.qq.runtime
+import cn.hxy.kiora.qq.util.api
+import cn.hxy.kiora.qq.util.handler
+import cn.hxy.kiora.qq.util.runtime
 import cn.hxy.kiora.utils.reflect.findMethod
 import cn.hxy.kiora.utils.reflect.getObject
 import org.luckypray.dexkit.query.FindMethod
