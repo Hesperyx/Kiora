@@ -19,7 +19,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import cn.hxy.kiora.BuildConfig
 import cn.hxy.kiora.common.ModuleScope
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import java.util.Calendar
 import java.util.concurrent.PriorityBlockingQueue
 import java.util.concurrent.atomic.AtomicBoolean

@@ -16,7 +16,7 @@ import cn.hxy.kiora.ui.core.compatibility.KioraCenterDialog
 import cn.hxy.kiora.ui.core.theme.KioraTheme
 import cn.hxy.kiora.utils.hook.hookAfter
 import cn.hxy.kiora.utils.log.LogUtils
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.reflect.TAG
 import org.luckypray.dexkit.DexKitBridge
 import org.luckypray.dexkit.query.FindClass

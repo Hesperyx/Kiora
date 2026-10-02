@@ -1,7 +1,7 @@
 package cn.hxy.kiora.utils.log
 
 import cn.hxy.kiora.utils.io.FileUtils
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import java.io.File
 import java.io.PrintWriter

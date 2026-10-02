@@ -6,7 +6,7 @@ import cn.hxy.kiora.hook.base.BaseSwitchHookItem
 import cn.hxy.kiora.utils.dexkit.DexKitTask
 import cn.hxy.kiora.utils.hook.hookAfter
 import cn.hxy.kiora.utils.hook.hookBefore
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.reflect.setObject
 import cn.hxy.kiora.utils.reflect.setObjectByType
 import cn.hxy.kiora.utils.reflect.toClass

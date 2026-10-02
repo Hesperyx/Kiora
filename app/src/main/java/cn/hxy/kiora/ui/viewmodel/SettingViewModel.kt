@@ -19,7 +19,7 @@ import cn.hxy.kiora.ui.pages.settings.CategoryData
 import cn.hxy.kiora.ui.pages.settings.FunctionData
 import cn.hxy.kiora.utils.io.BackupManager
 import cn.hxy.kiora.utils.net.UpdateManager
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.qq.Toasts
 
 class SettingViewModel : ViewModel() {

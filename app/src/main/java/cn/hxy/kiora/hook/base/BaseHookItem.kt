@@ -1,7 +1,7 @@
 package cn.hxy.kiora.hook.base
 
 import cn.hxy.kiora.annotation.HookItemAnnotation
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.reflect.TAG
 
 abstract class BaseHookItem {

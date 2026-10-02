@@ -4,7 +4,7 @@ import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import cn.hxy.kiora.BuildConfig
 import cn.hxy.kiora.utils.io.ObjectStore
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.reflect.ClassUtils
 import org.luckypray.dexkit.wrap.DexClass
 import org.luckypray.dexkit.wrap.DexMethod

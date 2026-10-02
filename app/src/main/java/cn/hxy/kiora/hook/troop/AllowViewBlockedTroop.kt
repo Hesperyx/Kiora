@@ -5,7 +5,7 @@ import cn.hxy.kiora.annotation.HookCategory
 import cn.hxy.kiora.annotation.HookItemAnnotation
 import cn.hxy.kiora.hook.base.BaseSwitchHookItem
 import cn.hxy.kiora.utils.hook.returnConstant
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 
 @HookItemAnnotation(
     "查看被封禁群聊",

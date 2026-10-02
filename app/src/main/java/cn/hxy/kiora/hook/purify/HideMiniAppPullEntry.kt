@@ -6,7 +6,7 @@ import cn.hxy.kiora.annotation.HookItemAnnotation
 import cn.hxy.kiora.hook.base.BaseSwitchHookItem
 import cn.hxy.kiora.utils.hook.hookAfter
 import cn.hxy.kiora.utils.log.LogUtils
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.reflect.ClassUtils
 import cn.hxy.kiora.utils.reflect.callMethod
 import cn.hxy.kiora.utils.reflect.setObject

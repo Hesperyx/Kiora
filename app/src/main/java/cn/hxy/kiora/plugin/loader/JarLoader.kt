@@ -9,7 +9,7 @@ import com.android.dx.dex.cf.CfTranslator
 import com.android.dx.dex.file.DexFile
 import dalvik.system.PathClassLoader
 import cn.hxy.kiora.utils.io.FileUtils
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.reflect.ClassUtils
 import java.io.ByteArrayOutputStream
 import java.io.File

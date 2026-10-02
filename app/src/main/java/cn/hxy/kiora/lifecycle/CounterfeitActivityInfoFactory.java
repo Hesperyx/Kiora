@@ -10,7 +10,7 @@ import java.util.Collections;
 import java.util.List;
 
 import cn.hxy.kiora.host.IHostAdapter;
-import cn.hxy.kiora.utils.qq.HostInfo;
+import cn.hxy.kiora.host.HostInfo;
 
 public class CounterfeitActivityInfoFactory {
 

@@ -14,7 +14,7 @@ import cn.hxy.kiora.utils.json.obj
 import cn.hxy.kiora.utils.json.str
 import cn.hxy.kiora.utils.json.walk
 import cn.hxy.kiora.utils.log.LogUtils
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.reflect.setObject
 import mqq.app.MSFServlet
 import org.json.JSONArray

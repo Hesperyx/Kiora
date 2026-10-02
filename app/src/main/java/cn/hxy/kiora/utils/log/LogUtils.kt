@@ -7,7 +7,7 @@ import cn.hxy.kiora.common.ModuleScope
 import cn.hxy.kiora.hook.base.BaseHookItem
 import cn.hxy.kiora.loader.hookapi.HookEngineManager
 import cn.hxy.kiora.utils.io.FileUtils
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import java.io.File
 import java.text.SimpleDateFormat

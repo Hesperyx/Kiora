@@ -16,7 +16,7 @@ import cn.hxy.kiora.ui.core.compatibility.KioraCenterDialog
 import cn.hxy.kiora.utils.hook.hookReplace
 import cn.hxy.kiora.utils.hook.invokeOriginal
 import cn.hxy.kiora.utils.hook.returnConstant
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import cn.hxy.kiora.utils.reflect.findMethod
 import cn.hxy.kiora.utils.reflect.toClass

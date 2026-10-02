@@ -17,7 +17,7 @@ import cn.hxy.kiora.ui.components.dialogs.ConfirmDialog
 import cn.hxy.kiora.ui.core.theme.KioraTheme
 import cn.hxy.kiora.ui.pages.settings.SettingsScreen
 import cn.hxy.kiora.ui.viewmodel.SettingViewModel
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import cn.hxy.kiora.utils.qq.Toasts
 import java.text.SimpleDateFormat

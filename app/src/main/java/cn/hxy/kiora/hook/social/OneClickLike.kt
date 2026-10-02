@@ -19,7 +19,7 @@ import cn.hxy.kiora.utils.hook.hookBefore
 import cn.hxy.kiora.utils.hook.hookReplace
 import cn.hxy.kiora.utils.hook.invokeOriginal
 import cn.hxy.kiora.utils.log.LogUtils
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import cn.hxy.kiora.utils.reflect.findField
 import cn.hxy.kiora.utils.reflect.findMethod

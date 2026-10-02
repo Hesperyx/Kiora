@@ -9,6 +9,7 @@ import com.tencent.mobileqq.qroute.QRoute
 import com.tencent.mobileqq.qroute.QRouteApi
 import com.tencent.qqnt.kernel.api.IKernelService
 import com.tencent.qqnt.kernel.api.impl.KernelServiceImpl
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.reflect.callStaticMethod
 import cn.hxy.kiora.utils.reflect.getObject
 import cn.hxy.kiora.utils.reflect.toClass

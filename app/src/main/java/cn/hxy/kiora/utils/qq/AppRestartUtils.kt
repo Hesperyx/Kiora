@@ -17,6 +17,7 @@ import android.os.Parcel
 import android.os.Process
 import android.view.Window
 import androidx.core.graphics.createBitmap
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.common.ModuleScope
 import kotlin.system.exitProcess
 

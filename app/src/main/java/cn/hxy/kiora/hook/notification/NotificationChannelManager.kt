@@ -7,7 +7,7 @@ import cn.hxy.kiora.annotation.HookItemAnnotation
 import cn.hxy.kiora.conf.NotificationChannelConfig
 import cn.hxy.kiora.hook.base.BaseClickableHookItem
 import cn.hxy.kiora.ui.pages.configs.NotificationChannelPage
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 
 /**
  * 通知渠道管理入口，移植自 TCQT NotificationChannelManager。

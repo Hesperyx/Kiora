@@ -10,7 +10,7 @@ import cn.hxy.kiora.conf.ShortcutConfig
 import cn.hxy.kiora.hook.base.BaseClickableHookItem
 import cn.hxy.kiora.ui.pages.configs.ShortcutBarPage
 import cn.hxy.kiora.utils.hook.hookAfter
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.reflect.findMethod
 import java.lang.reflect.Method
 

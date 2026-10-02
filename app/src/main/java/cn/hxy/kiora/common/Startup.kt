@@ -13,7 +13,7 @@ import cn.hxy.kiora.utils.dexkit.DexKitFinder
 import cn.hxy.kiora.utils.hook.hookAfter
 import cn.hxy.kiora.utils.hook.hookBefore
 import cn.hxy.kiora.utils.log.LogUtils
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.reflect.ClassUtils
 import java.lang.reflect.Method
 import java.util.concurrent.atomic.AtomicBoolean
@@ -121,7 +121,7 @@ object Startup {
             startupMethod.hookAfter { param ->
                 if (isInit.compareAndSet(false, true)) {
                     val hostContext = param.thisObject as Context
-                    HostInfo.init(hostContext)
+                    HostInfo.attachHostContext(hostContext)
                     ModuleUpdateMonitor.init(hostContext)
 
                     if (HostInfo.processName == HostInfo.packageName) {

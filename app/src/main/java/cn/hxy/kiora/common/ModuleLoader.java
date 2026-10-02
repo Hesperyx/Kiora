@@ -9,7 +9,7 @@ import java.lang.reflect.Field;
 
 import cn.hxy.kiora.host.HostAdapters;
 import cn.hxy.kiora.loader.hookapi.HookEngineManager;
-import cn.hxy.kiora.utils.qq.HostInfo;
+import cn.hxy.kiora.host.HostInfo;
 
 public class ModuleLoader {
     private static boolean sLoaded = false;
@@ -31,9 +31,7 @@ public class ModuleLoader {
             HookEngineManager.engine.log(Log.INFO,"[Kiora]", "ModuleLoader init", null);
         }
 
-        HostInfo.INSTANCE.setPackageName(packageName);
-        HostInfo.INSTANCE.setProcessName(processName);
-        HostInfo.installAdapter(HostAdapters.INSTANCE.forPackage(packageName));
+        HostInfo.bind(packageName, processName, HostAdapters.INSTANCE.forPackage(packageName));
 
         Startup.init(hostClassLoader);
 

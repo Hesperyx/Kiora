@@ -13,7 +13,7 @@ import cn.hxy.kiora.plugin.MainPlugin
 import cn.hxy.kiora.ui.pages.configs.ConfigUiRegistry
 import cn.hxy.kiora.utils.hook.hookAfter
 import cn.hxy.kiora.utils.log.LogUtils
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.qq.QQCurrentEnv
 
 object MainHook {

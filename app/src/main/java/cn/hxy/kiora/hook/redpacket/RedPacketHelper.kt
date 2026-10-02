@@ -37,7 +37,7 @@ import cn.hxy.kiora.plugin.bean.RedPacketContext
 import cn.hxy.kiora.utils.log.LogUtils
 import cn.hxy.kiora.utils.qq.AudioConverterUtil
 import cn.hxy.kiora.utils.qq.CookieTool
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.qq.MsgTool
 import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import cn.hxy.kiora.utils.qq.Toasts

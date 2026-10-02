@@ -9,7 +9,7 @@ import cn.hxy.kiora.conf.ShortcutConfig
 import cn.hxy.kiora.ui.components.listitems.SelectionGroup
 import cn.hxy.kiora.ui.components.listitems.SelectionItem
 import cn.hxy.kiora.ui.components.scaffold.ConfigPageScaffold
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 
 @Composable
 fun ShortcutBarPage(

@@ -8,6 +8,7 @@ import com.tencent.qqnt.kernel.nativeinterface.GroupMemberShutUpInfo
 import com.tencent.qqnt.kernelpublic.nativeinterface.MemberRole
 import com.tencent.qqnt.troop.ITroopListRepoApi
 import kotlinx.coroutines.suspendCancellableCoroutine
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.plugin.bean.ForbidInfo
 import cn.hxy.kiora.plugin.bean.GroupInfo
 import cn.hxy.kiora.plugin.bean.MemberInfo

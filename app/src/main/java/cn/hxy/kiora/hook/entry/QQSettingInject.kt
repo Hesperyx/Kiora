@@ -13,7 +13,7 @@ import cn.hxy.kiora.hook.base.Listener
 import cn.hxy.kiora.utils.dexkit.DexKitTask
 import cn.hxy.kiora.utils.hook.hookAfter
 import cn.hxy.kiora.utils.log.LogUtils
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.reflect.ClassUtils
 import cn.hxy.kiora.utils.reflect.clazz
 import cn.hxy.kiora.utils.reflect.findMethod

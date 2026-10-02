@@ -10,7 +10,7 @@ import cn.hxy.kiora.hook.base.BaseSwitchHookItem
 import cn.hxy.kiora.plugin.bean.MsgData
 import cn.hxy.kiora.utils.hook.hookAfter
 import cn.hxy.kiora.utils.net.HttpUtils
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.qq.MsgTool
 import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import cn.hxy.kiora.utils.reflect.findMethod

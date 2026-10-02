@@ -11,7 +11,7 @@ import android.graphics.RectF
 import android.util.LruCache
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.IconCompat
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.reflect.callStaticMethod
 import cn.hxy.kiora.utils.reflect.clazz
 import java.io.File

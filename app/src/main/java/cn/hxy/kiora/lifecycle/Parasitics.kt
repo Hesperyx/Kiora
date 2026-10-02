@@ -24,7 +24,7 @@ import cn.hxy.kiora.activity.BaseComposeActivity
 import cn.hxy.kiora.common.ModuleLoader
 import cn.hxy.kiora.loader.hookapi.HookEngineManager
 import cn.hxy.kiora.utils.log.LogUtils
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.reflect.ClassUtils
 import cn.hxy.kiora.utils.reflect.callMethod
 import cn.hxy.kiora.utils.reflect.callStaticMethod

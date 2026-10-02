@@ -6,7 +6,7 @@ import cn.hxy.kiora.activity.CrashActivity
 import cn.hxy.kiora.loader.hookapi.HookEngineManager
 import cn.hxy.kiora.utils.hook.hookBefore
 import cn.hxy.kiora.utils.log.CrashReporter
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import kotlin.system.exitProcess
 
 object CrashMonitor {

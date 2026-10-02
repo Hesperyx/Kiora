@@ -21,7 +21,7 @@ import cn.hxy.kiora.hook.notification.NOTIFICATION_CHANNEL_GROUP_ID
 import cn.hxy.kiora.ui.components.listitems.ActionItem
 import cn.hxy.kiora.ui.components.listitems.SelectionItem
 import cn.hxy.kiora.ui.components.scaffold.ConfigPageScaffold
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 
 private fun importanceLabel(level: Int): String = when (level) {
     NotificationManager.IMPORTANCE_HIGH -> "高（有声音）"

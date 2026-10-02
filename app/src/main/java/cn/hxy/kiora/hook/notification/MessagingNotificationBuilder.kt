@@ -15,7 +15,7 @@ import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 import androidx.core.graphics.drawable.toBitmap
 import cn.hxy.kiora.utils.log.LogUtils
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 
 /** 把原始通知重建为会话聚合（MessagingStyle）通知，移植自 TCQT（思路参考 QAuxiliary）。 */
 internal class MessagingNotificationBuilder(

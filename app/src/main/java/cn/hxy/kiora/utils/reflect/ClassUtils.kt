@@ -2,7 +2,7 @@ package cn.hxy.kiora.utils.reflect
 
 
 import com.tencent.mobileqq.pluginsdk.PluginStatic
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 
 object ClassUtils {
     private var _hostClassLoader: ClassLoader? = null

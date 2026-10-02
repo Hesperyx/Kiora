@@ -5,6 +5,7 @@ import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.log.LogUtils
 import cn.hxy.kiora.utils.net.HttpUtils
 import cn.hxy.kiora.utils.reflect.findMethod

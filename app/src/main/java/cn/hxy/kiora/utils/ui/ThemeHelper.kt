@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.res.Configuration
 import androidx.core.content.edit
 import com.tencent.mobileqq.vas.theme.api.ThemeUtil
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.qq.QQCurrentEnv
 
 object ThemeHelper {

@@ -2,6 +2,7 @@ package cn.hxy.kiora.utils.qq
 
 import android.widget.Toast
 import com.tencent.util.QQToastUtil
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.common.ModuleScope
 
 object Toasts {

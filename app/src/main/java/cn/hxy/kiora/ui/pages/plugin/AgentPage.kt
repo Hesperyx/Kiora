@@ -82,7 +82,7 @@ import cn.hxy.kiora.ui.core.theme.AccentBlue
 import cn.hxy.kiora.ui.core.theme.AccentGreen
 import cn.hxy.kiora.ui.core.theme.AccentRed
 import cn.hxy.kiora.ui.core.theme.KioraTheme
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.qq.Toasts
 import cn.hxy.kiora.utils.ui.CodeHighlighter
 

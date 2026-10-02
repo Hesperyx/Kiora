@@ -4,7 +4,7 @@ package cn.hxy.kiora.host
  * 宿主适配器注册与查找。
  *
  * 新增宿主只改这一处：加一个 [IHostAdapter] 实现类，再挂进 [all]。
- * 其余代码一律通过 [cn.hxy.kiora.utils.qq.HostInfo.adapter] 访问当前宿主。
+ * 其余代码一律通过 [cn.hxy.kiora.host.HostInfo.adapter] 访问当前宿主。
  */
 object HostAdapters {
 

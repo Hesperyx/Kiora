@@ -7,7 +7,7 @@ import cn.hxy.kiora.annotation.HookCategory
 import cn.hxy.kiora.annotation.HookItemAnnotation
 import cn.hxy.kiora.hook.base.BaseSwitchHookItem
 import cn.hxy.kiora.utils.hook.hookBefore
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.reflect.setObject
 
 /** 把特别关心消息的通知改投到独立渠道，移植自 TCQT（思路参考 QAuxiliary）。 */

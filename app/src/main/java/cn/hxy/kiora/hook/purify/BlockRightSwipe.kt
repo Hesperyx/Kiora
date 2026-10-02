@@ -5,7 +5,7 @@ import cn.hxy.kiora.annotation.HookCategory
 import cn.hxy.kiora.annotation.HookItemAnnotation
 import cn.hxy.kiora.hook.base.BaseSwitchHookItem
 import cn.hxy.kiora.utils.hook.replaceFirstParam
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.reflect.findMethod
 import java.lang.reflect.Method
 

@@ -45,7 +45,7 @@ import cn.hxy.kiora.ui.components.molecules.AnimatedListItem
 import cn.hxy.kiora.ui.components.molecules.SearchTopBar
 import cn.hxy.kiora.ui.core.theme.KioraTheme
 import cn.hxy.kiora.utils.io.FileUtils
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import cn.hxy.kiora.utils.qq.Toasts
 import cn.hxy.kiora.utils.ui.HighlightUtils

@@ -16,7 +16,7 @@ import cn.hxy.kiora.plugin.api.PluginMethod
 import cn.hxy.kiora.plugin.bean.MsgData
 import cn.hxy.kiora.plugin.bean.PluginInfo
 import cn.hxy.kiora.utils.log.PluginError
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.qq.QQCurrentEnv
 import cn.hxy.kiora.utils.reflect.ClassUtils
 import java.io.File

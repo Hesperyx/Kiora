@@ -13,7 +13,7 @@ import cn.hxy.kiora.utils.hook.hookAfter
 import cn.hxy.kiora.utils.json.ProtoData
 import cn.hxy.kiora.utils.json.str
 import cn.hxy.kiora.utils.json.walk
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.qq.api
 import cn.hxy.kiora.utils.reflect.findMethod
 import cn.hxy.kiora.utils.reflect.toClass

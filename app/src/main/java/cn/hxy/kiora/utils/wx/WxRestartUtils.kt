@@ -8,7 +8,7 @@ import android.content.Intent
 import android.os.Process
 import android.widget.Toast
 import cn.hxy.kiora.common.ModuleScope
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 import kotlin.system.exitProcess
 
 /**

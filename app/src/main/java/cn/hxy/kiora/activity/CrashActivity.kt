@@ -5,7 +5,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import cn.hxy.kiora.ui.core.theme.KioraTheme
 import cn.hxy.kiora.ui.pages.crash.CrashScreen
-import cn.hxy.kiora.utils.qq.HostInfo
+import cn.hxy.kiora.host.HostInfo
 
 class CrashActivity : BaseComposeActivity() {
 
