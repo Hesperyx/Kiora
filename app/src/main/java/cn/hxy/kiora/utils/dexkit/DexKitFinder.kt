@@ -1,22 +1,10 @@
 package cn.hxy.kiora.utils.dexkit
 
 import android.content.Context
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.Text
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.sp
-import cn.hxy.kiora.common.ModuleScope
 import cn.hxy.kiora.generated.HookRegistry
 import cn.hxy.kiora.hook.base.BaseHookItem
-import cn.hxy.kiora.ui.components.dialogs.CenterDialogContainerNoButton
-import cn.hxy.kiora.ui.core.compatibility.KioraCenterDialog
-import cn.hxy.kiora.ui.core.theme.KioraTheme
-import cn.hxy.kiora.utils.hook.hookAfter
-import cn.hxy.kiora.utils.log.LogUtils
 import cn.hxy.kiora.host.HostInfo
+import cn.hxy.kiora.utils.log.LogUtils
 import cn.hxy.kiora.utils.reflect.TAG
 import org.luckypray.dexkit.DexKitBridge
 import org.luckypray.dexkit.query.FindClass
@@ -24,9 +12,21 @@ import org.luckypray.dexkit.query.FindMethod
 import org.luckypray.dexkit.query.base.BaseMatcher
 import java.lang.reflect.Method
 
-object DexKitFinder {
+/**
+ * 缓存键的唯一拼接点，形如 `FakePhoneNumber->fillPhone`。
+ *
+ * `TAG` 取的是任务的**运行时简单类名**，所以任务类改名/挪包会让旧缓存失效
+ * （触发一次全量重查 + 重启，属预期）；[DexKitFinder] 自身搬家则不影响。
+ */
+internal fun cacheKey(owner: Any, name: String): String = "${owner.TAG}->$name"
 
-    private var progressText by mutableStateOf("准备开始查找...")
+/**
+ * DexKit 的「查 + 写缓存」。
+ *
+ * 只负责枚举任务、判断缓存缺失、跑查找、落盘；**不碰 UI、不负责重启** ——
+ * 弹窗与重启编排在 [cn.hxy.kiora.bootstrap.DexKitBootstrap]。
+ */
+object DexKitFinder {
 
     /**
      * 需要 DexKit 查找的全部任务。
@@ -35,7 +35,7 @@ object DexKitFinder {
      * 「查了却不认」或者「认了却从没查过」—— 后者正是「当前环境不可用」的来源。
      *
      * 名单必须按**当前宿主**收窄：hook 项走 `shouldLoad()`（宿主 + 进程双重闸门），
-     * 工具类任务由宿主适配器提供（QQ 是 MsgTool/MessageTool，微信暂为空）。
+     * 工具类任务由宿主适配器提供（QQ 是 MsgTool/MessageTool，微信是 WeChatDexKit）。
      * 否则在微信里会拿 QQ 的特征去搜，全是必然失败的查询，只会刷满错误日志。
      */
     private fun allTasks(): List<DexKitTask> =
@@ -45,9 +45,9 @@ object DexKitFinder {
             .filterIsInstance<DexKitTask>() +
             HostInfo.adapter?.dexKitTasks().orEmpty()
 
-    /** 某个任务在缓存里占用的键，形如 `FakePhoneNumber->fillPhone`。 */
+    /** 某个任务在缓存里占用的键。 */
     private fun keysOf(task: DexKitTask): List<String> =
-        runCatching { task.getQueryMap().keys.map { "${task.TAG}->$it" } }.getOrDefault(emptyList())
+        runCatching { task.getQueryMap().keys.map { cacheKey(task, it) } }.getOrDefault(emptyList())
 
     /**
      * 缓存里还缺哪些键。
@@ -61,90 +61,42 @@ object DexKitFinder {
         return allTasks().flatMap(::keysOf).filterNot { it in cached }.toSet()
     }
 
-    fun doFind() {
-        // 没有缺失就别打扰用户：弹窗会顺手把应用重启一次
-        if (missingKeys().isEmpty()) return
+    /**
+     * 执行查找：只补缺失的键，写回缓存并落盘。
+     *
+     * 进度经 [onProgress] 回调传出（形如 `MsgTool->xxx`），可能在 IO 线程触发，
+     * 由调用方决定怎么消费。本函数不碰任何 UI，也不负责重启宿主。
+     */
+    fun runFind(context: Context, onProgress: (String) -> Unit) {
+        val missing = missingKeys()
+        if (missing.isEmpty()) return
 
-        runCatching {
-            System.loadLibrary("dexkit")
-            showFindDialog()
-        }.onFailure { LogUtils.e("$TAG 加载 dexkit 失败", it) }
-    }
+        // 只补缺失的那几个，不必把整份缓存重算一遍
+        val tasks = allTasks().filter { task -> keysOf(task).any { it in missing } }
+        val sourceDir = context.applicationInfo.sourceDir
 
-    @Suppress("DEPRECATION")
-    private fun showFindDialog() {
-        // 主界面锚点由宿主适配器给出，不再写死 QQ 的 SplashActivity ——
-        // 微信包内没有该类，写死会让弹窗这一步必然失败。
-        val method = HostInfo.adapter?.mainUiAnchor?.resolveMethod()
-        if (method == null) {
-            LogUtils.w("$TAG 当前宿主未提供主界面锚点，跳过 DexKit 查找弹窗")
-            return
-        }
+        DexKitBridge.create(sourceDir).use { bridge ->
+            tasks.forEach { task ->
+                runCatching {
+                    task.getQueryMap().forEach { (name, query) ->
+                        val key = cacheKey(task, name)
+                        onProgress(key)
 
-        method.hookAfter {
-            val context = it.thisObject as Context
-
-            KioraCenterDialog(context) {
-                CenterDialogContainerNoButton(title = "查找方法中") {
-                    val colors = KioraTheme.colors
-                    Text(
-                        text = progressText,
-                        fontSize = 15.sp,
-                        color = colors.textSecondary,
-                        lineHeight = 22.sp,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }.apply {
-                setCanceledOnTouchOutside(false)
-                setCancelable(false)
-                show()
-            }
-
-            startFind(context)
-        }
-    }
-
-    private fun startFind(context: Context) {
-        ModuleScope.launchIO(TAG) {
-            val missing = missingKeys()
-            // 只补缺失的那几个，不必把整份缓存重算一遍
-            val tasks = allTasks().filter { task -> keysOf(task).any { it in missing } }
-
-            val sourceDir = context.applicationInfo.sourceDir
-            DexKitBridge.create(sourceDir).use { bridge ->
-                tasks.forEach { task ->
-                    runCatching {
-                        task.getQueryMap().forEach { (name, query) ->
-                            val tip = "${task.TAG}->$name"
-                            progressText = tip
-
-                            val descriptor = when (query) {
-                                is FindClass -> bridge.findClass(query).singleOrNull()?.descriptor
-                                is FindMethod -> bridge.findMethod(query).singleOrNull()?.descriptor
-                                else -> null
-                            }
-
-                            if (descriptor == null) {
-                                LogUtils.w("$tip 没有匹配结果，宿主结构可能变了")
-                            }
-                            DexKitCache.cacheMap[tip] = descriptor.orEmpty()
+                        val descriptor = when (query) {
+                            is FindClass -> bridge.findClass(query).singleOrNull()?.descriptor
+                            is FindMethod -> bridge.findMethod(query).singleOrNull()?.descriptor
+                            else -> null
                         }
-                    }.onFailure { LogUtils.e(task.TAG, it) }
-                }
-            }
-            progressText = "查找完成，保存并重启应用"
-            DexKitCache.saveCache()
-            ModuleScope.launchMain {
-                // 重启通路各宿主不通用，交给 adapter 分发
-                val adapter = HostInfo.adapter
-                if (adapter == null) {
-                    LogUtils.w("$TAG 宿主适配器缺失，无法重启应用")
-                } else {
-                    adapter.restartHost(context)
-                }
+
+                        if (descriptor == null) {
+                            LogUtils.w("$key 没有匹配结果，宿主结构可能变了")
+                        }
+                        DexKitCache.cacheMap[key] = descriptor.orEmpty()
+                    }
+                }.onFailure { LogUtils.e(task.TAG, it) }
             }
         }
+        DexKitCache.saveCache()
     }
 }
 
@@ -153,10 +105,10 @@ interface DexKitTask {
     fun getQueryMap(): Map<String, BaseMatcher>
 
     fun requireClass(name: String): Class<*> {
-        return DexKitCache.getClass("${TAG}->$name")
+        return DexKitCache.getClass(cacheKey(this, name))
     }
 
     fun requireMethod(name: String): Method {
-        return DexKitCache.getMethod("${TAG}->$name")
+        return DexKitCache.getMethod(cacheKey(this, name))
     }
 }

@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import dalvik.system.BaseDexClassLoader
 import cn.hxy.kiora.BuildConfig
+import cn.hxy.kiora.bootstrap.DexKitBootstrap
 import cn.hxy.kiora.hook.MainHook
 import cn.hxy.kiora.lifecycle.Parasitics
 import cn.hxy.kiora.loader.hookapi.HookEngineManager
@@ -138,15 +139,15 @@ object Startup {
                     Parasitics.injectModuleResources(hostContext.resources)
 
                     // initCache 的返回值只表示「有没有读出一份缓存」，不能当作
-                    // 「能否加载 hook」的前提。宿主若一个 DexKit 任务都没有
-                    // （当前微信即如此），缓存文件永远不会生成；照旧写法会一直走
-                    // doFind() 分支，而 doFind() 在「无缺失」时立刻返回 ——
-                    // 结果是 MainHook.loadHook() 永远不被调用，模块静默失效。
+                    // 「能否加载 hook」的前提。宿主若一个 DexKit 任务都没有，
+                    // 缓存文件永远不会生成；照旧写法会一直走 doFind() 分支，
+                    // 而 doFind() 在「无缺失」时立刻返回 —— 结果是
+                    // MainHook.loadHook() 永远不被调用，模块静默失效。
                     DexKitCache.initCache()
                     if (DexKitFinder.missingKeys().isEmpty()) {
                         MainHook.loadHook()
                     } else {
-                        DexKitFinder.doFind()
+                        DexKitBootstrap.doFind()
                     }
                 }
             }
