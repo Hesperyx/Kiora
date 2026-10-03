@@ -46,6 +46,15 @@ open class ReflectedMethod<T> internal constructor(self: Method, access: MethodA
     fun invoke(arg0: Any?, arg1: Any?, arg2: Any?): Any? = access.invoke3(arg0, arg1, arg2)
     fun invoke(vararg args: Any?): Any? = access.invoke(args)
 
+    /**
+     * 旧版 reflekt 的静态调用入口（WeKit 血统功能代码仍在使用）。
+     * 语义等价于 [invoke]，因为静态方法本就不需要 receiver。
+     */
+    fun invokeStatic(): Any? = invoke()
+
+    /** 旧版 reflekt 的静态调用入口（带参）。 */
+    fun invokeStatic(vararg args: Any?): Any? = invoke(*args)
+
     /** Binds [instance] as the receiver. For a static method the instance is ignored. */
     fun of(instance: T & Any): InstanceReflectedMethod<T & Any> = InstanceReflectedMethod(instance, self, access)
 }

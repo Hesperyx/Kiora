@@ -32,5 +32,6 @@ include(
     ":app",
     ":annotation",
     ":processor",
-    ":qqinterface"
+    ":qqinterface",
+    ":wxinterface"
 )

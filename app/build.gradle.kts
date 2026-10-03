@@ -113,6 +113,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.serialization.protobuf)
     implementation(libs.dalvik.dx)
     implementation(libs.libxposed.service)
     implementation(projects.annotation)
@@ -136,6 +137,7 @@ dependencies {
     compileOnly(libs.libxposed.api)
     compileOnly(libs.xposed)
     compileOnly(projects.qqinterface)
+    compileOnly(projects.wxinterface)
 }
 
 protobuf {

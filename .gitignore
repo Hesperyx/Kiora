@@ -15,3 +15,4 @@
 .kotlin
 local.properties
 *.jks
+/wxinterface/build/

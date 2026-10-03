@@ -1,6 +1,8 @@
 package dev.ujhhgtg.wekit.data
 
 import cn.hxy.kiora.host.HostEnv
+import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KProperty
 
 /**
  * WeKit 血统功能的键值存储。
@@ -36,6 +38,9 @@ object KvStore {
 
     fun getStringOrDef(key: String, def: String?): String? = prefs.getString(key, def)
 
+    /** 无默认值版，返回 null 表示不存在。WeKit 原版 API 名。 */
+    fun getString(key: String): String? = prefs.getString(key, null)
+
     fun putString(key: String, value: String?) {
         prefs.edit().putString(key, value).apply()
     }
@@ -51,4 +56,46 @@ object KvStore {
     }
 
     fun contains(key: String): Boolean = prefs.contains(key)
+
+    // ── prefOption 属性委托（WeKit 原版是 Room 实现，这里落在 SharedPreferences 上）──
+
+    fun prefOption(key: String, defValue: Boolean): ReadWriteProperty<Any?, Boolean> =
+        object : ReadWriteProperty<Any?, Boolean> {
+            override fun getValue(thisRef: Any?, property: KProperty<*>): Boolean =
+                getBoolOrDef(key, defValue)
+
+            override fun setValue(thisRef: Any?, property: KProperty<*>, value: Boolean) {
+                putBool(key, value)
+            }
+        }
+
+    fun prefOption(key: String, defValue: String): ReadWriteProperty<Any?, String> =
+        object : ReadWriteProperty<Any?, String> {
+            override fun getValue(thisRef: Any?, property: KProperty<*>): String =
+                getStringOrDef(key, defValue) ?: defValue
+
+            override fun setValue(thisRef: Any?, property: KProperty<*>, value: String) {
+                putString(key, value)
+            }
+        }
+
+    fun prefOption(key: String, defValue: Int): ReadWriteProperty<Any?, Int> =
+        object : ReadWriteProperty<Any?, Int> {
+            override fun getValue(thisRef: Any?, property: KProperty<*>): Int =
+                getIntOrDef(key, defValue)
+
+            override fun setValue(thisRef: Any?, property: KProperty<*>, value: Int) {
+                putInt(key, value)
+            }
+        }
+
+    fun prefOption(key: String, defValue: Long): ReadWriteProperty<Any?, Long> =
+        object : ReadWriteProperty<Any?, Long> {
+            override fun getValue(thisRef: Any?, property: KProperty<*>): Long =
+                getLongOrDef(key, defValue)
+
+            override fun setValue(thisRef: Any?, property: KProperty<*>, value: Long) {
+                putLong(key, value)
+            }
+        }
 }

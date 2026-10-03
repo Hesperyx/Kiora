@@ -37,4 +37,12 @@ object WeLogger {
     fun logChunkedI(tag: String, msg: String) = LogUtils.i("$tag: $msg")
 
     fun logChunkedD(tag: String, msg: String) = LogUtils.d("$tag: $msg")
+
+    /** 当前线程调用栈（去掉 getter 自身两帧）。原版 WeLogger 的属性，供崩溃上报用。 */
+    val currentStackTrace: String
+        get() = Thread.currentThread().stackTrace
+            .drop(2)
+            .joinToString(separator = "\n") { element ->
+                "at ${element.className}.${element.methodName}(${element.fileName}:${element.lineNumber})"
+            }
 }

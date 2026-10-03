@@ -44,6 +44,9 @@ open class ReflectedField<T> internal constructor(self: Field, access: FieldAcce
     fun set(value: Any?) = access.set1(value)
     fun set(receiver: Any?, value: Any?) = access.set2(receiver, value)
 
+    /** 旧版 reflekt 的静态读取入口（WeKit 血统功能代码仍在使用）。等价于 [get]。 */
+    fun getStatic(): Any? = get()
+
     /** Binds [instance] as the receiver. For a static field the instance is ignored. */
     fun of(instance: T & Any): InstanceReflectedField<T & Any> = InstanceReflectedField(instance, self, access)
 }
@@ -56,6 +59,9 @@ class InstanceReflectedField<T : Any> internal constructor(
 ) : BaseReflectedField(self, access) {
 
     fun get(): Any? = if (access.isStatic) access.get0() else access.get1(instance)
+
+    /** 旧版 reflekt 的带 receiver 读取入口（WeKit 血统功能代码仍在使用），忽略传入的 receiver。 */
+    fun get(receiver: Any?): Any? = get()
 
     fun set(value: Any?) = if (access.isStatic) access.set1(value) else access.set2(instance, value)
 
