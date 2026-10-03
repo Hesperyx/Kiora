@@ -14,12 +14,13 @@ import dev.ujhhgtg.wekit.utils.WeLogger
  * - 落盘：直接写 [WxDexCache]，命中后本地扫描即可跳过
  *
  * 托管：GitHub Release（`RELEASE_BASE_URL`），报告名 `wechat-<version>-<channel>.json`。
- * 报告需由维护者用真机扫好后发布；新版本无人上传则回退本地扫描。
+ * 走 github.com 主站（raw.githubusercontent.com 国内被墙，主站可达）。
+ * 报告需由维护者用真机扫好后发布到 `Dex-Test` tag；新版本无人上传则回退本地扫描。
  */
 object CloudDexResolver {
     private const val TAG = "CloudDexResolver"
     private const val RELEASE_BASE_URL =
-        "https://raw.githubusercontent.com/Hesperyx/Kiora/main/dex-reports"
+        "https://github.com/Hesperyx/Kiora/releases/download/Dex-Test"
 
     /** 当前模块版本的「methodHash」—— 模块发版即失效，与本地缓存策略一致。 */
     fun methodHash(): String = BuildConfig.VERSION_CODE.toString()
