@@ -36,7 +36,7 @@ object AutoCleanCache : ClickableFeature() {
     private var cleanJob: Job? = null
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    private val cleanPaths = run {
+    private val cleanPaths by lazy {
         val paths = mutableListOf<Path>()
 
         val dataDir = HostInfo.application.filesDir.parentFile!!.toPath()
@@ -59,7 +59,7 @@ object AutoCleanCache : ClickableFeature() {
         paths.add(storageDataDir / "files" / "Tencent" / "tbs_common_log")
         paths.add(storageDataDir / "files" / "Tencent" / "tbs_live_log")
 
-        return@run paths
+        paths
     }
 
     override fun onEnable() {
