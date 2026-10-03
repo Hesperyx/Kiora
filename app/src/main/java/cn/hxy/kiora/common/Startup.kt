@@ -16,6 +16,7 @@ import cn.hxy.kiora.utils.hook.hookBefore
 import cn.hxy.kiora.utils.log.LogUtils
 import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.reflect.ClassUtils
+import dev.ujhhgtg.wekit.features.WxFeatureLoader
 import java.lang.reflect.Method
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -149,6 +150,10 @@ object Startup {
                     } else {
                         DexKitBootstrap.doFind()
                     }
+
+                    // 微信侧的 WeKit 血统功能子系统。DexKit 扫描较慢，放 IO 线程避免阻塞
+                    // 启动锚点回调；内部自行判断宿主与进程，非微信宿主直接返回。
+                    ModuleScope.launchIO("WxFeatureLoader") { WxFeatureLoader.load() }
                 }
             }
         } catch (th: Throwable) {

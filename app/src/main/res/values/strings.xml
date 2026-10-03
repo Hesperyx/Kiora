@@ -3,4 +3,19 @@
     <string name="app_name">Kiora</string>
     <string name="xposed_description">Adapted for QQ9.1.25+ and TIM4.0.95+</string>
     <string name="storage_clean">缓存清理</string>
+
+    <!--
+      WeKit 血统功能的名称与描述（取自 WeKit 的 values-zh-rCN）。
+      这些功能通过 dev.ujhhgtg.wekit.R（typealias 到本文件所属的 R）取用。
+      WeKit 原版另有 values/ 英文与 values-zh-rTW 繁体两套；Kiora 目前单语言，
+      需要多语言时按 WeKit 的 values-* 目录补齐即可。
+    -->
+    <string name="feature_disable_pat_name">禁用拍一拍</string>
+    <string name="feature_disable_pat_description">双击他人头像时不发送拍一拍</string>
+    <string name="feature_remove_external_app_sharing_signature_verify_name">移除分享签名校验</string>
+    <string name="feature_remove_external_app_sharing_signature_verify_description">移除第三方应用分享到微信的签名校验</string>
+    <string name="feature_skip_splash_name">跳过启动页面</string>
+    <string name="feature_skip_splash_description">跳过小程序启动页面, 变相去广告 (实验性)</string>
+    <string name="feature_disable_videos_auto_play_name">禁止自动播放视频</string>
+    <string name="feature_disable_videos_auto_play_description">禁止朋友圈中的视频自动播放</string>
 </resources>
