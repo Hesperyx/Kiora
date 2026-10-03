@@ -4,18 +4,31 @@ import dev.ujhhgtg.wekit.features.core.BaseFeature
 import dev.ujhhgtg.wekit.features.core.validateFeatures
 import dev.ujhhgtg.wekit.features.items.beautify.HideOtherDevicesBanner
 import dev.ujhhgtg.wekit.features.items.chat.AntiReadReceipts
+import dev.ujhhgtg.wekit.features.items.chat.AntiSecMsg
+import dev.ujhhgtg.wekit.features.items.chat.BlockAbnormalSizeStickers
 import dev.ujhhgtg.wekit.features.items.chat.BypassRiskFileBlocking
 import dev.ujhhgtg.wekit.features.items.chat.DisableMessageCollapsing
 import dev.ujhhgtg.wekit.features.items.chat.DisablePat
+import dev.ujhhgtg.wekit.features.items.chat.DisablePinnedChatsCollapsing
 import dev.ujhhgtg.wekit.features.items.chat.DisableTypingStatusUploading
 import dev.ujhhgtg.wekit.features.items.chat.MergeChatMessageContextMenuItems
+import dev.ujhhgtg.wekit.features.items.contacts.AutoDndAfterJoinGroup
+import dev.ujhhgtg.wekit.features.items.miniapps.RemoveMenuLimits
+import dev.ujhhgtg.wekit.features.items.miniapps.RemoveSplashAds
 import dev.ujhhgtg.wekit.features.items.miniapps.SkipSplash
 import dev.ujhhgtg.wekit.features.items.miniapps.SpoofHostVersion
+import dev.ujhhgtg.wekit.features.items.moments.AntiMomentsDelete
 import dev.ujhhgtg.wekit.features.items.moments.DisableVideosAutoPlay
+import dev.ujhhgtg.wekit.features.items.moments.EnhanceQuery
+import dev.ujhhgtg.wekit.features.items.moments.MomentsEditorBackOptimization
+import dev.ujhhgtg.wekit.features.items.official_accounts.RemoveOfficialAccountAds
 import dev.ujhhgtg.wekit.features.items.system.DisableResumeWatchingToast
 import dev.ujhhgtg.wekit.features.items.system.DisableShareScreenshotToast
+import dev.ujhhgtg.wekit.features.items.system.DisableWebViewSafetyWarnings
 import dev.ujhhgtg.wekit.features.items.system.NerfBackgroundProcessChecker
+import dev.ujhhgtg.wekit.features.items.system.RemoveArticleAds
 import dev.ujhhgtg.wekit.features.items.system.RemoveExternalAppSharingSignatureVerify
+import dev.ujhhgtg.wekit.features.items.voip.RemoveLimitsDuringCalls
 
 /**
  * WeKit 血统功能的注册表。
@@ -31,25 +44,33 @@ object WxFeatureRegistry {
     val all: List<BaseFeature> by lazy {
         validateFeatures(
             listOf(
-                // chat
-                DisablePat,
-                DisableMessageCollapsing,
-                DisableTypingStatusUploading,
+                HideOtherDevicesBanner,
                 AntiReadReceipts,
+                AntiSecMsg,
+                BlockAbnormalSizeStickers,
                 BypassRiskFileBlocking,
+                DisableMessageCollapsing,
+                DisablePat,
+                DisablePinnedChatsCollapsing,
+                DisableTypingStatusUploading,
                 MergeChatMessageContextMenuItems,
-                // system
-                RemoveExternalAppSharingSignatureVerify,
-                DisableShareScreenshotToast,
-                DisableResumeWatchingToast,
-                NerfBackgroundProcessChecker,
-                // miniapps
+                AutoDndAfterJoinGroup,
+                RemoveMenuLimits,
+                RemoveSplashAds,
                 SkipSplash,
                 SpoofHostVersion,
-                // moments
+                AntiMomentsDelete,
                 DisableVideosAutoPlay,
-                // beautify
-                HideOtherDevicesBanner,
+                EnhanceQuery,
+                MomentsEditorBackOptimization,
+                RemoveOfficialAccountAds,
+                DisableResumeWatchingToast,
+                DisableShareScreenshotToast,
+                DisableWebViewSafetyWarnings,
+                NerfBackgroundProcessChecker,
+                RemoveArticleAds,
+                RemoveExternalAppSharingSignatureVerify,
+                RemoveLimitsDuringCalls,
             )
         )
     }
