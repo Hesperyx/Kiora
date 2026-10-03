@@ -11,8 +11,10 @@ import dev.ujhhgtg.wekit.features.items.chat.DisableMessageCollapsing
 import dev.ujhhgtg.wekit.features.items.chat.DisablePat
 import dev.ujhhgtg.wekit.features.items.chat.DisablePinnedChatsCollapsing
 import dev.ujhhgtg.wekit.features.items.chat.DisableTypingStatusUploading
+import dev.ujhhgtg.wekit.features.items.chat.ExternalSharingEvolved
 import dev.ujhhgtg.wekit.features.items.chat.MergeChatMessageContextMenuItems
 import dev.ujhhgtg.wekit.features.items.contacts.AutoDndAfterJoinGroup
+import dev.ujhhgtg.wekit.features.items.debug.ProfileMemory
 import dev.ujhhgtg.wekit.features.items.miniapps.RemoveMenuLimits
 import dev.ujhhgtg.wekit.features.items.miniapps.RemoveSplashAds
 import dev.ujhhgtg.wekit.features.items.miniapps.SkipSplash
@@ -22,6 +24,7 @@ import dev.ujhhgtg.wekit.features.items.moments.DisableVideosAutoPlay
 import dev.ujhhgtg.wekit.features.items.moments.EnhanceQuery
 import dev.ujhhgtg.wekit.features.items.moments.MomentsEditorBackOptimization
 import dev.ujhhgtg.wekit.features.items.official_accounts.RemoveOfficialAccountAds
+import dev.ujhhgtg.wekit.features.items.system.AutoCleanCache
 import dev.ujhhgtg.wekit.features.items.system.DisableResumeWatchingToast
 import dev.ujhhgtg.wekit.features.items.system.DisableShareScreenshotToast
 import dev.ujhhgtg.wekit.features.items.system.DisableWebViewSafetyWarnings
@@ -53,8 +56,10 @@ object WxFeatureRegistry {
                 DisablePat,
                 DisablePinnedChatsCollapsing,
                 DisableTypingStatusUploading,
+                ExternalSharingEvolved,
                 MergeChatMessageContextMenuItems,
                 AutoDndAfterJoinGroup,
+                ProfileMemory,
                 RemoveMenuLimits,
                 RemoveSplashAds,
                 SkipSplash,
@@ -64,6 +69,7 @@ object WxFeatureRegistry {
                 EnhanceQuery,
                 MomentsEditorBackOptimization,
                 RemoveOfficialAccountAds,
+                AutoCleanCache,
                 DisableResumeWatchingToast,
                 DisableShareScreenshotToast,
                 DisableWebViewSafetyWarnings,

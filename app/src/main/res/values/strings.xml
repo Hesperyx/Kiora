@@ -175,4 +175,14 @@
     <string name="moments_content_type_text">Text</string>
     <string name="moments_content_type_video">Video</string>
     <string name="moments_editor_back_hint">\nPress system Back to stay on this page.</string>
+
+    <!-- WeKit clickable -->
+    <string name="feature_auto_clean_cache_description">Automatically or manually clear WeChat’s cache</string>
+    <string name="feature_auto_clean_cache_name">Clean cache</string>
+    <string name="feature_external_sharing_evolved_description">Make WeChat’s system sharing menu easier to use (not finished yet)</string>
+    <string name="feature_external_sharing_evolved_name">Enhanced sharing</string>
+    <string name="feature_profile_memory_description">Analyze WeChat memory usage composition</string>
+    <string name="feature_profile_memory_name">Memory analysis</string>
+    <string name="system_auto_clean_complete">Cleanup complete: %1$s%2$s</string>
+    <string name="system_auto_clean_next">\nNext cleanup: %1$s</string>
 </resources>

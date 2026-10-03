@@ -185,5 +185,14 @@ object R {
         val moments_content_type_text = cn.hxy.kiora.R.string.moments_content_type_text
         val moments_content_type_video = cn.hxy.kiora.R.string.moments_content_type_video
         val moments_editor_back_hint = cn.hxy.kiora.R.string.moments_editor_back_hint
+        // clickable
+        val feature_auto_clean_cache_description = cn.hxy.kiora.R.string.feature_auto_clean_cache_description
+        val feature_auto_clean_cache_name = cn.hxy.kiora.R.string.feature_auto_clean_cache_name
+        val feature_external_sharing_evolved_description = cn.hxy.kiora.R.string.feature_external_sharing_evolved_description
+        val feature_external_sharing_evolved_name = cn.hxy.kiora.R.string.feature_external_sharing_evolved_name
+        val feature_profile_memory_description = cn.hxy.kiora.R.string.feature_profile_memory_description
+        val feature_profile_memory_name = cn.hxy.kiora.R.string.feature_profile_memory_name
+        val system_auto_clean_complete = cn.hxy.kiora.R.string.system_auto_clean_complete
+        val system_auto_clean_next = cn.hxy.kiora.R.string.system_auto_clean_next
     }
 }
