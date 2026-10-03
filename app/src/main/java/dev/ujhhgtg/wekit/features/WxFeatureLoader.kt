@@ -2,6 +2,7 @@ package dev.ujhhgtg.wekit.features
 
 import cn.hxy.kiora.host.HostInfo
 import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
+import dev.ujhhgtg.wekit.dexkit.cache.CloudDexResolver
 import dev.ujhhgtg.wekit.dexkit.cache.WxDexCache
 import dev.ujhhgtg.wekit.dexkit.resolution.DexResolutionContext
 import dev.ujhhgtg.wekit.features.core.BaseFeature
@@ -77,6 +78,16 @@ object WxFeatureLoader {
 
         if (toRescan.isEmpty()) {
             WeLogger.i(TAG, "DexKit 缓存全部命中，跳过扫描")
+            return
+        }
+
+        // 本地缓存有缺失 → 先试云端拉取（GitHub Release 的预扫描报告），
+        // 命中则跳过本地扫描；云端也缺的才落到本地 DexKit 扫描。
+        val stillMissing = CloudDexResolver.resolve(toRescan)
+        toRescan.retainAll(stillMissing.toSet())
+
+        if (toRescan.isEmpty()) {
+            WeLogger.i(TAG, "云端报告已补齐缺失项，跳过本地扫描")
             return
         }
 
