@@ -18,4 +18,28 @@
     <string name="feature_skip_splash_description">跳过小程序启动页面, 变相去广告 (实验性)</string>
     <string name="feature_disable_videos_auto_play_name">禁止自动播放视频</string>
     <string name="feature_disable_videos_auto_play_description">禁止朋友圈中的视频自动播放</string>
+
+    <!-- WeKit 批量迁入（第二批 11 个功能） -->
+    <string name="feature_anti_read_receipts_name">反已读追踪</string>
+    <string name="feature_anti_read_receipts_description">拦截嵌入视频号缩略图链接中的追踪像素请求</string>
+    <string name="feature_bypass_risk_file_blocking_name">解除风险文件拦截</string>
+    <string name="feature_bypass_risk_file_blocking_description">绕过“此文件已被用户投诉并核实存在安全风险，无法接收/无法打开”的提示，允许正常接收和打开被标记的文件</string>
+    <string name="feature_disable_message_collapsing_name">禁用消息折叠</string>
+    <string name="feature_disable_message_collapsing_description">阻止聊天消息被折叠</string>
+    <string name="feature_disable_resume_watching_toast_name">禁用「刚刚在看」提醒</string>
+    <string name="feature_disable_resume_watching_toast_description">禁用微信启动时弹出的「刚刚在看的「视频号」」继续浏览提示条</string>
+    <string name="feature_disable_share_screenshot_toast_name">禁用「转发截图」提示</string>
+    <string name="feature_disable_share_screenshot_toast_description">你在教我做事?</string>
+    <string name="feature_disable_typing_status_uploading_name">禁止上传正在输入状态</string>
+    <string name="feature_disable_typing_status_uploading_description">禁止微信上传「对方正在输入」状态</string>
+    <string name="feature_hide_other_devices_banner_name">隐藏其他设备横幅</string>
+    <string name="feature_hide_other_devices_banner_description">隐藏主页顶部其他设备已登录横幅</string>
+    <string name="feature_merge_chat_message_context_menu_items_name">消息长按菜单项合并展示</string>
+    <string name="feature_merge_chat_message_context_menu_items_description">开启后, 消息长按菜单只显示一个 WeKit 项, 点击后在对话框中集中展示所有模块菜单项</string>
+    <string name="feature_nerf_background_process_checker_name">禁用微信进程状态检测器</string>
+    <string name="feature_nerf_background_process_checker_description">微信会在后台每隔一段时间检测微信主进程状态, 并在特定条件下故意抛出异常结束主进程</string>
+    <string name="feature_remove_splash_ads_name">移除开屏广告</string>
+    <string name="feature_remove_splash_ads_description">跳过小程序开屏广告</string>
+    <string name="feature_spoof_host_version_name">伪装宿主版本</string>
+    <string name="feature_spoof_host_version_description">伪装小程序基础库版本，并拦截微信官方升级页跳转</string>
 </resources>

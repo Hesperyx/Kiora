@@ -30,5 +30,29 @@ object R {
         val feature_disable_videos_auto_play_name = cn.hxy.kiora.R.string.feature_disable_videos_auto_play_name
         val feature_disable_videos_auto_play_description =
             cn.hxy.kiora.R.string.feature_disable_videos_auto_play_description
+
+        // 第二批迁入
+        val feature_anti_read_receipts_name = cn.hxy.kiora.R.string.feature_anti_read_receipts_name
+        val feature_anti_read_receipts_description = cn.hxy.kiora.R.string.feature_anti_read_receipts_description
+        val feature_bypass_risk_file_blocking_name = cn.hxy.kiora.R.string.feature_bypass_risk_file_blocking_name
+        val feature_bypass_risk_file_blocking_description = cn.hxy.kiora.R.string.feature_bypass_risk_file_blocking_description
+        val feature_disable_message_collapsing_name = cn.hxy.kiora.R.string.feature_disable_message_collapsing_name
+        val feature_disable_message_collapsing_description = cn.hxy.kiora.R.string.feature_disable_message_collapsing_description
+        val feature_disable_resume_watching_toast_name = cn.hxy.kiora.R.string.feature_disable_resume_watching_toast_name
+        val feature_disable_resume_watching_toast_description = cn.hxy.kiora.R.string.feature_disable_resume_watching_toast_description
+        val feature_disable_share_screenshot_toast_name = cn.hxy.kiora.R.string.feature_disable_share_screenshot_toast_name
+        val feature_disable_share_screenshot_toast_description = cn.hxy.kiora.R.string.feature_disable_share_screenshot_toast_description
+        val feature_disable_typing_status_uploading_name = cn.hxy.kiora.R.string.feature_disable_typing_status_uploading_name
+        val feature_disable_typing_status_uploading_description = cn.hxy.kiora.R.string.feature_disable_typing_status_uploading_description
+        val feature_hide_other_devices_banner_name = cn.hxy.kiora.R.string.feature_hide_other_devices_banner_name
+        val feature_hide_other_devices_banner_description = cn.hxy.kiora.R.string.feature_hide_other_devices_banner_description
+        val feature_merge_chat_message_context_menu_items_name = cn.hxy.kiora.R.string.feature_merge_chat_message_context_menu_items_name
+        val feature_merge_chat_message_context_menu_items_description = cn.hxy.kiora.R.string.feature_merge_chat_message_context_menu_items_description
+        val feature_nerf_background_process_checker_name = cn.hxy.kiora.R.string.feature_nerf_background_process_checker_name
+        val feature_nerf_background_process_checker_description = cn.hxy.kiora.R.string.feature_nerf_background_process_checker_description
+        val feature_remove_splash_ads_name = cn.hxy.kiora.R.string.feature_remove_splash_ads_name
+        val feature_remove_splash_ads_description = cn.hxy.kiora.R.string.feature_remove_splash_ads_description
+        val feature_spoof_host_version_name = cn.hxy.kiora.R.string.feature_spoof_host_version_name
+        val feature_spoof_host_version_description = cn.hxy.kiora.R.string.feature_spoof_host_version_description
     }
 }
