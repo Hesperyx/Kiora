@@ -126,6 +126,19 @@ object Startup {
                     HostInfo.attachHostContext(hostContext)
                     ModuleUpdateMonitor.init(hostContext)
 
+                    // 桥接：WeKit 血统代码的 utils.HostInfo 是独立的一套（lateinit _info），
+                    // 需要显式 init，否则 WeKit 功能访问 HostInfo.application 会抛
+                    // UninitializedPropertyAccessException / NPE（如 AutoCleanCache）。
+                    runCatching {
+                        dev.ujhhgtg.wekit.utils.HostInfo.init(
+                            hostContext.applicationContext as android.app.Application
+                        )
+                    }.onFailure {
+                        HookEngineManager.engine.log(
+                            Log.ERROR, "[Kiora]", "WeKit HostInfo 桥接失败", it
+                        )
+                    }
+
                     if (HostInfo.processName == HostInfo.packageName) {
 
                         HookEngineManager.engine.log(
