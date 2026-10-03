@@ -2,6 +2,7 @@
 
 package dev.ujhhgtg.wekit.dexkit.dsl
 
+import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.wekit.dexkit.DexMethodDescriptor
 import dev.ujhhgtg.wekit.dexkit.resolution.DexResolutionContext
 import dev.ujhhgtg.wekit.dexkit.resolution.DexResolutionDiagnostic
@@ -143,6 +144,9 @@ class DexClassDelegate constructor(
                 cachedClass = loadClassOrNull(descriptorString!!)
             return cachedClass ?: error("Class not found for key: $key")
         }
+
+    /** 进入 reflekt 反射 DSL（依赖 dev.ujhhgtg.reflekt 库，已随源码迁入）。 */
+    inline fun reflekt() = clazz.reflekt()
 
     fun setDescriptor(className: String) {
         descriptorString = className

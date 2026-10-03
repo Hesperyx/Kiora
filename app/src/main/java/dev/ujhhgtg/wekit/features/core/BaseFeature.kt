@@ -4,6 +4,8 @@ package dev.ujhhgtg.wekit.features.core
 
 import android.content.Context
 import androidx.annotation.StringRes
+import dev.ujhhgtg.reflekt.reflected.BaseReflectedMethod
+import dev.ujhhgtg.reflekt.reflected.ReflectedConstructor
 import dev.ujhhgtg.wekit.dexkit.dsl.BaseDexDelegate
 import dev.ujhhgtg.wekit.dexkit.dsl.DexConstructorDelegate
 import dev.ujhhgtg.wekit.dexkit.dsl.DexMethodDelegate
@@ -139,6 +141,32 @@ abstract class BaseFeature {
             executeHookAction(this, action)
         }
     )
+
+    // --- reflekt 反射类型上的 hook 重载（依赖 dev.ujhhgtg.reflekt，已随源码迁入）---
+
+    @JvmName("hookBeforeReflectedMethod")
+    fun BaseReflectedMethod.hookBefore(
+        priority: Int = 50,
+        action: HookAction
+    ) = self.hookBefore(priority, action)
+
+    @JvmName("hookBeforeReflectedConstructor")
+    fun ReflectedConstructor<*>.hookBefore(
+        priority: Int = 50,
+        action: HookAction
+    ) = self.hookBefore(priority, action)
+
+    @JvmName("hookAfterReflectedMethod")
+    fun BaseReflectedMethod.hookAfter(
+        priority: Int = 50,
+        action: HookAction
+    ) = self.hookAfter(priority, action)
+
+    @JvmName("hookAfterReflectedConstructor")
+    fun ReflectedConstructor<*>.hookAfter(
+        priority: Int = 50,
+        action: HookAction
+    ) = self.hookAfter(priority, action)
 
     // --- dex delegate ---
 

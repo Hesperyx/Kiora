@@ -7,6 +7,7 @@ import dev.ujhhgtg.wekit.features.items.chat.AntiReadReceipts
 import dev.ujhhgtg.wekit.features.items.chat.BypassRiskFileBlocking
 import dev.ujhhgtg.wekit.features.items.chat.DisableMessageCollapsing
 import dev.ujhhgtg.wekit.features.items.chat.DisablePat
+import dev.ujhhgtg.wekit.features.items.chat.DisableTypingStatusUploading
 import dev.ujhhgtg.wekit.features.items.chat.MergeChatMessageContextMenuItems
 import dev.ujhhgtg.wekit.features.items.miniapps.SkipSplash
 import dev.ujhhgtg.wekit.features.items.miniapps.SpoofHostVersion
@@ -33,6 +34,7 @@ object WxFeatureRegistry {
                 // chat
                 DisablePat,
                 DisableMessageCollapsing,
+                DisableTypingStatusUploading,
                 AntiReadReceipts,
                 BypassRiskFileBlocking,
                 MergeChatMessageContextMenuItems,
