@@ -162,6 +162,4 @@ feat/<topic>  /  fix/<topic>  /  docs/<topic>
 
 <div align="center">
 
-*Made with ❤️ by [oneQAQone](https://github.com/oneQAQone)*
-
 </div>
