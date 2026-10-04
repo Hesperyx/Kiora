@@ -1,0 +1,92 @@
+package cn.hxy.kiora.loader.modern
+
+import android.content.pm.ApplicationInfo
+import android.util.Log
+import androidx.annotation.Keep
+import io.github.libxposed.api.XposedInterface
+import io.github.libxposed.api.XposedInterfaceWrapper
+import io.github.libxposed.api.XposedModule
+import io.github.libxposed.api.XposedModuleInterface
+import cn.hxy.kiora.common.ModuleLoader
+import cn.hxy.kiora.host.HostAdapters
+import cn.hxy.kiora.loader.hookapi.HookEngineManager
+import cn.hxy.kiora.loader.legacy.LegacyHookEngine
+import cn.hxy.kiora.utils.reflect.callMethod
+import cn.hxy.kiora.utils.reflect.getObject
+import cn.hxy.kiora.utils.reflect.setObject
+
+@Keep
+class ModernHookEntry : XposedModule {
+
+    private var processName = ""
+    private var isApi100Fallback = false
+
+    /* --- start of API 100 --- */
+    constructor(base: XposedInterface, param: XposedModuleInterface.ModuleLoadedParam) {
+        // 相当于调用 super(base, param)
+        this.setObject("mBase", base, XposedInterfaceWrapper::class.java)
+        processName = param.processName
+        // 降级为 Legacy API
+        isApi100Fallback = true
+        
+        if (HookEngineManager.isInitialized) return
+        HookEngineManager.engine = LegacyHookEngine()
+    }
+
+    override fun onPackageLoaded(param: XposedModuleInterface.PackageLoadedParam) {
+        if (isApi100Fallback) {
+            val packageName = param.packageName
+            val base = this.getObject("mBase", XposedInterfaceWrapper::class.java)
+            val applicationInfo = base.callMethod("getApplicationInfo") as ApplicationInfo
+
+            if (HostAdapters.isLoadable(packageName)) {
+                if (param.isFirstPackage) {
+                    ModuleLoader.initialize(
+                        param.callMethod("getClassLoader") as ClassLoader,
+                        applicationInfo.sourceDir,
+                        packageName,
+                        processName
+                    )
+
+                    HookEngineManager.engine.log(
+                        Log.INFO,
+                        "[Kiora]",
+                        "在 API 100 中加载，已降级为 Legacy API"
+                    )
+                }
+            }
+        }
+    }
+    /* --- end of API 100 --- */
+
+
+    /* --- start of API 101 --- */
+    constructor() : super()
+
+    override fun onModuleLoaded(param: XposedModuleInterface.ModuleLoadedParam) {
+        super.onModuleLoaded(param)
+        this.processName = param.processName
+    }
+
+    override fun onPackageReady(param: XposedModuleInterface.PackageReadyParam) {
+        super.onPackageReady(param)
+
+        if (HookEngineManager.isInitialized) return
+
+        val packageName = param.packageName
+
+        if (HostAdapters.isLoadable(packageName)) {
+            if (param.isFirstPackage) {
+                HookEngineManager.engine = ModernHookEngine(this)
+                
+                ModuleLoader.initialize(
+                    param.classLoader,
+                    moduleApplicationInfo.sourceDir,
+                    packageName,
+                    processName
+                )
+            }
+        }
+    }
+    /* --- end of API 101 --- */
+}

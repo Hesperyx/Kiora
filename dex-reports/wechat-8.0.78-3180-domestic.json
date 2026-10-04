@@ -1,0 +1,381 @@
+{
+  "schemaVersion": 2,
+  "outcome": "PASS",
+  "versionCode": 3180,
+  "versionName": "8.0.78",
+  "isGooglePlay": false,
+  "features": [
+    {
+      "technicalId": "伪装宿主版本",
+      "methodHash": "28",
+      "outcome": "PASS",
+      "delegates": [
+        {
+          "key": "methodPrivateOpenUrl",
+          "status": "SUCCESS",
+          "descriptor": "Lcom/tencent/mm/plugin/appbrand/jsapi/vb;->A(Lcom/tencent/mm/plugin/appbrand/jsapi/l;Lorg/json/JSONObject;I)V"
+        },
+        {
+          "key": "ctorCgiLaunchWxaAppFunc1122",
+          "status": "SUCCESS",
+          "descriptor": "Lil1/d;-><init>(Ljava/lang/String;ZLpc5/ik7;Lpc5/jo7;Lpc5/lm7;Ljava/lang/String;ILcom/tencent/mm/plugin/appbrand/report/quality/QualitySession;Ljava/lang/String;Lcom/tencent/mm/plugin/appbrand/config/AppBrandLaunchFromNotifyReferrer;Ljava/lang/String;Lpc5/g70;IZLjava/lang/String;ZZ)V"
+        }
+      ]
+    },
+    {
+      "technicalId": "加入群聊自动免打扰",
+      "methodHash": "28",
+      "outcome": "PASS",
+      "delegates": [
+        {
+          "key": "methodSyncChatroomMembers",
+          "status": "SUCCESS",
+          "descriptor": "Lb41/u1;->N(Ljava/lang/String;Ljava/lang/String;Lpc5/zz;IIILjava/lang/String;Lso/a;ZZI)Z"
+        }
+      ]
+    },
+    {
+      "technicalId": "去除菜单限制",
+      "methodHash": "28",
+      "outcome": "PASS",
+      "delegates": [
+        {
+          "key": "methodGetMenuItemVisibility1",
+          "status": "SUCCESS",
+          "descriptor": "Lcom/tencent/mm/plugin/appbrand/menu/n0;->d(Landroid/content/Context;Lcom/tencent/mm/plugin/appbrand/page/m7;)Lcom/tencent/mm/plugin/appbrand/menu/y0;"
+        },
+        {
+          "key": "methodGetMenuItemVisibility2",
+          "status": "SUCCESS",
+          "descriptor": "Lcom/tencent/mm/plugin/appbrand/menu/i;->d(Lcom/tencent/mm/plugin/appbrand/page/m7;Landroid/content/Context;)Lcom/tencent/mm/plugin/appbrand/menu/y0;"
+        }
+      ]
+    },
+    {
+      "technicalId": "反安全消息",
+      "methodHash": "28",
+      "outcome": "PASS",
+      "delegates": [
+        {
+          "key": "methodRawSfnCheck",
+          "status": "SUCCESS",
+          "descriptor": "Lb41/ma;->C(Lcom/tencent/mm/storage/e9;)Z"
+        },
+        {
+          "key": "methodFullSecCheck",
+          "status": "SUCCESS",
+          "descriptor": "Lb41/ma;->B(Lcom/tencent/mm/storage/e9;)Z"
+        }
+      ]
+    },
+    {
+      "technicalId": "反已读追踪",
+      "methodHash": "28",
+      "outcome": "PASS",
+      "delegates": [
+        {
+          "key": "methodLoadFinderImage",
+          "status": "SUCCESS",
+          "descriptor": "Lhg2/l;->h(Ljava/lang/String;Landroid/widget/ImageView;Let2/f1;)V"
+        }
+      ]
+    },
+    {
+      "technicalId": "拦截异常大小贴纸表情",
+      "methodHash": "28",
+      "outcome": "PASS",
+      "delegates": [
+        {
+          "key": "ctorMmWxgfDrawable",
+          "status": "SUCCESS",
+          "descriptor": "Lcom/tencent/mm/plugin/gif/u;-><init>([B)V"
+        }
+      ]
+    },
+    {
+      "technicalId": "禁止上传正在输入状态",
+      "methodHash": "28",
+      "outcome": "PASS",
+      "delegates": [
+        {
+          "key": "classMmTypingSendReq",
+          "status": "SUCCESS",
+          "descriptor": "com.tencent.mm.modelsimple.k1"
+        }
+      ]
+    },
+    {
+      "technicalId": "禁止自动播放视频",
+      "methodHash": "28",
+      "outcome": "PASS",
+      "delegates": [
+        {
+          "key": "methodCheckAutoPlay",
+          "status": "SUCCESS",
+          "descriptor": "Lvl4/e;->a(Lcom/tencent/mm/plugin/sns/ui/ao;)Z"
+        },
+        {
+          "key": "methodImproveAutoPlayInvoke",
+          "status": "SUCCESS",
+          "descriptor": "Lmk4/b;->invoke()Ljava/lang/Object;"
+        }
+      ]
+    },
+    {
+      "technicalId": "禁用 WebView 安全警告",
+      "methodHash": "28",
+      "outcome": "PASS",
+      "delegates": [
+        {
+          "key": "methodGetIsInterceptEnabled",
+          "status": "SUCCESS",
+          "descriptor": "Lq45/b;->c()Z"
+        },
+        {
+          "key": "methodGetIsUrlSafe",
+          "status": "SUCCESS",
+          "descriptor": "Lq45/b;->b(Ljava/lang/String;)Z"
+        }
+      ]
+    },
+    {
+      "technicalId": "禁用「刚刚在看」提醒",
+      "methodHash": "28",
+      "outcome": "PASS",
+      "delegates": [
+        {
+          "key": "methodShowRecoveryToast",
+          "status": "SUCCESS",
+          "descriptor": "Ll84/a;->invoke()Ljava/lang/Object;"
+        }
+      ]
+    },
+    {
+      "technicalId": "禁用「转发截图」提示",
+      "methodHash": "28",
+      "outcome": "PASS",
+      "delegates": [
+        {
+          "key": "methodDisplayToast",
+          "status": "SUCCESS",
+          "descriptor": "Lcom/tencent/mm/ui/feature/api/screenshot/y0;->rj(Landroid/app/Activity;Lcom/tencent/mm/ui/screenshot/w;Landroid/view/View$OnClickListener;)V"
+        }
+      ]
+    },
+    {
+      "technicalId": "禁用微信进程状态检测器",
+      "methodHash": "28",
+      "outcome": "PASS",
+      "delegates": [
+        {
+          "key": "methodPerformProcessCheck",
+          "status": "SUCCESS",
+          "descriptor": "Lzv3/b;->run()V"
+        }
+      ]
+    },
+    {
+      "technicalId": "禁用拍一拍",
+      "methodHash": "28",
+      "outcome": "PASS",
+      "delegates": [
+        {
+          "key": "methodAvatarDoubleClick",
+          "status": "SUCCESS",
+          "descriptor": "Lcom/tencent/mm/ui/chatting/f6;->a(Landroid/view/View;)Z"
+        }
+      ]
+    },
+    {
+      "technicalId": "禁用消息折叠",
+      "methodHash": "28",
+      "outcome": "PASS",
+      "delegates": [
+        {
+          "key": "methodFoldMsg",
+          "status": "SUCCESS",
+          "descriptor": "Lcom/tencent/mm/ui/chatting/viewitems/b0;->r(ILjava/lang/CharSequence;Lcom/tencent/mm/ui/widget/MMNeat7extView;ZLcom/tencent/mm/storage/e9;Lcom/tencent/mm/ui/chatting/viewitems/j0;)V"
+        }
+      ]
+    },
+    {
+      "technicalId": "禁用置顶聊天折叠",
+      "methodHash": "28",
+      "outcome": "PASS",
+      "delegates": [
+        {
+          "key": "methodAddCollapseChatItem",
+          "status": "SUCCESS",
+          "descriptor": "Lcom/tencent/mm/ui/conversation/t5;->N()V"
+        },
+        {
+          "key": "methodIfShouldAddCollapseChatItem",
+          "status": "SUCCESS",
+          "descriptor": "Lcom/tencent/mm/ui/conversation/t5;->H(Z)Z"
+        },
+        {
+          "key": "methodRecyclerShouldShowFoldItem",
+          "status": "SUCCESS",
+          "descriptor": "Lpo5/h1;->L(I)Z"
+        }
+      ]
+    },
+    {
+      "technicalId": "移除分享签名校验",
+      "methodHash": "28",
+      "outcome": "PASS",
+      "delegates": [
+        {
+          "key": "methodSignCheck",
+          "status": "SUCCESS",
+          "descriptor": "Lcom/tencent/mm/pluginsdk/model/app/i1;->b(Landroid/content/Context;Lcom/tencent/mm/pluginsdk/model/app/m;Ljava/lang/String;Lcom/tencent/mm/pluginsdk/model/app/j5;Lcom/tencent/mm/pluginsdk/model/app/h5;Z)Z"
+        }
+      ]
+    },
+    {
+      "technicalId": "移除开屏广告",
+      "methodHash": "28",
+      "outcome": "PASS",
+      "delegates": [
+        {
+          "key": "methodIsAdContact",
+          "status": "SUCCESS",
+          "descriptor": "Llc1/j;->a(Lcom/tencent/mm/plugin/appbrand/config/AppBrandInitConfigWC;)Z"
+        },
+        {
+          "key": "methodCheckCanShowAd",
+          "status": "SUCCESS",
+          "descriptor": "Lcom/tencent/mm/plugin/appbrand/d7;->K2(Lcom/tencent/mm/plugin/appbrand/d7;)Z"
+        },
+        {
+          "key": "methodAdDataCallback",
+          "status": "SUCCESS",
+          "descriptor": "Lcom/tencent/mm/plugin/appbrand/jsapi/auth/q0;->a(IILjava/lang/String;Lcom/tencent/mm/modelbase/o;)V"
+        },
+        {
+          "key": "methodSendShouldShowAd",
+          "status": "SUCCESS",
+          "descriptor": "Llc1/b0;->l(I)V"
+        },
+        {
+          "key": "methodShowSplashAd",
+          "status": "SUCCESS",
+          "descriptor": "Lcom/tencent/mm/plugin/appbrand/ad/jsapi/u;->A(Lcom/tencent/mm/plugin/appbrand/jsapi/l;Lorg/json/JSONObject;I)V"
+        }
+      ]
+    },
+    {
+      "technicalId": "移除通话时聊天限制",
+      "methodHash": "28",
+      "outcome": "PASS",
+      "delegates": [
+        {
+          "key": "methodIsDuringCall",
+          "status": "SUCCESS",
+          "descriptor": "Lpq/b;->H()Z"
+        },
+        {
+          "key": "methodIsMultiTalking",
+          "status": "SUCCESS",
+          "descriptor": "Lpq/b;->v(Landroid/content/Context;)Z"
+        },
+        {
+          "key": "methodIsMultiTalking2",
+          "status": "SUCCESS",
+          "descriptor": "Lpq/b;->w(Landroid/content/Context;Landroid/content/DialogInterface$OnClickListener;)Z"
+        },
+        {
+          "key": "methodIsCameraUsing",
+          "status": "SUCCESS",
+          "descriptor": "Lpq/b;->h(Landroid/content/Context;ZLandroid/content/DialogInterface$OnClickListener;)Z"
+        },
+        {
+          "key": "methodIsCameraUsing2",
+          "status": "SUCCESS",
+          "descriptor": "Lpq/b;->i(Landroid/content/Context;ZLandroid/os/Bundle;)Z"
+        },
+        {
+          "key": "methodIsVoiceUsing",
+          "status": "SUCCESS",
+          "descriptor": "Lpq/b;->C(Landroid/content/Context;)Z"
+        },
+        {
+          "key": "methodIsVoiceUsing2",
+          "status": "SUCCESS",
+          "descriptor": "Lpq/b;->D(Landroid/content/Context;Landroid/content/DialogInterface$OnClickListener;)Z"
+        },
+        {
+          "key": "methodCheckAppBrandVoiceUsing",
+          "status": "SUCCESS",
+          "descriptor": "Lpq/b;->e(Landroid/content/Context;)Z"
+        },
+        {
+          "key": "methodCheckAppBrandVoiceUsing2",
+          "status": "SUCCESS",
+          "descriptor": "Lpq/b;->f(Landroid/content/Context;Landroid/content/DialogInterface$OnClickListener;)Z"
+        },
+        {
+          "key": "methodMultiTalkCallBack",
+          "status": "SUCCESS",
+          "descriptor": "Lcom/tencent/mm/ui/LauncherUI;->getInstance()Lcom/tencent/mm/ui/LauncherUI;"
+        },
+        {
+          "key": "methodMultiTalkCallBackV2",
+          "status": "SUCCESS",
+          "descriptor": "Lcom/tencent/mm/voipmp/v2/VoIPMPCoreV2$multiTalkActionListener$1;->callback(Lcom/tencent/mm/sdk/event/IEvent;)Z"
+        },
+        {
+          "key": "methodVoipCallBack",
+          "status": "SUCCESS",
+          "descriptor": "Lcom/tencent/mm/plugin/voip/model/NewVoipMgr$2;->callback(Lcom/tencent/mm/sdk/event/IEvent;)Z"
+        },
+        {
+          "key": "methodIpCallCallBack",
+          "status": "SUCCESS",
+          "descriptor": "Lcom/tencent/mm/plugin/ipcall/IPCallManager$3;->callback(Lcom/tencent/mm/sdk/event/IEvent;)Z"
+        },
+        {
+          "key": "methodFlutterLinkVoipCallBack",
+          "status": "SUCCESS",
+          "descriptor": "Lcom/tencent/mm/voipmp/helper/DeviceOccupyHelper$mCheckDeviceLsn$1;->callback(Lcom/tencent/mm/sdk/event/IEvent;)Z"
+        }
+      ]
+    },
+    {
+      "technicalId": "解除风险文件拦截",
+      "methodHash": "28",
+      "outcome": "PASS",
+      "delegates": [
+        {
+          "key": "methodRiskFileFlag",
+          "status": "SUCCESS",
+          "descriptor": "Ln95/s;->q()Ljava/lang/Integer;"
+        }
+      ]
+    },
+    {
+      "technicalId": "跳过启动页面",
+      "methodHash": "28",
+      "outcome": "PASS",
+      "delegates": [
+        {
+          "key": "methodShowSplash",
+          "status": "SUCCESS",
+          "descriptor": "Lcom/tencent/mm/plugin/appbrand/AppBrandRuntime;->c2()V"
+        }
+      ]
+    },
+    {
+      "technicalId": "隐藏其他设备横幅",
+      "methodHash": "28",
+      "outcome": "PASS",
+      "delegates": [
+        {
+          "key": "methodSetOtherOnlineBannerVisibility",
+          "status": "SUCCESS",
+          "descriptor": "Lcom/tencent/mm/ui/conversation/banner/l0;->k(I)V"
+        }
+      ]
+    }
+  ]
+}

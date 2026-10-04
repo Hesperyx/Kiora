@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 悬浮底栏（液态玻璃导航栏）用于在宿主视图上标记可逆几何修改的 tag 键 -->
+    <item name="kiora_tag_extend" type="id" />
+    <item name="kiora_tag_icon_translation" type="id" />
+    <item name="kiora_tag_content_translation" type="id" />
+    <item name="kiora_tag_page_extend_retry" type="id" />
+</resources>

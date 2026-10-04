@@ -1,0 +1,83 @@
+package cn.hxy.kiora.hook.troop
+
+import cn.hxy.kiora.host.HostEnv
+import android.widget.FrameLayout
+import com.tencent.mvi.base.route.MsgIntent
+import com.tencent.qqnt.kernel.nativeinterface.MsgRecord
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
+import cn.hxy.kiora.annotation.HookCategory
+import cn.hxy.kiora.annotation.HookItemAnnotation
+import cn.hxy.kiora.common.ModuleScope
+import cn.hxy.kiora.hook.api.AIOViewUpdateListener
+import cn.hxy.kiora.hook.base.BaseSwitchHookItem
+import cn.hxy.kiora.plugin.view.PluginViewLoader
+import cn.hxy.kiora.utils.hook.hookAfter
+import cn.hxy.kiora.utils.io.ObjectStore
+import cn.hxy.kiora.utils.reflect.findMethod
+import cn.hxy.kiora.utils.reflect.newInstanceWithArgs
+import cn.hxy.kiora.utils.reflect.toClass
+import java.lang.reflect.Constructor
+import java.lang.reflect.Method
+
+@HookItemAnnotation(
+    "记住上次查看位置",
+    "记住群聊上次查看位置，进入聊天界面自动跳转",
+    HookCategory.GROUP
+)
+object RememberLastRead : BaseSwitchHookItem(), AIOViewUpdateListener {
+
+    private lateinit var sendIntent: Method
+    private lateinit var cotr: Constructor<*>
+
+    private val serializer = MapSerializer(String.serializer(), Long.serializer())
+    private var seqMap = mutableMapOf<String, Long>()
+
+    override fun onUpdate(
+        frameLayout: FrameLayout,
+        msgRecord: MsgRecord
+    ) {
+        if (msgRecord.chatType != 2 || isFromHistory()) return
+        seqMap[msgRecord.peerUid] = msgRecord.msgSeq
+    }
+
+    override fun onInit(): Boolean {
+
+        val vmMessenger = "com.tencent.mvi.base.route.VMMessenger".toClass
+        cotr = vmMessenger.constructors.single {
+            it.parameterCount == 2 && it.parameterTypes.contains(Boolean::class.javaPrimitiveType)
+        }
+        sendIntent = vmMessenger.findMethod {
+            returnType = void
+            paramTypes(MsgIntent::class.java)
+        }
+        ObjectStore.load("data", name, serializer)?.let { seqMap = it as MutableMap<String, Long> }
+        return super.onInit()
+    }
+
+    override fun onHook() {
+
+        cotr.hookAfter(this) {
+            val contact = PluginViewLoader.currentContact
+            if (contact.chatType != 2 || !seqMap.contains(contact.peerUid)) return@hookAfter
+
+            ObjectStore.save("data", name, seqMap, serializer)
+
+            val intent = $$"com.tencent.mobileqq.aio.event.MsgNavigationEvent$NavigateBySeqEvent"
+                .toClass.newInstanceWithArgs("", seqMap[contact.peerUid], 0L, false, null, false, false, null, 228, null)
+
+            ModuleScope.launchMainDelayed(150) {
+                if (isFromHistory()) return@launchMainDelayed
+                sendIntent.invoke(it.thisObject, intent)
+            }
+
+        }
+
+    }
+
+    private fun isFromHistory(): Boolean {
+        val intent = HostEnv.activity?.intent ?: return false
+        return intent.getStringExtra("preAct") == "NTChatHistoryActivity"
+    }
+
+}
