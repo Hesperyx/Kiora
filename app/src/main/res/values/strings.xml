@@ -738,4 +738,17 @@
 
     <!-- M3 widget layer -->
     <string name="accessibility_back">Back</string>
+
+    <!-- RedirectDownloadPath batch -->
+    <string name="feature_redirect_download_path_name">Redirect file download path</string>
+    <string name="feature_redirect_download_path_description">Save chat files received by WeChat to a custom folder</string>
+    <string name="chat_redirect_path_exists">The current directory already exists.</string>
+    <string name="chat_redirect_path_not_directory">The current path exists but is not a directory. Downloads will fall back to the default directory.</string>
+    <string name="chat_redirect_path_will_create">The current directory does not exist. WeKit will try to create it when downloading.</string>
+    <string name="chat_redirect_save_directory">Save directory</string>
+    <string name="chat_redirect_actual_directory">Actual directory: %1$s</string>
+    <string name="chat_redirect_default_directory_hint">Leave blank to use the default directory: %1$s</string>
+    <string name="chat_redirect_default_restored">Default path restored</string>
+    <string name="chat_redirect_restore_default">Restore default</string>
+    <string name="chat_redirect_saved">Saved. New downloads will use this directory.</string>
 </resources>

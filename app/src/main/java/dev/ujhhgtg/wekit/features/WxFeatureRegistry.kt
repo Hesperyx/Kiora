@@ -131,6 +131,7 @@ import dev.ujhhgtg.wekit.features.items.chat.DownloadFilesToLocalStorage
 import dev.ujhhgtg.wekit.features.items.chat.DownloadImagesToLocalStorage
 import dev.ujhhgtg.wekit.features.items.chat.ModifyTextMessageDisplay
 import dev.ujhhgtg.wekit.features.items.chat.QuickRevokeAndEdit
+import dev.ujhhgtg.wekit.features.items.chat.RedirectDownloadPath
 import dev.ujhhgtg.wekit.features.items.chat.RemoveChatMessageContextMenuItems
 import dev.ujhhgtg.wekit.features.items.chat.RepeatMessages
 import dev.ujhhgtg.wekit.features.items.chat.SaveStickersToLocalStorage
@@ -285,6 +286,7 @@ object WxFeatureRegistry {
                 SaveVoicesToLocalStorage,
                 DisplayMessageDetails,
                 QuickRevokeAndEdit,
+                RedirectDownloadPath,
                 ForwardMessagesToMoments,
             )
         )

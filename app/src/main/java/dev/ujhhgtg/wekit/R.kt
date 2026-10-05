@@ -768,6 +768,18 @@ object R {
 
         // M3 widget layer
         val accessibility_back = cn.hxy.kiora.R.string.accessibility_back
+        // RedirectDownloadPath batch
+        val feature_redirect_download_path_name = cn.hxy.kiora.R.string.feature_redirect_download_path_name
+        val feature_redirect_download_path_description = cn.hxy.kiora.R.string.feature_redirect_download_path_description
+        val chat_redirect_path_exists = cn.hxy.kiora.R.string.chat_redirect_path_exists
+        val chat_redirect_path_not_directory = cn.hxy.kiora.R.string.chat_redirect_path_not_directory
+        val chat_redirect_path_will_create = cn.hxy.kiora.R.string.chat_redirect_path_will_create
+        val chat_redirect_save_directory = cn.hxy.kiora.R.string.chat_redirect_save_directory
+        val chat_redirect_actual_directory = cn.hxy.kiora.R.string.chat_redirect_actual_directory
+        val chat_redirect_default_directory_hint = cn.hxy.kiora.R.string.chat_redirect_default_directory_hint
+        val chat_redirect_default_restored = cn.hxy.kiora.R.string.chat_redirect_default_restored
+        val chat_redirect_restore_default = cn.hxy.kiora.R.string.chat_redirect_restore_default
+        val chat_redirect_saved = cn.hxy.kiora.R.string.chat_redirect_saved
     }
 
     object plurals {
