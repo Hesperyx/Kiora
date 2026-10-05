@@ -20,6 +20,8 @@ object KvStore {
 
     fun getBoolOrDef(key: String, def: Boolean): Boolean = prefs.getBoolean(key, def)
 
+    fun getBoolOrFalse(key: String): Boolean = getBoolOrDef(key, false)
+
     fun putBool(key: String, value: Boolean) {
         prefs.edit().putBoolean(key, value).apply()
     }

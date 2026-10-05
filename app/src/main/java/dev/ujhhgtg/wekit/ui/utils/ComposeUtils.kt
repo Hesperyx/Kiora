@@ -3,6 +3,7 @@ package dev.ujhhgtg.wekit.ui.utils
 import android.app.Dialog
 import android.content.Context
 import android.graphics.Color
+import android.view.View
 import android.view.Window
 import androidx.activity.ComponentDialog
 import androidx.compose.foundation.layout.Box
@@ -61,3 +62,9 @@ class ShowComposeDialogScope(
     val window: Window,
     val onDismiss: () -> Unit
 )
+
+fun View.setLifecycleOwner(lifecycleOwner: XposedLifecycleOwner) {
+    setViewTreeLifecycleOwner(lifecycleOwner)
+    setViewTreeViewModelStoreOwner(lifecycleOwner)
+    setViewTreeSavedStateRegistryOwner(lifecycleOwner)
+}
