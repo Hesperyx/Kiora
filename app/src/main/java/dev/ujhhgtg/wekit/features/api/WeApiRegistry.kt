@@ -4,6 +4,24 @@ import dev.ujhhgtg.wekit.features.api.net.WeNetSceneApi
 import dev.ujhhgtg.wekit.features.api.net.WePacketHelper
 import dev.ujhhgtg.wekit.features.api.net.WeTransferApi
 import dev.ujhhgtg.wekit.features.api.net.listener.WePacketDispatcher
+import dev.ujhhgtg.wekit.features.api.ui.WeAlertDialogApi
+import dev.ujhhgtg.wekit.features.api.ui.WeChatInputBarApi
+import dev.ujhhgtg.wekit.features.api.ui.WeChatInputBarMenuApi
+import dev.ujhhgtg.wekit.features.items.chat.ChatFooterHooks
+import dev.ujhhgtg.wekit.features.api.ui.WeContactHeaderApi
+import dev.ujhhgtg.wekit.features.api.ui.WeChatMessageViewApi
+import dev.ujhhgtg.wekit.features.api.ui.WeContactPrefsScreenApi
+import dev.ujhhgtg.wekit.features.api.ui.WeConversationContextMenuApi
+import dev.ujhhgtg.wekit.features.api.ui.WeConversationListViewApi
+import dev.ujhhgtg.wekit.features.api.ui.WeShortVideosShareMenuApi
+import dev.ujhhgtg.wekit.features.api.ui.WeWebViewApi
+import dev.ujhhgtg.wekit.features.api.ui.WeCurrentConversationApi
+import dev.ujhhgtg.wekit.features.api.ui.WeMainActivityBeautifyApi
+import dev.ujhhgtg.wekit.features.api.ui.WeHomeScreenPopupMenuApi
+import dev.ujhhgtg.wekit.features.api.ui.WeStartActivityApi
+import dev.ujhhgtg.wekit.features.api.ui.WeMomentsApi
+import dev.ujhhgtg.wekit.features.api.ui.WeMomentsContextMenuApi
+import dev.ujhhgtg.wekit.features.items.scripting_java.JavaHookApi
 import dev.ujhhgtg.wekit.features.core.BaseFeature
 
 /**
@@ -41,5 +59,27 @@ object WeApiRegistry {
         WePacketDispatcher,
         WeTransferApi,
         WePacketHelper,
+        WeMomentsApi,
+        WeAlertDialogApi,
+        WeMainActivityBeautifyApi,
+    )
+
+    /** 需要随功能加载器启动（有 Hook 副作用）的服务层功能。 */
+    val startupBacked: List<BaseFeature> = listOf(
+        WeChatInputBarApi,
+        WeChatInputBarMenuApi,
+        ChatFooterHooks,
+        WeChatMessageViewApi,
+        WeContactPrefsScreenApi,
+        WeConversationContextMenuApi,
+        WeConversationListViewApi,
+        WeShortVideosShareMenuApi,
+        WeWebViewApi,
+        WeContactHeaderApi,
+        WeCurrentConversationApi,
+        WeHomeScreenPopupMenuApi,
+        WeStartActivityApi,
+        WeMomentsContextMenuApi,
+        JavaHookApi,
     )
 }

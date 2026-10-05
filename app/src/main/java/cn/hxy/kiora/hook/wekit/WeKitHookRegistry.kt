@@ -24,6 +24,7 @@ object WeKitHookRegistry {
         FeatureCategoryIds.SCRIPTING_JAVA to HookCategory.MISC,
         FeatureCategoryIds.SCRIPTING_PYTHON to HookCategory.MISC,
         FeatureCategoryIds.ENTERTAIN to HookCategory.APPEARANCE,
+        FeatureCategoryIds.HOME_SCREEN_MENU to HookCategory.MISC,
     )
 
     val hookItems: List<WeKitFeatureHookItem> by lazy {

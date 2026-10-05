@@ -42,6 +42,8 @@ object WxFeatureLoader {
 
         val currentProcess = TargetProcesses.currentType
         val relevant = WxFeatureRegistry.all.filter { currentProcess in it.targetProcesses }
+        val startupApis = WeApiRegistry.startupBacked.filter { currentProcess in it.targetProcesses }
+        val activeFeatures = relevant + startupApis
 
         runCatching {
             System.loadLibrary("dexkit")
@@ -51,16 +53,16 @@ object WxFeatureLoader {
             // 服务层（API 功能）必须一起进解析管线：
             // items 功能的 matcher 会跨对象引用 API 委托（如 WeMessageApi.classChattingDataAdapter.data），
             // 服务层委托没解析过的话 `.data` 直接 NPE。API 层永远参与 loadFromCache（恢复描述符）。
-            val apiFeatures = WeApiRegistry.dexBacked
+            val apiFeatures = WeApiRegistry.dexBacked + startupApis
             val toRescan = collectMissing(apiFeatures + relevant)
             val resolveMain = DexKitFinder.unresolvedKeys().isNotEmpty()
 
-            if (relevant.isEmpty() && !resolveMain) return@runCatching
+            if (activeFeatures.isEmpty() && !resolveMain) return@runCatching
 
             if (toRescan.isEmpty() && !resolveMain) {
                 // 缓存全部命中，直接启动（主框架 hook 已由 Startup 挂载）
                 WeLogger.i(TAG, "DexKit 缓存全部命中，跳过扫描")
-                startFeatures(relevant)
+                startFeatures(activeFeatures)
             } else if (!TargetProcesses.isInMain) {
                 // 非主进程：缓存缺失时不能直接 startFeatures。APPBRAND 等进程里 DexKit
                 // 委托还没恢复，启动功能只会让 enable() 抛错后被 runCatching 吞掉。
@@ -69,7 +71,7 @@ object WxFeatureLoader {
                 return@runCatching
             } else {
                 // 主进程缓存缺失 → 异步弹选择框（不阻塞，等 Activity 就绪）
-                promptAndResolve(relevant, toRescan, resolveMain)
+                promptAndResolve(activeFeatures, toRescan, resolveMain)
             }
         }.onFailure { WeLogger.e(TAG, "WeKit 功能子系统加载失败", it) }
     }
@@ -263,7 +265,7 @@ object WxFeatureLoader {
         var done = 0
         // 解析顺序：服务层（API）按 WeApiRegistry 的依赖顺序在前，items 功能在后。
         // items 的 matcher 会跨对象引用 API 委托（.data），顺序错了就是 NPE。
-        val apiRank = WeApiRegistry.dexBacked.withIndex().associate { (i, f) -> f to i }
+        val apiRank = (WeApiRegistry.dexBacked + WeApiRegistry.startupBacked).withIndex().associate { (i, f) -> f to i }
         val ordered = remaining.sortedBy { resolvable ->
             (resolvable as? BaseFeature)?.let { apiRank[it] } ?: Int.MAX_VALUE
         }
