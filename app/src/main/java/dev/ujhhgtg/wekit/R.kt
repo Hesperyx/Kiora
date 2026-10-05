@@ -780,6 +780,16 @@ object R {
         val chat_redirect_default_restored = cn.hxy.kiora.R.string.chat_redirect_default_restored
         val chat_redirect_restore_default = cn.hxy.kiora.R.string.chat_redirect_restore_default
         val chat_redirect_saved = cn.hxy.kiora.R.string.chat_redirect_saved
+        // Wave 2: theme layer, color/date-time fields, reorderable list
+        val color_picker_title = cn.hxy.kiora.R.string.color_picker_title
+        val color_picker_hex_value = cn.hxy.kiora.R.string.color_picker_hex_value
+        val color_picker_hue = cn.hxy.kiora.R.string.color_picker_hue
+        val color_picker_invalid_argb = cn.hxy.kiora.R.string.color_picker_invalid_argb
+        val color_picker_opacity = cn.hxy.kiora.R.string.color_picker_opacity
+        val color_picker_saturation = cn.hxy.kiora.R.string.color_picker_saturation
+        val color_picker_value = cn.hxy.kiora.R.string.color_picker_value
+        val date_time_choose_time = cn.hxy.kiora.R.string.date_time_choose_time
+        val date_time_invalid_format = cn.hxy.kiora.R.string.date_time_invalid_format
     }
 
     object plurals {

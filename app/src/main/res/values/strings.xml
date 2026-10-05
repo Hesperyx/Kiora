@@ -751,4 +751,15 @@
     <string name="chat_redirect_default_restored">Default path restored</string>
     <string name="chat_redirect_restore_default">Restore default</string>
     <string name="chat_redirect_saved">Saved. New downloads will use this directory.</string>
+
+    <!-- Wave 2: theme layer, color/date-time fields, reorderable list -->
+    <string name="color_picker_title">Choose color</string>
+    <string name="color_picker_hex_value">Hex color</string>
+    <string name="color_picker_hue">Hue</string>
+    <string name="color_picker_invalid_argb">Invalid color format (#AARRGGBB)</string>
+    <string name="color_picker_opacity">Opacity</string>
+    <string name="color_picker_saturation">Saturation</string>
+    <string name="color_picker_value">Value</string>
+    <string name="date_time_choose_time">Choose time</string>
+    <string name="date_time_invalid_format">Invalid time format (%1$s)</string>
 </resources>
