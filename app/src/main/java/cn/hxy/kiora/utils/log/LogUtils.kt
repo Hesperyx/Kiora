@@ -88,14 +88,6 @@ object LogUtils {
             """.trimIndent()
     }
 
-    fun logEnvironment() {
-        ModuleScope.launchIO("EnvLog") {
-            val info = getEnvironmentInfo()
-            val file = File("${HostInfo.moduleDataPath}global/log", "environment_info.txt")
-            FileUtils.writeText(file, info)
-        }
-    }
-
     private fun saveCrashLog(tag: String, content: String) {
         val dir = HostEnv.currentDir
         ModuleScope.launchIO("WriteLog") {

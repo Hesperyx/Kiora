@@ -146,7 +146,10 @@ object Startup {
                             "[Kiora]",
                             "宿主启动 (Loader: $realClassLoader)"
                         )
-                        LogUtils.logEnvironment()
+                        // 此处曾调用 LogUtils.logEnvironment() 把环境信息（含 Xposed 框架
+                        // 名称/版本/API）落盘到 HostInfo.moduleDataPath，而该路径位于宿主
+                        // 可读的 external files 目录。为避免留下框架指纹，已不再落盘：
+                        // 环境信息按需生成（崩溃报告 / 日志页），不主动写文件。
                     }
 
                     Parasitics.initForStubActivity(hostContext)
