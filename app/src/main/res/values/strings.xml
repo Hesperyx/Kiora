@@ -661,4 +661,15 @@
     <string name="feature_prevent_xposed_detection_name">Disable WeChat from detecting Xposed</string>
     <string name="feature_prevent_xposed_detection_description">Prevent WeChat from detecting the existence of Xposed framework</string>
     <string name="system_prevent_xposed_google_play_warning">This feature is unavailable in the Google Play build of WeChat.</string>
+
+    <!-- Compose items batch 13: WeChatMessageContextMenuApi -->
+    <plurals name="noncompose_message_menu_selected_title">
+        <item quantity="one">WeKit (%1$d message)</item>
+        <item quantity="other">WeKit (%1$d messages)</item>
+    </plurals>
+    <string name="feature_we_chat_message_context_menu_api_name">Chat interface message menu extension</string>
+    <string name="feature_we_chat_message_context_menu_api_description">Provides the function of adding menu items to the chat interface message long press menu</string>
+    <string name="noncompose_message_menu_adapted_section">Actions supporting multiple messages</string>
+    <string name="noncompose_message_menu_automatic_section">Actions automatically applied to multiple messages</string>
+    <string name="noncompose_message_menu_no_actions">No WeKit menu actions are available for the selected messages.</string>
 </resources>

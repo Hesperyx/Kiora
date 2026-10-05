@@ -683,15 +683,33 @@ object R {
             cn.hxy.kiora.R.string.feature_prevent_xposed_detection_description
         val system_prevent_xposed_google_play_warning =
             cn.hxy.kiora.R.string.system_prevent_xposed_google_play_warning
+
+        // Compose items batch 13: WeChatMessageContextMenuApi
+        val feature_we_chat_message_context_menu_api_name =
+            cn.hxy.kiora.R.string.feature_we_chat_message_context_menu_api_name
+        val feature_we_chat_message_context_menu_api_description =
+            cn.hxy.kiora.R.string.feature_we_chat_message_context_menu_api_description
+        val noncompose_message_menu_adapted_section =
+            cn.hxy.kiora.R.string.noncompose_message_menu_adapted_section
+        val noncompose_message_menu_automatic_section =
+            cn.hxy.kiora.R.string.noncompose_message_menu_automatic_section
+        val noncompose_message_menu_no_actions =
+            cn.hxy.kiora.R.string.noncompose_message_menu_no_actions
     }
 
     object plurals {
         val debug_send_packet_byte_count = cn.hxy.kiora.R.plurals.debug_send_packet_byte_count
+        val noncompose_message_menu_selected_title =
+            cn.hxy.kiora.R.plurals.noncompose_message_menu_selected_title
         val chat_sticker_manager_exported = cn.hxy.kiora.R.plurals.chat_sticker_manager_exported
     }
 
     object raw {
         val eruda = cn.hxy.kiora.R.raw.eruda
 
+    }
+
+    object id {
+        val wekit_multi_select_button = cn.hxy.kiora.R.id.wekit_multi_select_button
     }
 }

@@ -7,6 +7,7 @@ import dev.ujhhgtg.wekit.features.api.net.listener.WePacketDispatcher
 import dev.ujhhgtg.wekit.features.api.ui.WeAlertDialogApi
 import dev.ujhhgtg.wekit.features.api.ui.WeChatInputBarApi
 import dev.ujhhgtg.wekit.features.api.ui.WeChatInputBarMenuApi
+import dev.ujhhgtg.wekit.features.api.ui.WeChatMessageContextMenuApi
 import dev.ujhhgtg.wekit.features.items.chat.ChatFooterHooks
 import dev.ujhhgtg.wekit.features.api.ui.WeContactHeaderApi
 import dev.ujhhgtg.wekit.features.api.ui.WeChatMessageViewApi
@@ -80,6 +81,7 @@ object WeApiRegistry {
         WeHomeScreenPopupMenuApi,
         WeStartActivityApi,
         WeMomentsContextMenuApi,
+        WeChatMessageContextMenuApi,
         JavaHookApi,
     )
 }

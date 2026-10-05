@@ -5,4 +5,6 @@
     <item name="kiora_tag_icon_translation" type="id" />
     <item name="kiora_tag_content_translation" type="id" />
     <item name="kiora_tag_page_extend_retry" type="id" />
+    <!-- 聊天多选菜单栏上标记 WeKit 扩展按钮的 tag 键 -->
+    <item name="wekit_multi_select_button" type="id" />
 </resources>
