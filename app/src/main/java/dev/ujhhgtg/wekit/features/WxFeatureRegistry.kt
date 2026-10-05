@@ -137,6 +137,7 @@ import dev.ujhhgtg.wekit.features.items.chat.RepeatMessages
 import dev.ujhhgtg.wekit.features.items.chat.SaveStickersToLocalStorage
 import dev.ujhhgtg.wekit.features.items.chat.SaveVoicesToLocalStorage
 import dev.ujhhgtg.wekit.features.items.moments.ForwardMessagesToMoments
+import dev.ujhhgtg.wekit.features.items.contacts.DetectDeletedFriends
 
 
 /**
@@ -288,6 +289,7 @@ object WxFeatureRegistry {
                 QuickRevokeAndEdit,
                 RedirectDownloadPath,
                 ForwardMessagesToMoments,
+                DetectDeletedFriends,
             )
         )
     }

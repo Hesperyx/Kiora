@@ -790,6 +790,33 @@ object R {
         val color_picker_value = cn.hxy.kiora.R.string.color_picker_value
         val date_time_choose_time = cn.hxy.kiora.R.string.date_time_choose_time
         val date_time_invalid_format = cn.hxy.kiora.R.string.date_time_invalid_format
+        // Detect-deleted-friends + theme layer
+        val action_delete = cn.hxy.kiora.R.string.action_delete
+        val contacts_copy = cn.hxy.kiora.R.string.contacts_copy
+        val contacts_detect_back = cn.hxy.kiora.R.string.contacts_detect_back
+        val contacts_detect_create_label_failed = cn.hxy.kiora.R.string.contacts_detect_create_label_failed
+        val contacts_detect_delete_all = cn.hxy.kiora.R.string.contacts_detect_delete_all
+        val contacts_detect_mark_label = cn.hxy.kiora.R.string.contacts_detect_mark_label
+        val contacts_detect_marking_done = cn.hxy.kiora.R.string.contacts_detect_marking_done
+        val contacts_detect_mode = cn.hxy.kiora.R.string.contacts_detect_mode
+        val contacts_detect_mode_before_transfer = cn.hxy.kiora.R.string.contacts_detect_mode_before_transfer
+        val contacts_detect_mode_verify_user = cn.hxy.kiora.R.string.contacts_detect_mode_verify_user
+        val contacts_detect_new_label = cn.hxy.kiora.R.string.contacts_detect_new_label
+        val contacts_detect_nickname = cn.hxy.kiora.R.string.contacts_detect_nickname
+        val contacts_detect_rate_limited = cn.hxy.kiora.R.string.contacts_detect_rate_limited
+        val contacts_detect_remark = cn.hxy.kiora.R.string.contacts_detect_remark
+        val contacts_detect_request_delay = cn.hxy.kiora.R.string.contacts_detect_request_delay
+        val contacts_detect_status_account_restricted = cn.hxy.kiora.R.string.contacts_detect_status_account_restricted
+        val contacts_detect_status_blacklisted = cn.hxy.kiora.R.string.contacts_detect_status_blacklisted
+        val contacts_detect_status_deleted = cn.hxy.kiora.R.string.contacts_detect_status_deleted
+        val contacts_detect_status_transfer_abnormal = cn.hxy.kiora.R.string.contacts_detect_status_transfer_abnormal
+        val contacts_detect_stop = cn.hxy.kiora.R.string.contacts_detect_stop
+        val contacts_detect_suggested_label = cn.hxy.kiora.R.string.contacts_detect_suggested_label
+        val contacts_detect_warning_message = cn.hxy.kiora.R.string.contacts_detect_warning_message
+        val contacts_detect_warning_title = cn.hxy.kiora.R.string.contacts_detect_warning_title
+        val contacts_detect_wechat_number = cn.hxy.kiora.R.string.contacts_detect_wechat_number
+        val feature_detect_deleted_friends_description = cn.hxy.kiora.R.string.feature_detect_deleted_friends_description
+        val feature_detect_deleted_friends_name = cn.hxy.kiora.R.string.feature_detect_deleted_friends_name
     }
 
     object plurals {
@@ -800,6 +827,15 @@ object R {
         val chat_batch_revoke_result = cn.hxy.kiora.R.plurals.chat_batch_revoke_result
         val chat_stickers_saved_locally = cn.hxy.kiora.R.plurals.chat_stickers_saved_locally
         val chat_voices_saved_locally = cn.hxy.kiora.R.plurals.chat_voices_saved_locally
+        // Detect-deleted-friends + theme layer
+        val contacts_detect_confirm_delete = cn.hxy.kiora.R.plurals.contacts_detect_confirm_delete
+        val contacts_detect_delete_done = cn.hxy.kiora.R.plurals.contacts_detect_delete_done
+        val contacts_detect_deleting = cn.hxy.kiora.R.plurals.contacts_detect_deleting
+        val contacts_detect_marking = cn.hxy.kiora.R.plurals.contacts_detect_marking
+        val contacts_detect_scan_done = cn.hxy.kiora.R.plurals.contacts_detect_scan_done
+        val contacts_detect_scanning = cn.hxy.kiora.R.plurals.contacts_detect_scanning
+        val contacts_detect_select_label = cn.hxy.kiora.R.plurals.contacts_detect_select_label
+        val contacts_detect_unresolved = cn.hxy.kiora.R.plurals.contacts_detect_unresolved
     }
 
     object raw {

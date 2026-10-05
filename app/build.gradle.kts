@@ -131,6 +131,7 @@ dependencies {
     implementation(libs.lifecycle.runtime.compose)
     implementation(libs.kyant0.backdrop)
     implementation(libs.kyant0.shapes)
+    implementation(libs.materialkolor)
     implementation(libs.composablehorizons.material.symbols.outlined)
     implementation(libs.composablehorizons.material.symbols.filled)
 
