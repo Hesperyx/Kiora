@@ -735,4 +735,7 @@
     <string name="feature_save_voices_to_local_storage_description">Add a save button to the voice message menu to allow voice files to be saved locally</string>
     <string name="feature_save_voices_to_local_storage_name">Save voice messages locally</string>
     <string name="moments_forward_messages_menu">Forward to Moments</string>
+
+    <!-- M3 widget layer -->
+    <string name="accessibility_back">Back</string>
 </resources>

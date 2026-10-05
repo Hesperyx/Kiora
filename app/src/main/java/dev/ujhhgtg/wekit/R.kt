@@ -765,6 +765,9 @@ object R {
         val feature_save_voices_to_local_storage_name =
             cn.hxy.kiora.R.string.feature_save_voices_to_local_storage_name
         val moments_forward_messages_menu = cn.hxy.kiora.R.string.moments_forward_messages_menu
+
+        // M3 widget layer
+        val accessibility_back = cn.hxy.kiora.R.string.accessibility_back
     }
 
     object plurals {
