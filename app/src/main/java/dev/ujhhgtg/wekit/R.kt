@@ -695,6 +695,76 @@ object R {
             cn.hxy.kiora.R.string.noncompose_message_menu_automatic_section
         val noncompose_message_menu_no_actions =
             cn.hxy.kiora.R.string.noncompose_message_menu_no_actions
+
+        // Message-context-menu batch: 11 features
+        val chat_action_download = cn.hxy.kiora.R.string.chat_action_download
+        val chat_action_save_locally = cn.hxy.kiora.R.string.chat_action_save_locally
+        val chat_batch_revoke_menu = cn.hxy.kiora.R.string.chat_batch_revoke_menu
+        val chat_file_download_failed = cn.hxy.kiora.R.string.chat_file_download_failed
+        val chat_file_download_preparing = cn.hxy.kiora.R.string.chat_file_download_preparing
+        val chat_file_download_success = cn.hxy.kiora.R.string.chat_file_download_success
+        val chat_image_download_failed = cn.hxy.kiora.R.string.chat_image_download_failed
+        val chat_image_download_success = cn.hxy.kiora.R.string.chat_image_download_success
+        val chat_message_details_content = cn.hxy.kiora.R.string.chat_message_details_content
+        val chat_message_details_copied = cn.hxy.kiora.R.string.chat_message_details_copied
+        val chat_message_details_menu = cn.hxy.kiora.R.string.chat_message_details_menu
+        val chat_message_details_sender_id = cn.hxy.kiora.R.string.chat_message_details_sender_id
+        val chat_message_details_talker_id = cn.hxy.kiora.R.string.chat_message_details_talker_id
+        val chat_message_details_title = cn.hxy.kiora.R.string.chat_message_details_title
+        val chat_message_details_type = cn.hxy.kiora.R.string.chat_message_details_type
+        val chat_modify_text_content = cn.hxy.kiora.R.string.chat_modify_text_content
+        val chat_modify_text_menu = cn.hxy.kiora.R.string.chat_modify_text_menu
+        val chat_modify_text_title = cn.hxy.kiora.R.string.chat_modify_text_title
+        val chat_remove_menu_items_label = cn.hxy.kiora.R.string.chat_remove_menu_items_label
+        val chat_repeat_failed = cn.hxy.kiora.R.string.chat_repeat_failed
+        val chat_repeat_menu = cn.hxy.kiora.R.string.chat_repeat_menu
+        val chat_sticker_save_failed = cn.hxy.kiora.R.string.chat_sticker_save_failed
+        val chat_sticker_saved_to = cn.hxy.kiora.R.string.chat_sticker_saved_to
+        val chat_swipe_action_edit = cn.hxy.kiora.R.string.chat_swipe_action_edit
+        val chat_voice_save_failed = cn.hxy.kiora.R.string.chat_voice_save_failed
+        val chat_voice_saved_to = cn.hxy.kiora.R.string.chat_voice_saved_to
+        val feature_batch_revoke_description = cn.hxy.kiora.R.string.feature_batch_revoke_description
+        val feature_batch_revoke_name = cn.hxy.kiora.R.string.feature_batch_revoke_name
+        val feature_display_message_details_description =
+            cn.hxy.kiora.R.string.feature_display_message_details_description
+        val feature_display_message_details_name =
+            cn.hxy.kiora.R.string.feature_display_message_details_name
+        val feature_download_files_to_local_storage_description =
+            cn.hxy.kiora.R.string.feature_download_files_to_local_storage_description
+        val feature_download_files_to_local_storage_name =
+            cn.hxy.kiora.R.string.feature_download_files_to_local_storage_name
+        val feature_download_images_to_local_storage_description =
+            cn.hxy.kiora.R.string.feature_download_images_to_local_storage_description
+        val feature_download_images_to_local_storage_name =
+            cn.hxy.kiora.R.string.feature_download_images_to_local_storage_name
+        val feature_forward_messages_to_moments_description =
+            cn.hxy.kiora.R.string.feature_forward_messages_to_moments_description
+        val feature_forward_messages_to_moments_name =
+            cn.hxy.kiora.R.string.feature_forward_messages_to_moments_name
+        val feature_modify_text_message_display_description =
+            cn.hxy.kiora.R.string.feature_modify_text_message_display_description
+        val feature_modify_text_message_display_name =
+            cn.hxy.kiora.R.string.feature_modify_text_message_display_name
+        val feature_quick_revoke_and_edit_description =
+            cn.hxy.kiora.R.string.feature_quick_revoke_and_edit_description
+        val feature_quick_revoke_and_edit_name =
+            cn.hxy.kiora.R.string.feature_quick_revoke_and_edit_name
+        val feature_remove_chat_message_context_menu_items_description =
+            cn.hxy.kiora.R.string.feature_remove_chat_message_context_menu_items_description
+        val feature_remove_chat_message_context_menu_items_name =
+            cn.hxy.kiora.R.string.feature_remove_chat_message_context_menu_items_name
+        val feature_repeat_messages_description =
+            cn.hxy.kiora.R.string.feature_repeat_messages_description
+        val feature_repeat_messages_name = cn.hxy.kiora.R.string.feature_repeat_messages_name
+        val feature_save_stickers_to_local_storage_description =
+            cn.hxy.kiora.R.string.feature_save_stickers_to_local_storage_description
+        val feature_save_stickers_to_local_storage_name =
+            cn.hxy.kiora.R.string.feature_save_stickers_to_local_storage_name
+        val feature_save_voices_to_local_storage_description =
+            cn.hxy.kiora.R.string.feature_save_voices_to_local_storage_description
+        val feature_save_voices_to_local_storage_name =
+            cn.hxy.kiora.R.string.feature_save_voices_to_local_storage_name
+        val moments_forward_messages_menu = cn.hxy.kiora.R.string.moments_forward_messages_menu
     }
 
     object plurals {
@@ -702,6 +772,9 @@ object R {
         val noncompose_message_menu_selected_title =
             cn.hxy.kiora.R.plurals.noncompose_message_menu_selected_title
         val chat_sticker_manager_exported = cn.hxy.kiora.R.plurals.chat_sticker_manager_exported
+        val chat_batch_revoke_result = cn.hxy.kiora.R.plurals.chat_batch_revoke_result
+        val chat_stickers_saved_locally = cn.hxy.kiora.R.plurals.chat_stickers_saved_locally
+        val chat_voices_saved_locally = cn.hxy.kiora.R.plurals.chat_voices_saved_locally
     }
 
     object raw {

@@ -125,6 +125,17 @@ import dev.ujhhgtg.wekit.features.items.system.PreventModuleDataDeletion
 import dev.ujhhgtg.wekit.features.items.system.PreventXposedDetection
 import dev.ujhhgtg.wekit.features.items.system.SpoofEnvironment
 import dev.ujhhgtg.wekit.features.items.system.UseLegacyWalletViewInMePage
+import dev.ujhhgtg.wekit.features.items.chat.BatchRevoke
+import dev.ujhhgtg.wekit.features.items.chat.DisplayMessageDetails
+import dev.ujhhgtg.wekit.features.items.chat.DownloadFilesToLocalStorage
+import dev.ujhhgtg.wekit.features.items.chat.DownloadImagesToLocalStorage
+import dev.ujhhgtg.wekit.features.items.chat.ModifyTextMessageDisplay
+import dev.ujhhgtg.wekit.features.items.chat.QuickRevokeAndEdit
+import dev.ujhhgtg.wekit.features.items.chat.RemoveChatMessageContextMenuItems
+import dev.ujhhgtg.wekit.features.items.chat.RepeatMessages
+import dev.ujhhgtg.wekit.features.items.chat.SaveStickersToLocalStorage
+import dev.ujhhgtg.wekit.features.items.chat.SaveVoicesToLocalStorage
+import dev.ujhhgtg.wekit.features.items.moments.ForwardMessagesToMoments
 
 
 /**
@@ -264,6 +275,17 @@ object WxFeatureRegistry {
                 ModifyFriendsCount,
                 UseLegacyOfficialAccountsView,
                 PreventXposedDetection,
+                RemoveChatMessageContextMenuItems,
+                BatchRevoke,
+                DownloadFilesToLocalStorage,
+                DownloadImagesToLocalStorage,
+                ModifyTextMessageDisplay,
+                RepeatMessages,
+                SaveStickersToLocalStorage,
+                SaveVoicesToLocalStorage,
+                DisplayMessageDetails,
+                QuickRevokeAndEdit,
+                ForwardMessagesToMoments,
             )
         )
     }

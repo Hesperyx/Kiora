@@ -672,4 +672,67 @@
     <string name="noncompose_message_menu_adapted_section">Actions supporting multiple messages</string>
     <string name="noncompose_message_menu_automatic_section">Actions automatically applied to multiple messages</string>
     <string name="noncompose_message_menu_no_actions">No WeKit menu actions are available for the selected messages.</string>
+
+    <!-- Message-context-menu batch: 11 features -->
+    <plurals name="chat_batch_revoke_result">
+        <item quantity="one">Revoked %1$d of %2$d message</item>
+        <item quantity="other">Revoked %1$d of %2$d messages</item>
+    </plurals>
+    <plurals name="chat_stickers_saved_locally">
+        <item quantity="one">Saved %1$d of %2$d sticker locally</item>
+        <item quantity="other">Saved %1$d of %2$d stickers locally</item>
+    </plurals>
+    <plurals name="chat_voices_saved_locally">
+        <item quantity="one">Saved %1$d of %2$d voice message locally</item>
+        <item quantity="other">Saved %1$d of %2$d voice messages locally</item>
+    </plurals>
+    <string name="chat_action_download">Download</string>
+    <string name="chat_action_save_locally">Save locally</string>
+    <string name="chat_batch_revoke_menu">Revoke</string>
+    <string name="chat_file_download_failed">File download failed. Check the logs for details.</string>
+    <string name="chat_file_download_preparing">Preparing and downloading file&#8230;</string>
+    <string name="chat_file_download_success">File downloaded to %1$s</string>
+    <string name="chat_image_download_failed">Image download failed. Check the logs for details.</string>
+    <string name="chat_image_download_success">Image downloaded to %1$s</string>
+    <string name="chat_message_details_content">Content</string>
+    <string name="chat_message_details_copied">Copied</string>
+    <string name="chat_message_details_menu">Details</string>
+    <string name="chat_message_details_sender_id">Sender ID</string>
+    <string name="chat_message_details_talker_id">Contact/group ID</string>
+    <string name="chat_message_details_title">Message details</string>
+    <string name="chat_message_details_type">Type</string>
+    <string name="chat_modify_text_content">Displayed content</string>
+    <string name="chat_modify_text_menu">Modify content</string>
+    <string name="chat_modify_text_title">Modify message display</string>
+    <string name="chat_remove_menu_items_label">Menu item names to remove (comma-separated):</string>
+    <string name="chat_repeat_failed">Failed to repeat the message</string>
+    <string name="chat_repeat_menu">Repeat</string>
+    <string name="chat_sticker_save_failed">Failed to save sticker. Check the logs for details.</string>
+    <string name="chat_sticker_saved_to">Sticker saved to %1$s</string>
+    <string name="chat_swipe_action_edit">Edit</string>
+    <string name="chat_voice_save_failed">Failed to save voice message. Check the logs for details.</string>
+    <string name="chat_voice_saved_to">Voice message saved to %1$s</string>
+    <string name="feature_batch_revoke_description">Add menu items to the message long press menu to recall messages in batches</string>
+    <string name="feature_batch_revoke_name">Batch recall messages</string>
+    <string name="feature_display_message_details_description">Add menu items to the message long press menu to view message details</string>
+    <string name="feature_display_message_details_name">Show message details</string>
+    <string name="feature_download_files_to_local_storage_description">Add a download button to the file message menu, allowing files to be cached and saved locally</string>
+    <string name="feature_download_files_to_local_storage_name">Save files locally</string>
+    <string name="feature_download_images_to_local_storage_description">Add a save button to the picture message menu to allow image files to be cached and saved locally</string>
+    <string name="feature_download_images_to_local_storage_name">Save images locally</string>
+    <string name="feature_forward_messages_to_moments_description">Forward some simple messages to your Moments</string>
+    <string name="feature_forward_messages_to_moments_name">Forward messages to Moments</string>
+    <string name="feature_modify_text_message_display_description">Add menu items to the message long press menu to modify the local message display content</string>
+    <string name="feature_modify_text_message_display_name">Modify text message display</string>
+    <string name="feature_quick_revoke_and_edit_description">Add menu items to the message long press menu to quickly recall the message and add the text content to the input box</string>
+    <string name="feature_quick_revoke_and_edit_name">Recall and edit</string>
+    <string name="feature_remove_chat_message_context_menu_items_description">Removes the named menu item from the message&#8217;s long-press menu</string>
+    <string name="feature_remove_chat_message_context_menu_items_name">Remove message menu item</string>
+    <string name="feature_repeat_messages_description">Added menu items to the message long press menu to reread some common messages</string>
+    <string name="feature_repeat_messages_name">Repeat messages</string>
+    <string name="feature_save_stickers_to_local_storage_description">Add a save button to the sticker message menu to allow pictures to be saved locally</string>
+    <string name="feature_save_stickers_to_local_storage_name">Save stickers locally</string>
+    <string name="feature_save_voices_to_local_storage_description">Add a save button to the voice message menu to allow voice files to be saved locally</string>
+    <string name="feature_save_voices_to_local_storage_name">Save voice messages locally</string>
+    <string name="moments_forward_messages_menu">Forward to Moments</string>
 </resources>
