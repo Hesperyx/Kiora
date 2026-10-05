@@ -668,6 +668,21 @@ object R {
         val feature_modify_friends_count_description = cn.hxy.kiora.R.string.feature_modify_friends_count_description
         val contacts_modify_count_hide = cn.hxy.kiora.R.string.contacts_modify_count_hide
         val contacts_modify_count_display = cn.hxy.kiora.R.string.contacts_modify_count_display
+
+        // Compose items batch 12: UseLegacyOfficialAccountsView / PreventXposedDetection
+        val error = cn.hxy.kiora.R.string.error
+        val feature_use_legacy_official_accounts_view_name =
+            cn.hxy.kiora.R.string.feature_use_legacy_official_accounts_view_name
+        val feature_use_legacy_official_accounts_view_description =
+            cn.hxy.kiora.R.string.feature_use_legacy_official_accounts_view_description
+        val official_accounts_legacy_ui_missing =
+            cn.hxy.kiora.R.string.official_accounts_legacy_ui_missing
+        val feature_prevent_xposed_detection_name =
+            cn.hxy.kiora.R.string.feature_prevent_xposed_detection_name
+        val feature_prevent_xposed_detection_description =
+            cn.hxy.kiora.R.string.feature_prevent_xposed_detection_description
+        val system_prevent_xposed_google_play_warning =
+            cn.hxy.kiora.R.string.system_prevent_xposed_google_play_warning
     }
 
     object plurals {

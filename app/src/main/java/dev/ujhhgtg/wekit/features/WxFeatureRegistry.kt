@@ -45,6 +45,7 @@ import dev.ujhhgtg.wekit.features.items.profile.SetProfileNickname
 import dev.ujhhgtg.wekit.features.items.entertain.ClearProfileDetails
 import dev.ujhhgtg.wekit.features.items.entertain.ImageRotation
 import dev.ujhhgtg.wekit.features.items.official_accounts.RemoveOfficialAccountAds
+import dev.ujhhgtg.wekit.features.items.official_accounts.UseLegacyOfficialAccountsView
 import dev.ujhhgtg.wekit.features.items.official_accounts.UseMultiWebViewForOfficialAccounts
 import dev.ujhhgtg.wekit.features.items.system.AutoCleanCache
 import dev.ujhhgtg.wekit.features.items.system.CustomDpi
@@ -121,6 +122,7 @@ import dev.ujhhgtg.wekit.features.items.system.EnableWebViewFeatures
 import dev.ujhhgtg.wekit.features.items.system.HideModuleFromAppList
 import dev.ujhhgtg.wekit.features.items.system.PowerSaver
 import dev.ujhhgtg.wekit.features.items.system.PreventModuleDataDeletion
+import dev.ujhhgtg.wekit.features.items.system.PreventXposedDetection
 import dev.ujhhgtg.wekit.features.items.system.SpoofEnvironment
 import dev.ujhhgtg.wekit.features.items.system.UseLegacyWalletViewInMePage
 
@@ -260,6 +262,8 @@ object WxFeatureRegistry {
                 ApplyDialogBackgroundBlur,
                 ModifySportsStepCount,
                 ModifyFriendsCount,
+                UseLegacyOfficialAccountsView,
+                PreventXposedDetection,
             )
         )
     }

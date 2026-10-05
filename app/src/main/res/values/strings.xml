@@ -652,4 +652,13 @@
     <string name="feature_modify_friends_count_description">Modify the number of friends displayed on the contact page; it will not change the actual contact data.</string>
     <string name="contacts_modify_count_hide">Hide friend count</string>
     <string name="contacts_modify_count_display">Displayed count</string>
+
+    <!-- Compose items batch 12: UseLegacyOfficialAccountsView / PreventXposedDetection -->
+    <string name="error">Error</string>
+    <string name="feature_use_legacy_official_accounts_view_name">Restore legacy Official Account list</string>
+    <string name="feature_use_legacy_official_accounts_view_description">!!! Only applicable to the old version of WeChat !!!\nThe new version has removed the old UI in the code, and this function can no longer be used.</string>
+    <string name="official_accounts_legacy_ui_missing">The legacy Official Account UI (NewBizConversationUI) does not exist in this WeChat version, so this feature is unavailable.</string>
+    <string name="feature_prevent_xposed_detection_name">Disable WeChat from detecting Xposed</string>
+    <string name="feature_prevent_xposed_detection_description">Prevent WeChat from detecting the existence of Xposed framework</string>
+    <string name="system_prevent_xposed_google_play_warning">This feature is unavailable in the Google Play build of WeChat.</string>
 </resources>
