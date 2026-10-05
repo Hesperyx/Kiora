@@ -1,6 +1,8 @@
 package dev.ujhhgtg.wekit.features.core
 
 import android.content.Context
+import androidx.core.content.edit
+import cn.hxy.kiora.host.HostEnv
 import dev.ujhhgtg.wekit.data.KvStore
 import dev.ujhhgtg.wekit.utils.WeLogger
 
@@ -22,7 +24,14 @@ abstract class SwitchFeature : BaseFeature() {
         get() = _isEnabled
 
     fun loadPersistedState() {
-        _isEnabled = KvStore.getBoolOrDef(technicalId, defaultEnabled)
+        val accountPrefs = HostEnv.accountPreference
+        val legacy = KvStore.getBoolOrDef(technicalId, defaultEnabled)
+        _isEnabled = if (accountPrefs.contains(technicalId)) {
+            accountPrefs.getBoolean(technicalId, defaultEnabled)
+        } else {
+            accountPrefs.edit { putBoolean(technicalId, legacy) }
+            legacy
+        }
     }
 
     final override fun startup() {
@@ -56,7 +65,6 @@ abstract class SwitchFeature : BaseFeature() {
     }
 
     fun applyToggle(newState: Boolean) {
-        KvStore.putBool(technicalId, newState)
         isEnabled = newState
         toggleCompletionCallback?.run()
     }

@@ -1,46 +1,29 @@
 package dev.ujhhgtg.wekit.dexkit.cache
 
-import cn.hxy.kiora.BuildConfig
-import cn.hxy.kiora.host.HostInfo
-import cn.hxy.kiora.utils.io.ObjectStore
-import kotlinx.serialization.builtins.MapSerializer
-import kotlinx.serialization.builtins.serializer
+import cn.hxy.kiora.utils.dexkit.DexKitCache
 import java.io.File
 
 /**
  * WeKit 血统功能的 DexKit 结果缓存。
  *
- * 与 Kiora 主缓存 [cn.hxy.kiora.utils.dexkit.DexKitCache] 同构：JSON 序列化
- * `Map<String,String>`（key→descriptor，空串=「查过没找到」），文件落
- * `moduleDataPath/global/dexkit/`，文件名含宿主 versionCode + 模块 VERSION_CODE，
- * 因此宿主升级或模块发版都会**整体失效**。
+ * 已并入 Kiora 主缓存 [DexKitCache]：共用同一份 [cacheMap] 与 [cacheFile]
+ * （`CacheMap_<versionCode>_<VERSION_CODE>`，不再有独立的 `_wx_` 文件）。
+ * 键空间靠 `->` 前缀天然区分、互不冲突：
+ * - 主框架键 = `英文任务类名 -> 查询名`（如 `WeChatDexKit->AntiRevoke1.MethodDoRevokeMsg`）
+ * - WeKit 键  = `中文 technicalId -> 委托属性名`（如 `消息发送服务->classChattingDataAdapter`）
  *
- * 与主缓存的区别只在文件名加了 `_wx_` 前缀，避免和 Kiora 主缓存（`CacheMap_...`）
- * 撞名。
- *
- * 失效策略刻意**不复刻** WeKit 原版的 methodHash（构建期对 Feature 源码做 MD5）：
- * 那需要一套构建期代码生成，而「版本整体失效」在当前阶段（几十个功能、改动不频繁）
- * 足够。改某个 feature 的 matcher 后旧缓存不自动失效 —— 删掉本文件或升模块版本即可。
+ * 云端报告导出与拉取都基于这份合并后的 map，因此主框架与 WeKit 共享同一套云端同步。
  */
 object WxDexCache {
 
-    /** 全局键 → descriptor。键形如 `technicalId->propertyName`，空串=查过没找到。 */
-    var cacheMap = mutableMapOf<String, String>()
+    val cacheMap: MutableMap<String, String>
+        get() = DexKitCache.cacheMap
 
-    private val mapSerializer = MapSerializer(String.serializer(), String.serializer())
+    val cacheFile: File
+        get() = DexKitCache.cacheFile
 
-    val cacheFile by lazy {
-        File(
-            "${HostInfo.moduleDataPath}/global/dexkit",
-            "CacheMap_wx_${HostInfo.versionCode}_${BuildConfig.VERSION_CODE}"
-        )
-    }
+    /** 主框架在 Startup 已同步 initCache；此处委托，重复 load 同一文件无害。 */
+    fun initCache(): Boolean = DexKitCache.initCache()
 
-    /** 读缓存文件。成功返回 true；文件不存在或反序列化失败返回 false，[cacheMap] 留空。 */
-    fun initCache(): Boolean {
-        cacheMap = ObjectStore.load(cacheFile, mapSerializer)?.toMutableMap() ?: return false
-        return true
-    }
-
-    fun saveCache() = ObjectStore.save(cacheFile, cacheMap.toMap(), mapSerializer)
+    fun saveCache() = DexKitCache.saveCache()
 }

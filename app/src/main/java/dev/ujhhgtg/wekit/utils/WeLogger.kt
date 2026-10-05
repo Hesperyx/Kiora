@@ -31,7 +31,7 @@ object WeLogger {
 
     fun w(tag: String?, msg: String, t: Throwable) = LogUtils.w("$tag: $msg", t)
 
-    fun e(tag: String?, msg: String, t: Throwable) = LogUtils.e(tag.orEmpty(), t)
+    fun e(tag: String?, msg: String, t: Throwable) = LogUtils.e(tag.orEmpty(), msg, t)
 
     /** WeKit 的「超长日志分块」能力，这里直接透传。 */
     fun logChunkedI(tag: String, msg: String) = LogUtils.i("$tag: $msg")

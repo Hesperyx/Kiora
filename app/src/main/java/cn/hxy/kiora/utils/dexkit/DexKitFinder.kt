@@ -62,6 +62,31 @@ object DexKitFinder {
     }
 
     /**
+     * 缓存里还未「可用」的键：既包括从没查过的键，也包括查过但结果是空串的键。
+     *
+     * [missingKeys] 只负责区分「查没查过」；微信流程真正关心的是「能不能直接挂 hook」。
+     * 空串在 [DexKitCache.cacheMap] 里表示「查过但没找到」，不能当成已解析。
+     */
+    fun unresolvedKeys(): Set<String> =
+        allTasks().flatMap(::keysOf).filter { DexKitCache.cacheMap[it].isNullOrEmpty() }.toSet()
+
+    /**
+     * 主框架全部 DexKit 任务按 TAG（即云端报告的 technicalId）分组，供云端恢复用。
+     *
+     * 返回 `(technicalId, delegateKeys)`：delegateKey 是 [cacheKey] 去掉
+     * `technicalId->` 前缀后的查询名，与云端报告里 `WeChatDexKit` 那条 feature 的
+     * delegates 一一对应。
+     */
+    fun mainDexItems(): List<Pair<String, Set<String>>> =
+        allTasks()
+            .groupBy { it.TAG }
+            .map { (tag, tasks) ->
+                tag to tasks.flatMap { task ->
+                    keysOf(task).map { it.removePrefix("$tag->") }
+                }.toSet()
+            }
+
+    /**
      * 执行查找：只补缺失的键，写回缓存并落盘。
      *
      * 进度经 [onProgress] 回调传出（形如 `MsgTool->xxx`），可能在 IO 线程触发，
@@ -80,6 +105,43 @@ object DexKitFinder {
                 runCatching {
                     task.getQueryMap().forEach { (name, query) ->
                         val key = cacheKey(task, name)
+                        onProgress(key)
+
+                        val descriptor = when (query) {
+                            is FindClass -> bridge.findClass(query).singleOrNull()?.descriptor
+                            is FindMethod -> bridge.findMethod(query).singleOrNull()?.descriptor
+                            else -> null
+                        }
+
+                        if (descriptor == null) {
+                            LogUtils.w("$key 没有匹配结果，宿主结构可能变了")
+                        }
+                        DexKitCache.cacheMap[key] = descriptor.orEmpty()
+                    }
+                }.onFailure { LogUtils.e(task.TAG, it) }
+            }
+        }
+        DexKitCache.saveCache()
+    }
+
+    /**
+     * 微信流程专用的「本地扫描」：扫描目标是 [unresolvedKeys]，会把上一次「查过但没找到」
+     * 的空结果也纳入重扫，而不是只看 [missingKeys]。这样用户点「本地扫描」时能真正尝试补齐
+     * 空结果，而不会因为旧空串被当成已处理直接跳过。
+     */
+    fun runFindUnresolved(context: Context, onProgress: (String) -> Unit) {
+        val targets = unresolvedKeys()
+        if (targets.isEmpty()) return
+
+        val tasks = allTasks().filter { task -> keysOf(task).any { it in targets } }
+        val sourceDir = context.applicationInfo.sourceDir
+
+        DexKitBridge.create(sourceDir).use { bridge ->
+            tasks.forEach { task ->
+                runCatching {
+                    task.getQueryMap().forEach { (name, query) ->
+                        val key = cacheKey(task, name)
+                        if (key !in targets) return@forEach
                         onProgress(key)
 
                         val descriptor = when (query) {

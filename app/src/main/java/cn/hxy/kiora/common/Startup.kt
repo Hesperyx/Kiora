@@ -158,9 +158,18 @@ object Startup {
                     // 而 doFind() 在「无缺失」时立刻返回 —— 结果是
                     // MainHook.loadHook() 永远不被调用，模块静默失效。
                     DexKitCache.initCache()
-                    if (DexKitFinder.missingKeys().isEmpty()) {
+                    val mainDexReady = if (HostInfo.isWeChat) {
+                        // 微信侧空串缓存表示「查过但没找到」，必须交给 WxFeatureLoader 弹窗重扫，
+                        // 不能像 QQ 那样只按 missingKeys 判断就直接挂 MainHook。
+                        DexKitFinder.unresolvedKeys().isEmpty()
+                    } else {
+                        DexKitFinder.missingKeys().isEmpty()
+                    }
+                    if (mainDexReady) {
                         MainHook.loadHook()
                     } else {
+                        // 缓存缺失：DexKitBootstrap 内部会先并行尝试云端恢复，
+                        // 命中则跳过本地扫描 + 强制重启。
                         DexKitBootstrap.doFind()
                     }
 

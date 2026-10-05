@@ -1,5 +1,7 @@
 package dev.ujhhgtg.wekit.dexkit.cache
 
+import cn.hxy.kiora.utils.dexkit.DexKitCache
+import cn.hxy.kiora.utils.dexkit.DexKitFinder
 import cn.hxy.kiora.utils.net.HttpUtils
 import dev.ujhhgtg.wekit.BuildConfig
 import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
@@ -37,6 +39,12 @@ object CloudDexResolver {
     @Volatile
     var lastAttemptFailed: Boolean = false
         private set
+
+    data class CloudResolveResult(
+        val remainingFeatures: List<IResolveDex>,
+        val mainResolved: Boolean,
+        val cloudFailed: Boolean,
+    )
 
     /**
      * 尝试从云端拉取并导入 DexKit 结果。返回仍缺（云端未覆盖）的 feature 列表。
@@ -99,12 +107,143 @@ object CloudDexResolver {
         return remaining
     }
 
-    private fun fetchReport(host: CloudDexHost): String {
+    /**
+     * 微信流程的一次性云端解析：同一份报告同时恢复 WeKit feature 与主框架 DexKit 键，
+     * 只拉取一次网络，避免 [resolve] 与 [tryRestoreMainDex] 各拉一次。
+     *
+     * @param includeMain true 时同时尝试恢复主框架缺失键；false 表示调用方只处理 WeKit feature。
+     * @return 云端未覆盖、仍需本地扫描的 feature，以及主框架键是否已全部可用。
+     */
+    fun resolveAll(
+        items: List<IResolveDex>,
+        includeMain: Boolean,
+        onProgress: ((message: String, current: Int, total: Int) -> Unit)? = null,
+    ): CloudResolveResult {
+        val host = CloudDexHost(
+            versionName = HostInfo.versionName,
+            versionCode = HostInfo.versionCode,
+            isGooglePlay = HostInfo.isHostGooglePlay,
+        )
+
+        val reportText = try {
+            fetchReport(host) { downloaded, total ->
+                val pct = if (total > 0) ((downloaded * 100) / total).toInt().coerceIn(0, 100) else 0
+                onProgress?.invoke("正在下载云端报告… $pct%", pct, 100)
+            }
+        } catch (e: Exception) {
+            WeLogger.w(TAG, "云端报告拉取失败，转为本地扫描：${e.message}")
+            lastAttemptFailed = true
+            return CloudResolveResult(items, mainResolved = !includeMain, cloudFailed = true)
+        }
+
+        val featureItems = items.map { item ->
+            val feature = item as BaseFeature
+            CurrentDexItem(
+                technicalId = feature.technicalId,
+                methodHash = methodHash(),
+                delegateKeys = item.dexDelegates.mapTo(linkedSetOf()) { it.key },
+            )
+        }
+        val mainItems = if (includeMain) {
+            DexKitFinder.mainDexItems().map { (tag, keys) ->
+                CurrentDexItem(technicalId = tag, methodHash = methodHash(), delegateKeys = keys)
+            }
+        } else {
+            emptyList()
+        }
+        val currentItems = featureItems + mainItems
+        if (currentItems.isEmpty()) {
+            lastAttemptFailed = false
+            return CloudResolveResult(emptyList(), mainResolved = true, cloudFailed = false)
+        }
+
+        val selection = try {
+            CloudDexReport.select(reportText, host, currentItems)
+        } catch (e: Exception) {
+            WeLogger.w(TAG, "云端报告校验失败，转为本地扫描：${e.message}")
+            lastAttemptFailed = true
+            return CloudResolveResult(items, mainResolved = !includeMain, cloudFailed = true)
+        }
+        lastAttemptFailed = false
+
+        onProgress?.invoke("云端报告下载完成，正在解析…", 100, 100)
+        var imported = 0
+        selection.entries.forEach { entry ->
+            entry.descriptors.forEach { (key, value) ->
+                DexKitCache.cacheMap["${entry.technicalId}->$key"] = value
+                imported++
+            }
+        }
+        DexKitCache.saveCache()
+
+        val coveredIds = selection.entries.mapTo(hashSetOf()) { it.technicalId }
+        val remaining = items.filter { (it as BaseFeature).technicalId !in coveredIds }
+        val mainResolved = if (includeMain) DexKitFinder.unresolvedKeys().isEmpty() else true
+        WeLogger.i(TAG, "云端导入 $imported 条 descriptor，覆盖 ${selection.entries.size} 个 technicalId，" +
+            "剩余 ${remaining.size} 个 feature 需本地扫描，主框架已恢复=$mainResolved")
+        return CloudResolveResult(remaining, mainResolved, cloudFailed = false)
+    }
+
+    private fun fetchReport(
+        host: CloudDexHost,
+        onProgress: ((downloaded: Long, total: Long) -> Unit)? = null,
+    ): String {
         // 加速镜像格式：镜像前缀 + /https://github.com/... + 文件名
         val url = "$PROXY_PREFIX/$RELEASE_RAW_BASE/${CloudDexReport.assetName(host)}"
-        val text = HttpUtils.getSync(url)
+        val text = HttpUtils.getSyncWithProgress(url, onProgress ?: { _, _ -> })
         if (text.isEmpty()) throw IllegalStateException("empty response from $url")
         return text
+    }
+
+    /**
+     * 主框架（Kiora 原生 hook）的 DexKit 云端恢复。
+     *
+     * 清空缓存后，主框架启动先走这里：云端命中则跳过 DexKitBootstrap 的本地扫描 +
+     * 强制重启。与 [resolve]（WeKit）共用同一份云端报告与 [CloudDexReport.select]，
+     * 因为两套缓存已并入同一个 [DexKitCache]。
+     *
+     * @return 主框架缺失键是否已全部恢复（true = 可跳过本地扫描直接 loadHook）。
+     */
+    fun tryRestoreMainDex(): Boolean {
+        val host = CloudDexHost(
+            versionName = HostInfo.versionName,
+            versionCode = HostInfo.versionCode,
+            isGooglePlay = HostInfo.isHostGooglePlay,
+        )
+
+        val reportText = try {
+            fetchReport(host)
+        } catch (e: Exception) {
+            WeLogger.w(TAG, "主框架云端报告拉取失败，回退本地扫描：${e.message}")
+            lastAttemptFailed = true
+            return false
+        }
+
+        val items = DexKitFinder.mainDexItems().map { (tag, keys) ->
+            CurrentDexItem(technicalId = tag, methodHash = methodHash(), delegateKeys = keys)
+        }
+        if (items.isEmpty()) return false
+
+        val selection = try {
+            CloudDexReport.select(reportText, host, items)
+        } catch (e: Exception) {
+            WeLogger.w(TAG, "主框架云端报告校验失败，回退本地扫描：${e.message}")
+            lastAttemptFailed = true
+            return false
+        }
+
+        var imported = 0
+        selection.entries.forEach { entry ->
+            entry.descriptors.forEach { (key, value) ->
+                DexKitCache.cacheMap["${entry.technicalId}->$key"] = value
+                imported++
+            }
+        }
+        DexKitCache.saveCache()
+
+        val stillMissing = DexKitFinder.missingKeys()
+        WeLogger.i(TAG, "主框架云端恢复 $imported 条 descriptor，剩余 ${stillMissing.size} 键缺失")
+        return stillMissing.isEmpty()
     }
 
     /**

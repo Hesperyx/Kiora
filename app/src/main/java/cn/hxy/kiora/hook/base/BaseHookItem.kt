@@ -6,7 +6,7 @@ import cn.hxy.kiora.utils.reflect.TAG
 
 abstract class BaseHookItem {
 
-    val name: String = TAG
+    open val name: String = TAG
 
     open var isEnable = true
 
@@ -23,7 +23,7 @@ abstract class BaseHookItem {
         this::class.java.getAnnotation(HookItemAnnotation::class.java)
     }
 
-    fun isInTargetProcess(): Boolean {
+    open fun isInTargetProcess(): Boolean {
         val target = annotation?.process ?: return false
         if (target == "All") return true
         val currentProcess = HostInfo.processName
@@ -39,12 +39,12 @@ abstract class BaseHookItem {
      * 之所以需要这道门禁：`process` 为空串时 [isInTargetProcess] 会退化成
      * 「主进程即命中」，若宿主换成微信，存量 QQ hook 会全部尝试执行。
      */
-    fun isInTargetHost(): Boolean {
+    open fun isInTargetHost(): Boolean {
         val hosts = annotation?.hosts ?: return true
         if (hosts.isEmpty()) return true
         return HostInfo.adapter?.matchesTag(hosts) ?: false
     }
 
     /** 加载门禁：宿主与进程须同时命中。所有加载路径都应走这里。 */
-    fun shouldLoad(): Boolean = isInTargetHost() && isInTargetProcess()
+    open fun shouldLoad(): Boolean = isInTargetHost() && isInTargetProcess()
 }

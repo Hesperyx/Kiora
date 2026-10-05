@@ -9,6 +9,7 @@ import cn.hxy.kiora.hook.base.BaseClickableHookItem
 import cn.hxy.kiora.hook.base.BaseHookItem
 import cn.hxy.kiora.hook.base.BaseSwitchHookItem
 import cn.hxy.kiora.hook.base.Listener
+import cn.hxy.kiora.hook.wekit.WeKitHookRegistry
 import cn.hxy.kiora.loader.hookapi.HookEngineManager
 import cn.hxy.kiora.plugin.MainPlugin
 import cn.hxy.kiora.ui.pages.configs.ConfigUiRegistry
@@ -19,16 +20,20 @@ import cn.hxy.kiora.host.HostInfo
 object MainHook {
 
     private var initialized = false
+    /** loadHook 只挂载一次：微信侧解析完成后由 WxFeatureLoader 再触发也不重复挂载。 */
+    private var hookLoaded = false
     private val allHookItem = HookRegistry.hookItems
     private val apiHookItemList =
         allHookItem.filterIsInstance<BaseApiHookItem<Listener>>()
     val switchHookItemList =
-        allHookItem.filterIsInstance<BaseSwitchHookItem>()
+        allHookItem.filterIsInstance<BaseSwitchHookItem>() + WeKitHookRegistry.hookItems
     val clickableHookItemList =
         switchHookItemList.filterIsInstance<BaseClickableHookItem<*>>()
 
 
     fun loadHook() {
+        if (hookLoaded) return
+        hookLoaded = true
 
         loadApiHook()
         initSwitchHookItem()
