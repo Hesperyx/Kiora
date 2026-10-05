@@ -16,6 +16,7 @@ import androidx.activity.ComponentActivity
 import cn.hxy.kiora.hook.MainHook
 import cn.hxy.kiora.hook.base.BaseClickableHookItem
 import cn.hxy.kiora.hook.base.BaseSwitchHookItem
+import cn.hxy.kiora.hook.wekit.WeKitFeatureHookItem
 import cn.hxy.kiora.ui.pages.settings.CategoryData
 import cn.hxy.kiora.ui.pages.settings.FunctionData
 import cn.hxy.kiora.utils.io.BackupManager
@@ -121,13 +122,11 @@ class SettingViewModel : ViewModel() {
     fun refreshCategories() {
         categories = HookCategory.ORDER.mapNotNull { category ->
             val itemsInCategory = allHookItems.filter { it.category == category }
-            // WeKit 血统功能：按分类映射合并进对应中文分类，追加在原生项之后。
-            val wekitItems = WxFeatureAdapter.toFunctionData(WxFeatureAdapter.hostContext)
-                .filter { it.first == category }
-                .map { it.second }
-            if (itemsInCategory.isNotEmpty() || wekitItems.isNotEmpty()) {
+            if (itemsInCategory.isEmpty()) null
+            else {
                 CategoryData(category, itemsInCategory.map { hookItem ->
-                    val isClickable = hookItem is BaseClickableHookItem<*>
+                    val isClickable = hookItem is BaseClickableHookItem<*> ||
+                            (hookItem as? WeKitFeatureHookItem)?.isClickable == true
                     FunctionData(
                         hookItem.name,
                         hookItem.tag,
@@ -138,8 +137,8 @@ class SettingViewModel : ViewModel() {
                         if (isClickable) hookItem.name else null,
                         lockedBy = lockedByOf(hookItem)
                     )
-                } + wekitItems)
-            } else null
+                })
+            }
         }
         refreshRestartState()
     }
@@ -161,13 +160,6 @@ class SettingViewModel : ViewModel() {
     }
 
     fun toggleFunction(id: String, enabled: Boolean) {
-        // WeKit 血统项：开关写回 KvStore 并立即 enable/disable
-        if (WxFeatureAdapter.isWeKitId(id)) {
-            WxFeatureAdapter.toggle(WxFeatureAdapter.technicalIdOf(id), enabled)
-            refreshCategories()
-            return
-        }
-
         val item = allHookItems.find { it.name == id } ?: return
         item.isEnable = enabled
 
@@ -200,14 +192,10 @@ class SettingViewModel : ViewModel() {
     }
 
     fun handleFunctionClick(id: String, activity: ComponentActivity) {
-        // WeKit 血统 ClickableFeature：触发 onClick
-        if (WxFeatureAdapter.isWeKitId(id)) {
-            WxFeatureAdapter.click(WxFeatureAdapter.technicalIdOf(id), activity)
-            return
-        }
-
-        allHookItems.find { it.name == id }?.let { item ->
-            if (item is BaseClickableHookItem<*>) {
+        val item = allHookItems.find { it.name == id } ?: return
+        when (item) {
+            is WeKitFeatureHookItem -> item.onClick(activity)
+            is BaseClickableHookItem<*> -> {
                 item.initData()
                 activeConfigKey = item.name
             }

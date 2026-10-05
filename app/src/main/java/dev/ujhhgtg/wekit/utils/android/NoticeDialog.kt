@@ -2,10 +2,13 @@
 
 package dev.ujhhgtg.wekit.utils.android
 
+import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
+import android.graphics.drawable.ClipDrawable
+import android.graphics.drawable.LayerDrawable
 import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.ViewGroup
@@ -16,6 +19,11 @@ import android.widget.Toast
 import cn.hxy.kiora.common.ModuleScope
 import cn.hxy.kiora.host.HostEnv
 import dev.ujhhgtg.wekit.utils.HostInfo
+import dev.ujhhgtg.wekit.utils.WeLogger
+
+private const val CHOICE_STYLE_FILLED = 0
+private const val CHOICE_STYLE_SECONDARY = 1
+private const val CHOICE_STYLE_GHOST = 2
 
 /**
  * 宿主无关的 DexKit 解析进度弹窗（纯原生 View，不依赖 Compose）。
@@ -47,26 +55,106 @@ fun showNoticeDialog(title: String, message: String) {
  * 双选项选择框（如「云端拉取」/「本地扫描」）。UI 与进度弹窗完全一致：
  * 圆角白色卡片 + 微信绿主按钮 + 灰色次按钮。
  * 用户选择后回调 [onChoice]（true = 选 positive，false = 选 negative）。
- * Activity 未就绪时回退：默认走 [onChoice](true)（优先云端）。
+ *
+ * 显式传入已确认的 [activity]（由调用方轮询拿到），避免在弹窗前二次反射查询
+ * 导致 Activity 变化而退回自动路径。用 [Activity.runOnUiThread] 确保主线程弹出，
+ * 不依赖协程 Main dispatcher（冷启动早期可能未就绪）。
+ *
+ * [onNoActivity]：Activity 变为不可用（finishing / 已销毁）时的兜底回调，
+ * 由调用方决定是重试、Toast 还是延时处理——**绝不静默自动选某一项**。
  */
 fun showChoiceDialog(
     title: String,
     message: String,
     positiveText: String,
     negativeText: String,
+    neutralText: String? = null,
     onChoice: (Boolean) -> Unit,
+    activity: Activity? = HostEnv.activity,
+    onNeutral: (() -> Unit)? = null,
+    onNoActivity: (() -> Unit)? = null,
 ) {
-    ModuleScope.launchMain {
-        val activity = HostEnv.activity
-        if (activity != null && !activity.isFinishing) {
-            runCatching {
-                val dialog = buildChoiceDialog(activity, title, message, positiveText, negativeText, onChoice)
-                dialog.show()
-            }.onFailure {
-                onChoice(true)
+    val chosen = java.util.concurrent.atomic.AtomicBoolean(false)
+    val guard: (Boolean) -> Unit = { cloud ->
+        if (chosen.compareAndSet(false, true)) onChoice(cloud)
+    }
+    val neutralGuard: () -> Unit = {
+        if (chosen.compareAndSet(false, true)) onNeutral?.invoke()
+    }
+    showChoiceDialogOnce(
+        title, message, positiveText, negativeText, neutralText,
+        guard, neutralGuard, activity, onNoActivity, chosen, 0,
+    )
+}
+
+/**
+ * 实际弹出逻辑 + 「Activity 中途销毁且用户未选择 → 重弹」兜底（最多 3 次）。
+ * 微信冷启动时弹窗可能挂在一闪而过的 Activity 上（WindowLeaked），
+ * 没有重弹的话 onChoice 永远不触发，解析流程直接卡死。
+ */
+private fun showChoiceDialogOnce(
+    title: String,
+    message: String,
+    positiveText: String,
+    negativeText: String,
+    neutralText: String?,
+    onChoice: (Boolean) -> Unit,
+    onNeutral: () -> Unit,
+    activity: Activity?,
+    onNoActivity: (() -> Unit)?,
+    chosen: java.util.concurrent.atomic.AtomicBoolean,
+    attempt: Int,
+) {
+    if (chosen.get()) return
+
+    if (activity == null || activity.isFinishing || activity.isDestroyed) {
+        if (attempt < 3) {
+            WeLogger.w("NoticeDialog", "showChoiceDialog: Activity 不可用，1.5 秒后重弹（第 ${attempt + 1} 次）")
+            ModuleScope.launchMainDelayed(1_500) {
+                showChoiceDialogOnce(
+                    title, message, positiveText, negativeText, neutralText,
+                    onChoice, onNeutral, HostEnv.activity, onNoActivity, chosen, attempt + 1,
+                )
             }
         } else {
-            onChoice(true)
+            WeLogger.w("NoticeDialog", "showChoiceDialog: 重弹耗尽，走 onNoActivity")
+            if (chosen.compareAndSet(false, true)) onNoActivity?.invoke() ?: onChoice(true)
+        }
+        return
+    }
+
+    activity.runOnUiThread {
+        if (chosen.get()) return@runOnUiThread
+        if (activity.isFinishing || activity.isDestroyed) {
+            WeLogger.w("NoticeDialog", "showChoiceDialog: Activity 在弹出前已销毁，重弹")
+            ModuleScope.launchMainDelayed(1_500) {
+                showChoiceDialogOnce(
+                    title, message, positiveText, negativeText, neutralText,
+                    onChoice, onNeutral, HostEnv.activity, onNoActivity, chosen, attempt + 1,
+                )
+            }
+            return@runOnUiThread
+        }
+        runCatching {
+            val dialog = buildChoiceDialog(
+                activity, title, message, positiveText, negativeText, neutralText,
+                onChoice, onNeutral,
+            )
+            dialog.show()
+            WeLogger.i("NoticeDialog", "showChoiceDialog: 选择框已弹出，等待用户选择")
+            // 看门狗：弹出 2 秒后如果弹窗已随 Activity 死亡且用户没选，重弹
+            ModuleScope.launchMainDelayed(2_000) {
+                if (!chosen.get() && (!dialog.isShowing || activity.isFinishing || activity.isDestroyed)) {
+                    WeLogger.w("NoticeDialog", "showChoiceDialog: 弹窗随 Activity 销毁且未获选择，重弹")
+                    showChoiceDialogOnce(
+                        title, message, positiveText, negativeText, neutralText,
+                        onChoice, onNeutral, HostEnv.activity, onNoActivity, chosen, attempt + 1,
+                    )
+                }
+            }
+        }.onFailure {
+            WeLogger.e("NoticeDialog", "showChoiceDialog: 弹出失败", it)
+            if (chosen.compareAndSet(false, true)) onNoActivity?.invoke() ?: onChoice(true)
         }
     }
 }
@@ -77,17 +165,19 @@ private fun buildChoiceDialog(
     message: String,
     positiveText: String,
     negativeText: String,
+    neutralText: String?,
     onChoice: (Boolean) -> Unit,
+    onNeutral: () -> Unit,
 ): AlertDialog {
     val dp = { v: Float -> (v * context.resources.displayMetrics.density).toInt() }
     val accent = Color.parseColor("#07C160")
 
     val container = LinearLayout(context).apply {
         orientation = LinearLayout.VERTICAL
-        setPadding(dp(24f), dp(24f), dp(24f), dp(20f))
+        setPadding(dp(28f), dp(28f), dp(28f), dp(24f))
         background = GradientDrawable().apply {
             setColor(Color.WHITE)
-            cornerRadius = dp(20f).toFloat()
+            cornerRadius = dp(24f).toFloat()
         }
     }
 
@@ -95,40 +185,80 @@ private fun buildChoiceDialog(
         text = title
         textSize = 18f
         typeface = Typeface.DEFAULT_BOLD
-        setTextColor(Color.parseColor("#191919"))
+        setTextColor(Color.parseColor("#111111"))
     }
     container.addView(titleTv)
 
     val msgTv = TextView(context).apply {
         text = message
         textSize = 15f
-        setTextColor(Color.parseColor("#333333"))
-        setPadding(0, dp(16f), 0, dp(4f))
-        setLineSpacing(0f, 1.25f)
+        setTextColor(Color.parseColor("#666666"))
+        setPadding(0, dp(14f), 0, 0)
+        setLineSpacing(0f, 1.3f)
     }
     container.addView(msgTv)
 
-    // 按钮行：主按钮（微信绿）+ 次按钮（灰色）
+    // 按钮行：主按钮（微信绿填充）+ 次按钮（浅灰填充）+ 中性按钮（描边幽灵），等宽平分
     val buttonRow = LinearLayout(context).apply {
         orientation = LinearLayout.HORIZONTAL
-        gravity = Gravity.END
-        setPadding(0, dp(16f), 0, 0)
+        gravity = Gravity.CENTER_VERTICAL
+        setPadding(0, dp(24f), 0, 0)
     }
 
-    fun makeButton(text: String, color: Int, onClick: () -> Unit): TextView =
-        TextView(context).apply {
+    val buttons = mutableListOf<TextView>()
+
+    fun addButton(text: String, style: Int, onClick: () -> Unit): TextView {
+        val btn = TextView(context).apply {
             this.text = text
             textSize = 15f
             typeface = Typeface.DEFAULT_BOLD
-            setTextColor(color)
-            setPadding(dp(20f), dp(10f), dp(20f), dp(10f))
+            gravity = Gravity.CENTER
+            background = GradientDrawable().apply {
+                cornerRadius = dp(23f).toFloat()
+                when (style) {
+                    CHOICE_STYLE_FILLED -> setColor(accent)
+                    CHOICE_STYLE_GHOST -> {
+                        setColor(Color.TRANSPARENT)
+                        setStroke(dp(1f), Color.parseColor("#DDDDDD"))
+                    }
+                    else -> setColor(Color.parseColor("#F2F2F2"))
+                }
+            }
+            setTextColor(
+                when (style) {
+                    CHOICE_STYLE_FILLED -> Color.WHITE
+                    CHOICE_STYLE_GHOST -> Color.parseColor("#999999")
+                    else -> Color.parseColor("#333333")
+                }
+            )
             setOnClickListener { onClick() }
         }
+        val lp = LinearLayout.LayoutParams(0, dp(46f), 1f)
+        buttonRow.addView(btn, lp)
+        buttons += btn
+        return btn
+    }
 
-    val negativeBtn = makeButton(negativeText, Color.parseColor("#666666")) { onChoice(false) }
-    val positiveBtn = makeButton(positiveText, accent) { onChoice(true) }
-    buttonRow.addView(negativeBtn)
-    buttonRow.addView(positiveBtn)
+    var dialog: AlertDialog? = null
+    addButton(positiveText, CHOICE_STYLE_FILLED) {
+        dialog?.dismiss()
+        onChoice(true)
+    }
+    addButton(negativeText, CHOICE_STYLE_SECONDARY) {
+        dialog?.dismiss()
+        onChoice(false)
+    }
+    if (neutralText != null) {
+        addButton(neutralText, CHOICE_STYLE_GHOST) {
+            dialog?.dismiss()
+            onNeutral()
+        }
+    }
+    buttons.forEachIndexed { index, btn ->
+        if (index < buttons.size - 1) {
+            (btn.layoutParams as LinearLayout.LayoutParams).rightMargin = dp(10f)
+        }
+    }
     container.addView(buttonRow)
 
     return AlertDialog.Builder(
@@ -140,6 +270,7 @@ private fun buildChoiceDialog(
         .apply {
             window?.setBackgroundDrawableResource(android.R.color.transparent)
         }
+        .also { dialog = it }
 }
 
 /**
@@ -147,16 +278,37 @@ private fun buildChoiceDialog(
  * 调用 [ProgressDialog.update] 更新文字，[ProgressDialog.updateProgress] 切换到确定进度，
  * [ProgressDialog.dismiss] 关闭。
  */
-fun showProgressDialog(title: String, initialMessage: String): ProgressDialog {
+fun showProgressDialog(
+    title: String,
+    initialMessage: String,
+    activity: Activity? = HostEnv.activity,
+): ProgressDialog {
     val handle = ProgressDialog(title)
-    ModuleScope.launchMain {
-        val activity = HostEnv.activity
-        if (activity != null && !activity.isFinishing) {
-            runCatching {
-                handle.createAndShow(activity, initialMessage)
+    val target = activity?.takeIf { !it.isFinishing && !it.isDestroyed }
+
+    if (target != null) {
+        // 用调用方已知的稳定 Activity 直接在其 UI 线程创建；若当前就在 UI 线程，
+        // runOnUiThread 会立即执行。这里等弹窗真正 show 出来再返回，避免云端下载
+        // 比弹窗创建还快，导致进度一出现就是满格。
+        val shown = java.util.concurrent.CountDownLatch(1)
+        target.runOnUiThread {
+            try {
+                if (!target.isFinishing && !target.isDestroyed) {
+                    runCatching { handle.createAndShow(target, initialMessage) }
+                }
+            } finally {
+                shown.countDown()
             }
-        } else {
-            Toast.makeText(HostInfo.application, "$title：$initialMessage", Toast.LENGTH_LONG).show()
+        }
+        shown.await(3, java.util.concurrent.TimeUnit.SECONDS)
+    } else {
+        ModuleScope.launchMain {
+            val current = HostEnv.activity
+            if (current != null && !current.isFinishing) {
+                runCatching { handle.createAndShow(current, initialMessage) }
+            } else {
+                Toast.makeText(HostInfo.application, "$title：$initialMessage", Toast.LENGTH_LONG).show()
+            }
         }
     }
     return handle
@@ -165,6 +317,9 @@ fun showProgressDialog(title: String, initialMessage: String): ProgressDialog {
 class ProgressDialog(private val title: String) {
     @Volatile
     private var dialog: AlertDialog? = null
+
+    @Volatile
+    private var dismissed = false
 
     @Volatile
     private var progressBar: ProgressBar? = null
@@ -193,44 +348,51 @@ class ProgressDialog(private val title: String) {
         (v * context.resources.displayMetrics.density).toInt()
 
     internal fun createAndShow(context: Context, message: String) {
+        if (dismissed) return
         // 主题色：微信绿（符合宿主调性）
         val accent = Color.parseColor("#07C160")
 
         // 圆角容器
         val container = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(context, 24f), dp(context, 24f), dp(context, 24f), dp(context, 20f))
+            setPadding(dp(context, 28f), dp(context, 28f), dp(context, 28f), dp(context, 24f))
             background = GradientDrawable().apply {
                 setColor(Color.WHITE)
-                cornerRadius = dp(context, 20f).toFloat()
+                cornerRadius = dp(context, 24f).toFloat()
             }
         }
 
         val titleTv = TextView(context).apply {
             text = title
-            textSize = 18f
+            textSize = 17f
             typeface = Typeface.DEFAULT_BOLD
-            setTextColor(Color.parseColor("#191919"))
+            setTextColor(Color.parseColor("#111111"))
             gravity = Gravity.CENTER_VERTICAL
         }
         container.addView(titleTv)
 
-        val bar = ProgressBar(context).apply {
+        val track = roundedDrawable(context, Color.parseColor("#F0F0F0"))
+        val fill = roundedDrawable(context, accent)
+        val clip = ClipDrawable(fill, Gravity.START or Gravity.FILL_VERTICAL, ClipDrawable.HORIZONTAL)
+        val progressLayer = LayerDrawable(arrayOf(track, clip)).apply {
+            setId(0, android.R.id.background)
+            setId(1, android.R.id.progress)
+        }
+        val bar = ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal).apply {
             isIndeterminate = true
-            // 用自定义 drawable 染成主题色
-            progressDrawable = defaultProgressTint(context, accent)
+            progressDrawable = progressLayer
             indeterminateDrawable?.setTint(accent)
         }
         val barLp = LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT, dp(context, 6f)
+            ViewGroup.LayoutParams.MATCH_PARENT, dp(context, 8f)
         ).apply { topMargin = dp(context, 20f) }
         container.addView(bar, barLp)
 
         val msg = latestMessage ?: message
         val text = TextView(context).apply {
             text = msg
-            textSize = 15f
-            setTextColor(Color.parseColor("#333333"))
+            textSize = 14f
+            setTextColor(Color.parseColor("#555555"))
             setPadding(0, dp(context, 16f), 0, 0)
         }
         container.addView(text)
@@ -238,7 +400,8 @@ class ProgressDialog(private val title: String) {
         val percent = TextView(context).apply {
             setText("")
             textSize = 13f
-            setTextColor(Color.parseColor("#999999"))
+            typeface = Typeface.DEFAULT_BOLD
+            setTextColor(accent)
             gravity = Gravity.END
             setPadding(0, dp(context, 8f), 0, 0)
         }
@@ -270,10 +433,10 @@ class ProgressDialog(private val title: String) {
         percentView = percent
     }
 
-    private fun defaultProgressTint(context: Context, color: Int) =
+    private fun roundedDrawable(context: Context, color: Int) =
         GradientDrawable().apply {
             setColor(color)
-            cornerRadius = context.resources.displayMetrics.density * 3f
+            cornerRadius = context.resources.displayMetrics.density * 4f
         }
 
     /** 更新文字（不确定进度阶段，如「正在从云端拉取…」）。 */
@@ -297,6 +460,7 @@ class ProgressDialog(private val title: String) {
     }
 
     fun dismiss() {
+        dismissed = true
         ModuleScope.launchMain {
             dialog?.dismiss()
             dialog = null

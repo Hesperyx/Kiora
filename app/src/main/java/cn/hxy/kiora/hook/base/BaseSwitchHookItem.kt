@@ -1,26 +1,46 @@
 package cn.hxy.kiora.hook.base
 
-import cn.hxy.kiora.host.HostEnv
-import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import cn.hxy.kiora.annotation.HookCategory
+import cn.hxy.kiora.host.HostEnv
 import cn.hxy.kiora.utils.log.LogUtils
-import cn.hxy.kiora.host.HostInfo
-import kotlin.properties.ReadWriteProperty
-import kotlin.reflect.KProperty
 
 @Suppress("DEPRECATION")
-abstract class BaseSwitchHookItem : BaseHookItem() {
+abstract class BaseSwitchHookItem(
+    private val switchKey: String? = null
+) : BaseHookItem() {
 
-    val tag: String get() = annotation?.tag ?: "Unknown"
-    val desc: String get() {
+    open val tag: String get() = annotation?.tag ?: "Unknown"
+
+    open val desc: String get() {
         val originalDesc = annotation?.desc ?: ""
         return if (isNeedRestart) "$originalDesc，重启生效" else originalDesc
     }
-    val category: String get() = annotation?.category ?: HookCategory.OTHER
 
-    override var isEnable: Boolean by BooleanPreference(name, false)
+    open val category: String get() = annotation?.category ?: HookCategory.OTHER
+
+    /**
+     * 开关实际落盘的键：默认用 [name]，WeKit 适配器可传 [switchKey] 改用 technicalId，
+     * 避免不同宿主同名类（`javaClass.simpleName`）互相覆盖。
+     */
+    private val enableKey: String get() = switchKey ?: name
+
+    override var isEnable: Boolean
+        get() = prefs.getBoolean(enableKey, false)
+        set(value) {
+            // 幂等：值没变就不写盘、不回调，避免互斥组收敛等场景重复触发 onEnabledChange。
+            if (prefs.getBoolean(enableKey, false) == value) return
+            prefs.edit { putBoolean(enableKey, value) }
+            onEnabledChange(value)
+        }
+
+    /**
+     * 开关状态变化回调。原生 hook 只需要持久化，默认空实现；
+     * WeKit 适配器在此调用 `SwitchFeature.enable/disable`，让运行中切换立即生效。
+     */
+    protected open fun onEnabledChange(enabled: Boolean) {}
+
     var isAvailable: Boolean = false
 
     open val isNeedRestart: Boolean = false
@@ -49,26 +69,8 @@ abstract class BaseSwitchHookItem : BaseHookItem() {
 
     protected open fun onHook() {}
 
-    class BooleanPreference(private val key: String, private val default: Boolean) :
-        ReadWriteProperty<Any, Boolean> {
-
-
-        override fun getValue(thisRef: Any, property: KProperty<*>): Boolean {
-            return prefs.getBoolean(key, default)
-        }
-
-        override fun setValue(thisRef: Any, property: KProperty<*>, value: Boolean) {
-            prefs.edit { putBoolean(key, value) }
-        }
-    }
-
     companion object {
         val prefs: SharedPreferences
-            get() = HostInfo.hostContext.getSharedPreferences(
-                "Kiora_Config_${HostInfo.adapter?.currentAccount ?: HostEnv.currentAccount}",
-                Context.MODE_MULTI_PROCESS
-            )
-
+            get() = HostEnv.accountPreference
     }
-
 }

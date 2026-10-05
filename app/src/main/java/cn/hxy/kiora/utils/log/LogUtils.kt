@@ -35,11 +35,16 @@ object LogUtils {
     }
 
     fun e(tag: String, t: Throwable) {
-        val stackTrace = Log.getStackTraceString(t)
-        val msg = "[$tag] Error:\n$stackTrace"
-        HookEngineManager.engine.log(Log.ERROR, "[$TAG] [$tag]", "Error occurred:", t)
+        e(tag, "Error occurred:", t)
+    }
 
-        saveCrashLog(tag, msg)
+    /** 带自定义消息的错误日志（消息进框架日志与崩溃落盘，不再只剩 "Error occurred:"）。 */
+    fun e(tag: String, msg: String, t: Throwable) {
+        val stackTrace = Log.getStackTraceString(t)
+        val saved = "[$tag] $msg\n$stackTrace"
+        HookEngineManager.engine.log(Log.ERROR, "[$TAG] [$tag]", msg, t)
+
+        saveCrashLog(tag, saved)
     }
 
     fun e(hookItem: BaseHookItem, t: Throwable) {

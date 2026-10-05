@@ -57,6 +57,48 @@ object HttpUtils {
     fun getSync(urlString: String, headers: Map<String, String> = emptyMap()): String =
         runCatching { doRequest(urlString, "GET", null, headers) }.getOrDefault("")
 
+    /** 带下载进度的同步 GET：按读取字节回调 [onProgress]（downloaded/total，total 未知时为 -1）。 */
+    fun getSyncWithProgress(
+        urlString: String,
+        onProgress: (downloaded: Long, total: Long) -> Unit,
+        headers: Map<String, String> = emptyMap(),
+    ): String {
+        var connection: HttpURLConnection? = null
+        return try {
+            val url = URL(urlString)
+            connection = url.openConnection() as HttpURLConnection
+            connection.apply {
+                requestMethod = "GET"
+                connectTimeout = CONNECT_TIMEOUT
+                readTimeout = READ_TIMEOUT
+                setRequestProperty("User-Agent", USER_AGENT)
+                instanceFollowRedirects = true
+                headers.forEach { (k, v) -> setRequestProperty(k, v) }
+            }
+            val responseCode = connection.responseCode
+            val stream = if (responseCode in 200..299) connection.inputStream else connection.errorStream
+            if (stream == null) return ""
+            val total = connection.contentLength.toLong()
+            val buffer = ByteArray(8192)
+            val out = java.io.ByteArrayOutputStream()
+            var downloaded = 0L
+            while (true) {
+                val n = stream.read(buffer)
+                if (n < 0) break
+                if (n > 0) {
+                    out.write(buffer, 0, n)
+                    downloaded += n
+                    onProgress(downloaded, total)
+                }
+            }
+            out.toString("UTF-8")
+        } catch (_: Exception) {
+            ""
+        } finally {
+            connection?.disconnect()
+        }
+    }
+
     fun postSync(
         urlString: String,
         body: String,

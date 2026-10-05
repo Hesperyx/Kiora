@@ -27,6 +27,14 @@ object HostEnv {
         )
     }
 
+    /** 账号级偏好：原生开关与 WeKit 功能开关统一读写这里。 */
+    val accountPreference: SharedPreferences by lazy {
+        HostInfo.hostContext.getSharedPreferences(
+            "Kiora_Config_${HostInfo.adapter?.currentAccount ?: currentAccount}",
+            Context.MODE_MULTI_PROCESS
+        )
+    }
+
     /** 当前前台 Activity；读不到返回 null。纯反射读 `ActivityThread.mActivities`，与宿主无关。 */
     val activity: Activity?
         get() = runCatching {
