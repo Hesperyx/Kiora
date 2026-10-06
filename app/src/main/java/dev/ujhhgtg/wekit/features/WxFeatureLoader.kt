@@ -1,6 +1,7 @@
 package dev.ujhhgtg.wekit.features
 
 import cn.hxy.kiora.hook.MainHook
+import cn.hxy.kiora.host.HostEnv
 import cn.hxy.kiora.host.HostInfo
 import cn.hxy.kiora.utils.dexkit.DexKitFinder
 import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
@@ -20,6 +21,7 @@ import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.showChoiceDialog
 import dev.ujhhgtg.wekit.utils.android.showProgressDialog
 import org.luckypray.dexkit.DexKitBridge
+import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -38,6 +40,12 @@ import java.util.concurrent.atomic.AtomicBoolean
 object WxFeatureLoader {
 
     private const val TAG = "WxFeatureLoader"
+
+    /**
+     * 宿主日志的进度步长：完整审计每项都写 `feature_start_diag.log`，但宿主日志只在
+     * 启用项与每 [LOG_STRIDE] 项时输出一行 —— 见 [startFeatures] 的实测说明。
+     */
+    private const val LOG_STRIDE = 25
 
     private val loaded = AtomicBoolean(false)
 
@@ -327,7 +335,14 @@ object WxFeatureLoader {
         }
         WxDexCache.saveCache()
         progress.update("DexKit 本地解析完成（成功 $done/${ordered.size}）")
-        val exported = CloudDexResolver.exportLocalReport(features.filterIsInstance<IResolveDex>())
+        // 导出集合必须覆盖 API 层：它们同样参与本次解析（见 load() 里的 collectMissing(apiFeatures + relevant)），
+        // 但 activeFeatures 只含 items + startupBacked，漏掉 dexBacked 会让云端报告整层缺失服务层描述符。
+        val exportPayload = (
+            features +
+                WeApiRegistry.dexBacked.filter { TargetProcesses.currentType in it.targetProcesses } +
+                WeApiRegistry.startupBacked
+            ).distinct().filterIsInstance<IResolveDex>()
+        val exported = CloudDexResolver.exportLocalReport(exportPayload)
         if (exported != null) {
             progress.update("本地解析完成，报告已导出：\n$exported")
         }
@@ -340,13 +355,82 @@ object WxFeatureLoader {
         startFeatures(features)
     }
 
+    /**
+     * 逐个启动功能。
+     *
+     * 真机（微信 8.0.78 / 3180）实测结论：**功能本身一切正常**。模块目录下的
+     * `feature_start_diag.log` 记录 `startFeatures: 236 features` → `done: failed=0`，全程 69 ms；
+     * 但同一次冷启动里 LSPosed 的日志子系统被这批瞬时爆发打死 —— 日志文件
+     * `/data/adb/lspd/log/modules_*.log` 与 logcat **同时**停在爆发中的第 138 行，此后
+     * 8,619 行窗口内任何进程都不再出现 `LSPosedFramework` 行。先前几轮看到的
+     * 「循环停在第 139 项」「汇总行缺失」全是日志丢尾，不是代码缺陷。
+     *
+     * 所以这里的策略是「日志要少、落盘要全」：
+     * 1. 单项的 `loadPersistedState()` + `startup()` 全部包在 [runCatching]；
+     * 2. 每项的完整审计（index / technicalPath / isActive）只写 `feature_start_diag.log`，
+     *    宿主日志只留「启用项 + 每 [LOG_STRIDE] 项 + 失败 + 汇总」，把突发压到几十行；
+     * 3. 诊断落盘与宿主日志解耦 —— 宿主日志调用本身出问题也留得下现场。
+     *
+     * 上游 `FeaturesLoader.loadFeatures` 是裸调 `startup()`，一个功能出问题就会拖垮其余功能。
+     */
     private fun startFeatures(features: List<BaseFeature>) {
-        features.forEach { feature ->
-            (feature as? SwitchFeature)?.loadPersistedState()
-            runCatching { feature.startup() }
-                .onFailure { WeLogger.e(TAG, "启动失败：${feature.technicalPath}", it) }
-            WeLogger.i(TAG, "  ${feature.technicalPath} -> isActive=${feature.isActive}")
+        val thread = Thread.currentThread()
+        val previousHandler = thread.uncaughtExceptionHandler
+        thread.setUncaughtExceptionHandler { t, e ->
+            diag("uncaught on ${t.name}: ${e.stackTraceToString()}")
+            runCatching { previousHandler?.uncaughtException(t, e) }
         }
-        WeLogger.i(TAG, "已加载 ${features.size} 个 WeKit 功能（进程 ${TargetProcesses.currentName}）")
+        diag("startFeatures: ${features.size} features", reset = true)
+        WeLogger.i(TAG, "开始启动 ${features.size} 个 WeKit 功能（进程 ${TargetProcesses.currentName}）")
+
+        var failed = 0
+        var active = 0
+        features.forEachIndexed { index, feature ->
+            try {
+                (feature as? SwitchFeature)?.loadPersistedState()
+                runCatching { feature.startup() }.onFailure {
+                    failed++
+                    diag("startup failed at $index (${feature.javaClass.name}): ${it.stackTraceToString()}")
+                    WeLogger.e(TAG, "启动失败（第 $index 个）：${feature.technicalPath}", it)
+                }
+                if (feature.isActive) active++
+                logStarted(index, feature)
+            } catch (t: Throwable) {
+                diag("iteration $index (${feature.javaClass.name}) threw: ${t.stackTraceToString()}")
+                runCatching { WeLogger.e(TAG, "启动第 $index 个功能时异常（${feature.javaClass.name}）", t) }
+            }
+        }
+        diag("startFeatures done: failed=$failed, active=$active")
+        WeLogger.i(
+            TAG,
+            "已加载 ${features.size} 个 WeKit 功能（进程 ${TargetProcesses.currentName}），启用 $active 个，启动失败 $failed 个",
+        )
+    }
+
+    /**
+     * 单项启动结果：完整审计落盘；宿主日志只在「已启用」或每 [LOG_STRIDE] 项时输出一行，
+     * 避免冷启动瞬间几百行日志把 LSPosed 日志子系统打崩（真机已实测到该现象）。
+     */
+    private fun logStarted(index: Int, feature: BaseFeature) {
+        val active = runCatching { feature.isActive }.getOrDefault(false)
+        val path = runCatching { feature.technicalPath }.getOrDefault(feature.javaClass.simpleName)
+        diag("  [$index] $path -> isActive=$active")
+        if (active || index % LOG_STRIDE == 0) {
+            runCatching { WeLogger.i(TAG, "  [$index] $path -> isActive=$active") }
+                .onFailure { diag("log failed at $index (${feature.javaClass.name}): ${it.stackTraceToString()}") }
+        }
+    }
+
+    /**
+     * 与宿主日志解耦的诊断落盘。宿主日志调用本身可能就是循环静默中断的原因，所以
+     * 审计内容一律先落模块目录下的 `feature_start_diag.log`；`reset = true` 用于每次
+     * 启动循环开头截断上一轮的记录，避免文件无限增长。
+     */
+    private fun diag(line: String, reset: Boolean = false) {
+        runCatching {
+            val file = File(HostEnv.currentDir, "feature_start_diag.log")
+            val text = "${System.currentTimeMillis()} $line\n"
+            if (reset) file.writeText(text) else file.appendText(text)
+        }
     }
 }

@@ -334,14 +334,22 @@ object CloudDexResolver {
                     key = delegate.key,
                     status = delegate.diagnostic.status,
                     isPlaceholder = delegate.isPlaceholder,
-                    descriptor = WxDexCache.cacheMap["${feature.technicalId}->${delegate.key}"]
-                        ?: delegate.getDescriptorString().orEmpty(),
+                    // 委托自身优先于缓存：占位符委托的描述符是哨兵（非空），而缓存里可能是空串
+                    // （`DexKitCache` 用空串表示「查过、没找到」），拿空串会让占位符整条被拒。
+                    descriptor = delegate.getDescriptorString().orEmpty().ifEmpty {
+                        WxDexCache.cacheMap["${feature.technicalId}->${delegate.key}"].orEmpty()
+                    },
                     message = delegate.diagnostic.message,
                     blockedBy = delegate.diagnostic.blockedBy,
                 )
             }
             val json = featureJson(feature.technicalId, delegates)
-            if (json != null) features += json else skipped++
+            if (json != null) {
+                features += json
+            } else {
+                skipped++
+                logSkipped(feature.technicalId, delegates)
+            }
         }
 
         // 主框架键：与 WeKit 共用同一份缓存（键形如 `WeChatDexKit->查询名`）。
@@ -355,7 +363,12 @@ object CloudDexResolver {
                 )
             }
             val json = featureJson(tag, delegates)
-            if (json != null) features += json else skipped++
+            if (json != null) {
+                features += json
+            } else {
+                skipped++
+                logSkipped(tag, delegates)
+            }
         }
 
         val report = JsonObject(
@@ -380,6 +393,19 @@ object CloudDexResolver {
         )
         file.absolutePath
     }.getOrNull()
+
+    /** 记录被整条剔除的 feature 的首个不可用委托，便于真机上定位导出缺口。 */
+    private fun logSkipped(technicalId: String, delegates: List<DexExportDelegate>) {
+        val first = delegates.firstOrNull { !it.usable }
+        val reason = if (first == null) {
+            "无 delegate"
+        } else {
+            "${first.key} -> ${first.reportStatus}（descriptor ${first.descriptor.length} 字符" +
+                (first.blockedBy?.let { "，blockedBy=$it" } ?: "") +
+                (first.message?.let { "，$it" } ?: "") + "）"
+        }
+        WeLogger.w(TAG, "导出时跳过未通过的 feature：$technicalId（$reason）")
+    }
 
     /**
      * 校验一组 delegate 并生成报告里的 feature 对象。

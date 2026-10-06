@@ -655,14 +655,28 @@ fun dexMethod(
 @Suppress("NOTHING_TO_INLINE")
 inline fun DexKitBridge.findClassData(clazz: String): ClassData? = getClassData(clazz)
 
+/**
+ * `.data` 只对「真的解析成功」的委托有意义。委托未解析（描述符为 null）或退化成占位符时，
+ * `getXxxData(哨兵描述符)` 返回 null，原先的 `!!` 会抛出 `CharSequence.length() on a null object
+ * reference` 这类无法定位的 NPE —— 而且异常发生在**引用方**的 matcher 里，会让调用方整个 feature
+ * 被判 UNEXPECTED_FAILURE（真机 8.0.78 上 `HideContacts.methodMultiTalkOnInvite` 曾因此解析失败）。
+ * 这里统一换成指名道姓的报错，便于定位跨 feature 依赖顺序问题。
+ */
+private fun unresolvedDataError(key: String, kind: String): Nothing =
+    error("DexKit: cannot read `$key`.data —— the $kind delegate is unresolved or degraded to a placeholder")
+
 val DexClassDelegate.data: ClassData
-    get() = DexResolutionContext.dexKit.getClassData(getDescriptorString()!!)!!
+    get() = getDescriptorString()?.let { DexResolutionContext.dexKit.getClassData(it) }
+        ?: unresolvedDataError(key, "class")
 
 val DexMethodDelegate.data: MethodData
-    get() = DexResolutionContext.dexKit.getMethodData(getDescriptorString()!!)!!
+    get() = getDescriptorString()?.let { DexResolutionContext.dexKit.getMethodData(it) }
+        ?: unresolvedDataError(key, "method")
 
 val DexConstructorDelegate.data: MethodData
-    get() = DexResolutionContext.dexKit.getMethodData(getDescriptorString()!!)!!
+    get() = getDescriptorString()?.let { DexResolutionContext.dexKit.getMethodData(it) }
+        ?: unresolvedDataError(key, "constructor")
 
 val DexFieldDelegate.data: FieldData
-    get() = DexResolutionContext.dexKit.getFieldData(getDescriptorString()!!)!!
+    get() = getDescriptorString()?.let { DexResolutionContext.dexKit.getFieldData(it) }
+        ?: unresolvedDataError(key, "field")

@@ -30,7 +30,6 @@ import com.tencent.mm.ui.chatting.ChattingUI
 import dev.ujhhgtg.reflekt.reflekt
 import dev.ujhhgtg.reflekt.utils.isSubclassOf
 import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
-import dev.ujhhgtg.wekit.dexkit.dsl.data
 import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.features.api.core.WeConversationApi
 import dev.ujhhgtg.wekit.features.api.core.WeDatabaseApi
@@ -971,10 +970,21 @@ object HideContacts : ClickableFeature(), IResolveDex, WeChatInputBarApi.IInputB
 
     // ── multitalk (群通话), used when the VoIPMP multitalk experiment is off ───────────────────
 
-    /** `v0.G(MultiTalkGroup)` — MultiTalkManager.onInviteMultiTalk. */
+    /**
+     * `v0.G(MultiTalkGroup)` — MultiTalkManager.onInviteMultiTalk.
+     *
+     * 类作用域刻意不走 `SplitGroupCall.methodExitMultiTalk.data`：那个委托在旧版 MultiTalk/ILink
+     * 架构缺失的宿主上会退化成占位符（`SplitGroupCall.kt:180`），而占位符走 `.data` 会在
+     * `getMethodData(哨兵描述符)` 处抛 NPE（真机 8.0.78 实测：`CharSequence.length() on a null
+     * object reference`），异常冒泡到本委托即被判为 UNEXPECTED_FAILURE，整个 feature 解析失败。
+     * 改成「本类含 exitCurrentMultiTalk 字符串」自足作用域：同一批类，且架构缺失时只是
+     * 匹配不到 → `allowFailure = true` 走预期失败占位符。
+     */
     val methodMultiTalkOnInvite by dexMethod(allowFailure = true) {
         matcher {
-            declaredClass(SplitGroupCall.methodExitMultiTalk.data.declaredClassName)
+            declaredClass {
+                usingStrings("exitCurrentMultiTalk: isReject %b isMissCall %b isPhoneCall %b isNetworkError %b")
+            }
             usingEqStrings(
                 "MicroMsg.MT.MultiTalkManager",
                 "onInviteMultiTalk All Var Value:\n isMute: %b isHandsFree: %b isCameraFace: %b multiTalkStatus: %s groupIsNull: %b",

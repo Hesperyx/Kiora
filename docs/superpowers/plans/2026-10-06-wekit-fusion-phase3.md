@@ -5,7 +5,7 @@
 > 前置：`docs/superpowers/plans/2026-10-05-wekit-full-migration.md`（Phase 1/2，已完成）。
 > 本文件为滚动计划：每完成一批就更新「进度快照」与「剩余批次」。
 
-## 进度快照（2026-10-06 实测，P1+P2+P3+P4-1+P4-1b+P4-2+P4-2b+P4-2c+P4-2d+P4-2e+P4-2f 已落地）
+## 进度快照（2026-10-06 实测，P1+P2+P3+P4-1+P4-1b+P4-2+P4-2b+P4-2c+P4-2d+P4-2e+P4-2f 已落地；P4-3 真机回归 A1/A3 已 PASS）
 
 口径：**上游相对路径存在性**（不再用单一声明名/正则口径，理由见 P4-2 节）。分母 = 上游 `app\src\main\java\dev\ujhhgtg\wekit` 下 767 个 .kt。
 
@@ -29,7 +29,8 @@
 
 - 编译基线：`:app:compileReleaseKotlin --offline --no-daemon` → `errors: 0`；
   `:app:assembleRelease --offline --no-daemon` → `BUILD SUCCESSFUL`，APK **14,493,895 B**
-  （P4-2f 后 sha256 `C5AFFFE8…`；体积自 P4-2c 起四批都是 14,493,895 B，属 zip 压缩吸收——已按
+  （P4-2f 后 sha256 `C5AFFFE8…`；P4-3 四处修复后 md5 `12b6f35f193659b35e008250410e6e6a`，
+  已安装真机并复跑通过。体积自 P4-2c 起五批都是 14,493,895 B，属 zip 压缩吸收——已按
   dex 内字面量证实各批产物确实不同：`classes2.dex` 含 `cloud Dex report is larger than` /
   `wekit-dex-reports` / `已导出本地报告` / `PASS_WITH_EXPECTED_FAILURES`）。
 - `git diff --cached --check` → exit 0。
@@ -38,7 +39,8 @@
 
 | 提交 | 内容 |
 |---|---|
-| `P4-2f`（本次） | 云端报告导出器修复（P4-2d 的两条 advisory）：`dexkit\cache\CloudDexResolver.kt` 330→**447 行** —— ① `fetchReport` 加 8MB 体积上限（上游 `MAX_REPORT_BYTES` 同值；进度回调里抛 `IOException`，因为 `HttpUtils.getSyncWithProgress` 吞异常返回空串，靠 `sawTooLarge` 保住原因）；② `exportLocalReport(items: List<IResolveDex>)` 重写 —— 按委托诊断写 `status` + **显式 `isPlaceholder`**（占位符一律记 `EXPECTED_FAILURE`，因为缓存恢复路径会把占位符退化成 `SUCCESS`），feature `outcome` 取 `PASS`/`PASS_WITH_EXPECTED_FAILURES`，含 `UNEXPECTED_FAILURE`/`BLOCKED`/`INCOMPLETE` 或描述符为空的 feature **整条不导出**（消费侧要求根 `outcome == PASS`，带 FAIL 会让整份报告被拒、全部功能一起失效）；调用点 `features\WxFeatureLoader.kt:330` 改传 `features.filterIsInstance<IResolveDex>()` |
+| `P4-3`（本次） | 真机回归 A1/A3 PASS 后的四处修复：`features\items\contacts\HideContacts.kt` 的 `methodMultiTalkOnInvite` 改自足类作用域（原先跨 feature 读 `SplitGroupCall.methodExitMultiTalk.data`，8.0.78 上该委托退化为占位符 → `.data` 抛 NPE → 整个 feature 被导出剔除）；`dexkit\dsl\DexDelegates.kt` 四个 `.data` 扩展由 `!!` 改为 `unresolvedDataError(key,kind)` 可诊断报错；`dexkit\cache\CloudDexResolver.kt` 描述符改「委托优先、缓存兜底」+ 新增 `logSkipped` 记录被跳过 feature 的首个不可用委托；`features\WxFeatureLoader.kt` 启动日志节流（`LOG_STRIDE = 25`，只在启用项/每 25 项/失败/汇总输出，完整 236 行审计落 `feature_start_diag.log` 且每轮截断）——根因是 LSPosed 日志子系统被瞬时爆发打死，导致「循环停在第 139 项」的假象 |
+| `P4-2f` | 云端报告导出器修复（P4-2d 的两条 advisory）：`dexkit\cache\CloudDexResolver.kt` 330→**447 行** —— ① `fetchReport` 加 8MB 体积上限（上游 `MAX_REPORT_BYTES` 同值；进度回调里抛 `IOException`，因为 `HttpUtils.getSyncWithProgress` 吞异常返回空串，靠 `sawTooLarge` 保住原因）；② `exportLocalReport(items: List<IResolveDex>)` 重写 —— 按委托诊断写 `status` + **显式 `isPlaceholder`**（占位符一律记 `EXPECTED_FAILURE`，因为缓存恢复路径会把占位符退化成 `SUCCESS`），feature `outcome` 取 `PASS`/`PASS_WITH_EXPECTED_FAILURES`，含 `UNEXPECTED_FAILURE`/`BLOCKED`/`INCOMPLETE` 或描述符为空的 feature **整条不导出**（消费侧要求根 `outcome == PASS`，带 FAIL 会让整份报告被拒、全部功能一起失效）；调用点 `features\WxFeatureLoader.kt:330` 改传 `features.filterIsInstance<IResolveDex>()` |
 | `P4-2e` | 差分清单闭合：澄清 89 个「两侧都在但报差异」文件里 **20 个是 `features/api/core/*`→`features/api/*` 的 `0 0` 纯拍平改名**（逐字节一致），真实内容差异 **69 项至此全判完**；本轮 7 项（还原 `IResolveDex.kt` 两处 KDoc 使其与上游逐字节一致；`QuickOpenMoments` 把内联的 `"wekit_folder_"` 改回 `ConversationAggregation.FOLDER_PREFIX`（值实测相同）；`HomeSidePanelActions`/`AutoCleanCache`/`ForceTabletMode`/`Stream.kt`/`TargetProcesses` 判为等价改写并逐环节取证） |
 | `P4-2d` | 第二轮差分分诊（90 个「两侧都在但仍有差值」文件全量派子代理核）：控件层按上游恢复 2 文件（`BaseWidget` 117→166 行补齐 `onTrailingClick`/`clickHaptic`/`trailingDivider`/`remember` 化 interactionSource + `foreContent()` 叠层归位；`SwitchWidget` 43→129 行恢复触感 / `separateClickAreas` 判据 / `Role.Switch` 语义 / 拇指图标）+ 修 **2 处真回归**（`SwitchFeature.applyToggle` 丢持久化；`HideHomeScreenSwipeDownPage` 过期注释导致分组态高度硬编码 48dp，改回上游 `if (!ConversationGrouping.isEnabled) 48 else 94` 后与上游逐字节一致）+ 3 处 KDoc 订正（`BaseFeature`/`KvStore`/`WeLogger`）+ 记 1 项能力缺口（python 脚本设置页依赖未迁入的 `scripta`） |
 | `P4-2c` | 差分三分复检（对上游全树 .kt 逐文件比对，再对「两侧都在但仍有差值」的 68 个文件分类）：修 **1 处真回归** `features\items\chat\ChatFooterHooks.kt`（过期注释顶替了上游两段长按绑定，恢复后与上游逐字节一致）+ **1 处漏迁** `features\items\miniapps\ErudaConsole.kt` 补回 `ResourcesInjector.injectModuleRes(resources)` + 1 处 KDoc 订正（`WeChatInputBarMenuApi`）；注册表 217 不变；APK 13,562,308→**14,493,895 B** |
@@ -462,13 +464,59 @@ kotlinx.serialization 序列名，两者都是 R8 容易破坏的面，故直接
 
 ### 待办（离线之外）
 
-- [ ] **P4-3 真机回归**：清 DexKit 缓存冷启动，确认无自动扫描 / 自动重启、弹窗正确关闭、无崩溃；
-      逐批验证 222 项注册功能的开关与设置页；**顺带验证 P4-2f 导出器**（清缓存 → 完整本地扫描 →
-      检查 `externalCacheDir/wekit-dex-reports/wechat-*.json` 的 `isPlaceholder`/根 `outcome`/缺失 feature 缺席）
-      后导出新报告并替换线上资产（需要 `GH_TOKEN` 或 `gh auth login`）。
+- [x] **P4-3 真机回归（A1/A3 已 PASS，见下节）**：清 DexKit 缓存冷启动 → 确认无自动扫描 / 自动重启、
+      弹窗正确关闭、无崩溃；P4-2f 导出器三判据 + 消费者模拟全部通过；**只剩 A2 宿主内逐项走查**在设备上做不了。
+- [ ] **A4 替换线上资产**：真机报告已重出（132/132），但 `gh` 未登录、`GH_TOKEN`/`GITHUB_TOKEN` 为空 ⇒ 待 YG 授权。
 - [ ] 复核 APK 体积与 R8 规则（当前 14,493,895 B，`isMinifyEnabled=true` + `isShrinkResources=true`；
-      P4-2c 前为 13,562,308 B，增量来自面板子系统重回可达集，属预期；该体积自 P4-2c 起四批不变，
+      P4-2c 前为 13,562,308 B，增量来自面板子系统重回可达集，属预期；该体积自 P4-2c 起五批不变，
       已按 dex 内字面量证实产物确实逐批更新，属 zip 压缩吸收）。
+
+### P4-3 真机回归（2026-10-06，A1/A3 PASS）
+
+设备：微信 8.0.78 / 3180（domestic）、LSPosed 2.2.0 (7854) API 102、模块 `cn.hxy.kiora` v1.3.6 / versionCode 28。
+循环脚本 `_dev\devcycle.ps1 -DialogWaitSec 25 -ScanWaitSec 95 -LateWaitSec 75 -Suffix v6`，
+配套 `_dev\repcheck.py`（报告统计）、`_dev\repconsume.py <report> <cache> <versionCode>`（复刻消费者 `select`）、
+`_dev\startcheck.py`（启动循环统计）、`_dev\featorder.py`（注册表顺序 → 日志比对）。
+
+**A1 冷启动回归 —— PASS**：`22:33:55.796 Activity 就绪（LauncherUI），弹出「云端拉取 / 本地扫描」选择框`
+→ `NoticeDialog: showChoiceDialog` 等用户选择；无自动扫描、无自动重启，`FATAL` / `ANR in` / `am_proc_died` 全 0 条。
+
+**A3 导出器 + 消费侧契约 —— PASS（132/132 入选）**：点「本地扫描」后 49 s 完成解析并导出。
+报告 189,863 B / **132 feature / 595 delegate**；status `SUCCESS 572 + EXPECTED_FAILURE 23`；
+feature outcome `PASS 125 + PASS_WITH_EXPECTED_FAILURES 7`；根 `schemaVersion=2 outcome=PASS 3180/8.0.78/domestic`；
+**595/595 显式带 `isPlaceholder`**、空描述符 0、哨兵冒充 SUCCESS 0；复刻 `CloudDexReport.select`
+⇒ `accepted 132 / rejected 0`（含 19 个 API 服务与主框架 `WeChatDexKit`）。
+9 个跨 feature 重名 delegate key（`classConversationAdapter`、`classMvvmConversationAdapter`、`methodCreateMenu`、
+`methodDealNotify`、`methodNotifyForLightPush`、`methodOnCreateMenu`、`methodOnItemSelected`、`methodQBarString`、
+`methodSendAppMsg`）**非缺陷**：同 feature 内零重名，消费侧只校验 feature 内唯一，缓存键另带 `technicalId->` 前缀。
+
+**真机缺陷（已修，P4-3 四处改动之二）**：`隐藏联系人` 整条被导出剔除。根因链＝8.0.78 上
+`MicroMsg.SubCoreMultiTalk` / ILink 栈缺失 → `SplitGroupCall.resolveDex` 设**预期占位符** →
+`HideContacts.methodMultiTalkOnInvite` 的 matcher 跨 feature 读 `SplitGroupCall.methodExitMultiTalk.data.declaredClassName`
+→ `.data` 走 `getMethodData(哨兵)!!` 抛 NPE（栈顶 `org.luckypray.dexkit.wrap.DexMethod.<init>`）→
+被 `DexMethodDelegate.find` 的 catch 归为 `UNEXPECTED_FAILURE` 并重抛 → 该 feature 其余 18 个委托未解析 → 整条剔除。
+修法：matcher 改自足类作用域（本类 `declaredClass { usingStrings("exitCurrentMultiTalk: isReject %b …") }`，
+配 `usingEqStrings("MicroMsg.MT.MultiTalkManager", "onInviteMultiTalk All Var Value:…")`），并保留 `allowFailure = true`。
+顺带把 `DexDelegates.kt` 的 4 个 `.data` 扩展由 `!!` 改为 `unresolvedDataError(key, kind)`：`.data` 只对已解析委托有意义，
+占位符/未解析时给出可诊断错误。全树清点：89 个委托被 `.data` 引用，仍可能读到占位符的只剩 `SplitGroupCall.kt` 自身
+（`:193` 提前 return 保护）。
+
+**「启动循环中断」是日志假象（关键结论）**：诊断落盘 `…/Kiora/<account>/feature_start_diag.log` 证明
+`startFeatures` 全程正常 —— 236 项、`failed=0`、`active=22`，全程 69 ms；先前几轮看到的
+「循环停在第 139 项 / 汇总行缺失」是 **LSPosed 日志子系统在瞬时爆发中被打死**：
+`/data/adb/lspd/log/modules_*.log` 与 logcat **同时**停在爆发中的第 138 行，此后 8,619 行窗口内
+任何进程都不再有 `LSPosedFramework` 行（重启设备后新日志文件才恢复）。对应改动：宿主日志只在
+「启用项 + 每 25 项 + 失败 + 汇总」输出，完整审计（每项一行）只写 `feature_start_diag.log`；
+汇总行现为 `已加载 236 个 WeKit 功能（进程 com.tencent.mm），启用 22 个，启动失败 0 个`。
+
+**当前启用基线（供 A2 对照）**：22 项 = 19 个 `api/*` 服务与扩展 + `debug/崩溃拦截` + `api/预见性返回动画`
++ `api/显示群成员实名全字`；其余 items 功能均为默认关闭（`isActive=false`）。
+
+**设备侧取证技巧（踩过的坑）**：① `adb shell su -c <cmd> <args…>` 只把**第一个 token** 当命令，多词命令必须传成
+一个带引号的参数 —— 在 pwsh 里用 `$q = "-c 'grep -c X /path/file'"; & $adb shell su $q`；
+② `adb logcat -d -v time > file` 在 pwsh 下写出 UTF-16 LE，Python 必须 `decode('utf-16')`；
+③ 微信宿主 UI 对 `uiautomator dump` 不可见（只回 1 个容器节点），宿主内弹窗只能靠坐标点击；
+④ `cn.hxy.kiora.activity.SettingActivity` 未在清单声明，`am start` 无法启动，只能在宿主内由功能入口拉起。
 
 ## 当前状态：不可迁 / 永久搁置
 
@@ -553,17 +601,22 @@ kotlinx.serialization 序列名，两者都是 R8 容易破坏的面，故直接
 
 ### A. 需要真机（离线不可推进）
 
-1. **A1 冷启动回归**：清 DexKit 缓存后冷启动，确认无自动扫描 / 无自动重启、弹窗正确关闭、无崩溃。
-2. **A2 功能逐项走查**：222 个上游 items 功能对象（注册表 217 项）的开关与设置页逐个打开；重点看
+1. **A1 冷启动回归 —— ✅ 已 PASS（2026-10-06，见上节 P4-3）**：清 DexKit 缓存后冷启动，弹「云端拉取 / 本地扫描」
+   选择框等用户选择，无自动扫描 / 无自动重启，`FATAL` / `ANR` / `am_proc_died` 全 0 条。
+2. **A2 功能逐项走查 —— ⏳ 只剩人眼**：222 个上游 items 功能对象（注册表 217 项）的开关与设置页逐个打开；重点看
    P4-2d 改过的 `BaseWidget` / `SwitchWidget` 触感与语义、P4-2c 恢复的面板长按入口（`VoicePanel` / `StickerPanel`）。
-3. **A3 导出器验证（P4-2f 的验证缺口）**：`externalCacheDir/wekit-dex-reports/wechat-*.json` 三个判据 ——
-   每个 delegate 显式带 `isPlaceholder`；根 `outcome == PASS`；描述符缺失的 feature 确实缺席。
-4. **A4 重出云端报告**：真机扫全 132 个 DexKit 键 → 导出 → 替换线上资产（`Kiora-wechat` release `402951057`
-   的 `wechat-8.0.78-3180-domestic.json`；需 `GH_TOKEN` 或 `gh auth login`；线上现覆盖 60/132）。
-5. **A5 视觉目视 3 项**：① `ui\utils\ComposeUtils.kt:21-57` 的裸 `MaterialTheme` 让约 150 处
+   真实入口＝宿主内「微信首页弹出菜单 → 模块设置」（`WeSettingsInjector.openSettingsDialog`），
+   微信 UI 对 `uiautomator` 不可见 ⇒ adb 无法代劳。当前启用基线 22 项（19 个 `api/*` + `debug/崩溃拦截` +
+   `api/预见性返回动画` + `api/显示群成员实名全字`），其余默认关闭。
+3. **A3 导出器验证（P4-2f 的验证缺口）—— ✅ 已 PASS**：132 feature / 595 delegate，595/595 显式 `isPlaceholder`，
+   根 `outcome=PASS`，空描述符 0，消费者模拟 `accepted 132 / rejected 0`。
+4. **A4 重出云端报告 —— ⏳ 待凭据**：真机扫全 132 个 DexKit 键并已导出报告（`report_v6.json`，189,863 B）；
+   替换线上资产（`Kiora-wechat` release `402951057` 的 `wechat-8.0.78-3180-domestic.json`）需
+   `GH_TOKEN` 或 `gh auth login`（本机 `gh` 已装未登录、相关环境变量全空）。
+5. **A5 视觉目视 3 项 —— ⏳ 待 YG 看图**：① `ui\utils\ComposeUtils.kt:21-57` 的裸 `MaterialTheme` 让约 150 处
    `showComposeDialog` 弹窗走基线配色（修法见 C1）；② `BaseWidget` 未采纳上游 `alpha = 0.38f` 禁用态与
-   `primaryContainer` 选中色；③ 贴纸/语音面板的 ROOT 导入路径降级为 `Cancelled`（不崩）。
-6. **A6 产物复核**：`isMinifyEnabled=true` + `isShrinkResources=true` 下体积四批同值 14,493,895 B
+   `primaryContainer` 选中色；③ 贴纸/语音面板的 ROOT 导入路径降级为 `Cancelled`（不崩）。截图 `_dev\s_v6.png`。
+6. **A6 产物复核 —— ⏳ 未做**：`isMinifyEnabled=true` + `isShrinkResources=true` 下体积五批同值 14,493,895 B
    （已按 dex 字面量证实产物逐批更新），剩 R8 规则复核。
 
 ### B. 需要拍板
