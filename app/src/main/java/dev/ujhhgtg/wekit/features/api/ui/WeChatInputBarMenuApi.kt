@@ -2,8 +2,8 @@ package dev.ujhhgtg.wekit.features.api.ui
 
 import android.app.AlertDialog
 import android.content.Context
-import android.graphics.drawable.Drawable
 import android.widget.Button
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.tencent.mm.pluginsdk.ui.chat.ChatFooter
 import dev.ujhhgtg.wekit.R
 import dev.ujhhgtg.wekit.features.core.ApiFeature
@@ -16,7 +16,8 @@ import dev.ujhhgtg.wekit.utils.WeLogger
 /**
  * 原生切片版聊天输入栏增强 API。
  *
- * 上游使用 Compose 弹窗与 `ImageVector`；这里改为 `AlertDialog.setItems`，
+ * 上游使用 Compose 弹窗渲染图标；这里改为 `AlertDialog.setItems`，弹窗不画图标，
+ * 但 `ActionItem.icon` 仍保持上游的 `ImageVector` 类型，好让上游功能文件原样移植。
  * 保留 provider 注册、`findSendButton` / `showMenu` / `performSend` 接口。
  */
 object WeChatInputBarMenuApi : ApiFeature() {
@@ -32,7 +33,7 @@ object WeChatInputBarMenuApi : ApiFeature() {
 
     data class ActionItem(
         val id: String,
-        val icon: Drawable?,
+        val icon: ImageVector,
         val label: String,
         val isSupported: (Context, ChatFooter) -> Boolean = { _, _ -> true },
         val onClick: (Context, ChatFooter) -> Unit,

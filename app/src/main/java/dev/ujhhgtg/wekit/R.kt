@@ -1413,6 +1413,73 @@ object R {
         val feature_round_avatars_name = cn.hxy.kiora.R.string.feature_round_avatars_name
         val feature_round_avatars_description = cn.hxy.kiora.R.string.feature_round_avatars_description
         val contacts_round_avatar_radius = cn.hxy.kiora.R.string.contacts_round_avatar_radius
+        // Batch category: 8 features
+        val batch_select_at_least_one_conversation = cn.hxy.kiora.R.string.batch_select_at_least_one_conversation
+        val batch_select_at_least_one_friend = cn.hxy.kiora.R.string.batch_select_at_least_one_friend
+        val batch_add_label_create_and_apply = cn.hxy.kiora.R.string.batch_add_label_create_and_apply
+        val batch_add_label_create_failed = cn.hxy.kiora.R.string.batch_add_label_create_failed
+        val batch_add_label_done_title = cn.hxy.kiora.R.string.batch_add_label_done_title
+        val batch_add_label_existing_labels = cn.hxy.kiora.R.string.batch_add_label_existing_labels
+        val batch_add_label_new_label_hint = cn.hxy.kiora.R.string.batch_add_label_new_label_hint
+        val batch_add_label_progress_title = cn.hxy.kiora.R.string.batch_add_label_progress_title
+        val batch_add_label_select_friends = cn.hxy.kiora.R.string.batch_add_label_select_friends
+        val batch_add_label_select_label = cn.hxy.kiora.R.string.batch_add_label_select_label
+        val batch_delete_friends_block_and_delete = cn.hxy.kiora.R.string.batch_delete_friends_block_and_delete
+        val batch_delete_friends_confirm_title = cn.hxy.kiora.R.string.batch_delete_friends_confirm_title
+        val batch_delete_friends_select = cn.hxy.kiora.R.string.batch_delete_friends_select
+        val batch_delete_history_select = cn.hxy.kiora.R.string.batch_delete_history_select
+        val batch_delete_history_title = cn.hxy.kiora.R.string.batch_delete_history_title
+        val batch_hide_conversations_action = cn.hxy.kiora.R.string.batch_hide_conversations_action
+        val batch_hide_conversations_select = cn.hxy.kiora.R.string.batch_hide_conversations_select
+        val batch_hide_conversations_title = cn.hxy.kiora.R.string.batch_hide_conversations_title
+        val batch_mark_read_select = cn.hxy.kiora.R.string.batch_mark_read_select
+        val batch_mass_send_card_hint = cn.hxy.kiora.R.string.batch_mass_send_card_hint
+        val batch_mass_send_card_label = cn.hxy.kiora.R.string.batch_mass_send_card_label
+        val batch_mass_send_card_mode = cn.hxy.kiora.R.string.batch_mass_send_card_mode
+        val batch_mass_send_enter_content = cn.hxy.kiora.R.string.batch_mass_send_enter_content
+        val batch_mass_send_select_at_least_one = cn.hxy.kiora.R.string.batch_mass_send_select_at_least_one
+        val batch_mass_send_select_recipients = cn.hxy.kiora.R.string.batch_mass_send_select_recipients
+        val batch_mass_send_select_title = cn.hxy.kiora.R.string.batch_mass_send_select_title
+        val batch_mass_send_text_hint = cn.hxy.kiora.R.string.batch_mass_send_text_hint
+        val batch_mass_send_text_label = cn.hxy.kiora.R.string.batch_mass_send_text_label
+        val batch_mass_send_text_mode = cn.hxy.kiora.R.string.batch_mass_send_text_mode
+        val batch_mute_disable = cn.hxy.kiora.R.string.batch_mute_disable
+        val batch_mute_disable_description = cn.hxy.kiora.R.string.batch_mute_disable_description
+        val batch_mute_enable = cn.hxy.kiora.R.string.batch_mute_enable
+        val batch_mute_enable_description = cn.hxy.kiora.R.string.batch_mute_enable_description
+        val batch_mute_select_disable = cn.hxy.kiora.R.string.batch_mute_select_disable
+        val batch_mute_select_enable = cn.hxy.kiora.R.string.batch_mute_select_enable
+        val batch_mute_title = cn.hxy.kiora.R.string.batch_mute_title
+        val feature_batch_add_label_description = cn.hxy.kiora.R.string.feature_batch_add_label_description
+        val feature_batch_add_label_name = cn.hxy.kiora.R.string.feature_batch_add_label_name
+        val feature_batch_delete_chat_history_description = cn.hxy.kiora.R.string.feature_batch_delete_chat_history_description
+        val feature_batch_delete_chat_history_name = cn.hxy.kiora.R.string.feature_batch_delete_chat_history_name
+        val feature_batch_delete_friends_description = cn.hxy.kiora.R.string.feature_batch_delete_friends_description
+        val feature_batch_delete_friends_name = cn.hxy.kiora.R.string.feature_batch_delete_friends_name
+        val feature_batch_hide_conversations_description = cn.hxy.kiora.R.string.feature_batch_hide_conversations_description
+        val feature_batch_hide_conversations_name = cn.hxy.kiora.R.string.feature_batch_hide_conversations_name
+        val feature_batch_mark_as_read_description = cn.hxy.kiora.R.string.feature_batch_mark_as_read_description
+        val feature_batch_mark_as_read_name = cn.hxy.kiora.R.string.feature_batch_mark_as_read_name
+        val feature_batch_mute_conversations_description = cn.hxy.kiora.R.string.feature_batch_mute_conversations_description
+        val feature_batch_mute_conversations_name = cn.hxy.kiora.R.string.feature_batch_mute_conversations_name
+        val feature_mass_send_message_description = cn.hxy.kiora.R.string.feature_mass_send_message_description
+        val feature_mass_send_message_name = cn.hxy.kiora.R.string.feature_mass_send_message_name
+        // Chat input bar menu: 2 features
+        val feature_mention_members_description = cn.hxy.kiora.R.string.feature_mention_members_description
+        val feature_mention_members_name = cn.hxy.kiora.R.string.feature_mention_members_name
+        val mention_members_action_label = cn.hxy.kiora.R.string.mention_members_action_label
+        val mention_members_empty_group = cn.hxy.kiora.R.string.mention_members_empty_group
+        val mention_members_group_only = cn.hxy.kiora.R.string.mention_members_group_only
+        val mention_members_input_empty = cn.hxy.kiora.R.string.mention_members_input_empty
+        val mention_members_select_one = cn.hxy.kiora.R.string.mention_members_select_one
+        val mention_members_sent_unseen = cn.hxy.kiora.R.string.mention_members_sent_unseen
+        val mention_members_settings_title = cn.hxy.kiora.R.string.mention_members_settings_title
+        val mention_members_stealth_description = cn.hxy.kiora.R.string.mention_members_stealth_description
+        val mention_members_stealth_label = cn.hxy.kiora.R.string.mention_members_stealth_label
+        val feature_send_card_message_description = cn.hxy.kiora.R.string.feature_send_card_message_description
+        val feature_send_card_message_name = cn.hxy.kiora.R.string.feature_send_card_message_name
+        val send_card_message_failed = cn.hxy.kiora.R.string.send_card_message_failed
+        val send_card_message_input_empty = cn.hxy.kiora.R.string.send_card_message_input_empty
     }
 
     object plurals {
@@ -1456,6 +1523,27 @@ object R {
         val contacts_delete_fake_select_title = cn.hxy.kiora.R.plurals.contacts_delete_fake_select_title
         val contacts_delete_fake_confirm_message = cn.hxy.kiora.R.plurals.contacts_delete_fake_confirm_message
         val contacts_delete_fake_done = cn.hxy.kiora.R.plurals.contacts_delete_fake_done
+        // Batch category: 8 features
+        val batch_add_label_done = cn.hxy.kiora.R.plurals.batch_add_label_done
+        val batch_add_label_progress = cn.hxy.kiora.R.plurals.batch_add_label_progress
+        val batch_delete_friends_confirm_message = cn.hxy.kiora.R.plurals.batch_delete_friends_confirm_message
+        val batch_delete_friends_done = cn.hxy.kiora.R.plurals.batch_delete_friends_done
+        val batch_delete_friends_partial = cn.hxy.kiora.R.plurals.batch_delete_friends_partial
+        val batch_delete_friends_progress = cn.hxy.kiora.R.plurals.batch_delete_friends_progress
+        val batch_delete_history_confirm = cn.hxy.kiora.R.plurals.batch_delete_history_confirm
+        val batch_delete_history_done = cn.hxy.kiora.R.plurals.batch_delete_history_done
+        val batch_delete_history_progress = cn.hxy.kiora.R.plurals.batch_delete_history_progress
+        val batch_hide_conversations_confirm = cn.hxy.kiora.R.plurals.batch_hide_conversations_confirm
+        val batch_hide_conversations_done = cn.hxy.kiora.R.plurals.batch_hide_conversations_done
+        val batch_mark_read_done = cn.hxy.kiora.R.plurals.batch_mark_read_done
+        val batch_mass_send_done = cn.hxy.kiora.R.plurals.batch_mass_send_done
+        val batch_mass_send_partial = cn.hxy.kiora.R.plurals.batch_mass_send_partial
+        val batch_mass_send_progress = cn.hxy.kiora.R.plurals.batch_mass_send_progress
+        val batch_mute_disabled = cn.hxy.kiora.R.plurals.batch_mute_disabled
+        val batch_mute_enabled = cn.hxy.kiora.R.plurals.batch_mute_enabled
+        val batch_mute_progress = cn.hxy.kiora.R.plurals.batch_mute_progress
+        // Chat input bar menu: 2 features
+        val mention_members_message_count = cn.hxy.kiora.R.plurals.mention_members_message_count
     }
 
     object array {

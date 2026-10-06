@@ -147,6 +147,15 @@ import dev.ujhhgtg.wekit.features.items.contacts.DeleteFakeGroups
 import dev.ujhhgtg.wekit.features.items.contacts.HideContacts
 import dev.ujhhgtg.wekit.features.items.contacts.RoundAvatars
 import dev.ujhhgtg.wekit.features.items.contacts.SplitGroupCall
+import dev.ujhhgtg.wekit.features.items.batch.BatchAddLabel
+import dev.ujhhgtg.wekit.features.items.batch.BatchDeleteChatHistory
+import dev.ujhhgtg.wekit.features.items.batch.BatchDeleteFriends
+import dev.ujhhgtg.wekit.features.items.batch.BatchHideConversations
+import dev.ujhhgtg.wekit.features.items.batch.BatchMarkAsRead
+import dev.ujhhgtg.wekit.features.items.batch.BatchMuteConversations
+import dev.ujhhgtg.wekit.features.items.batch.MassSendMessage
+import dev.ujhhgtg.wekit.features.items.chat_input_bar_menu.MentionMembers
+import dev.ujhhgtg.wekit.features.items.chat_input_bar_menu.SendCardMessage
 
 
 /**
@@ -308,6 +317,15 @@ object WxFeatureRegistry {
                 HideContacts,
                 RoundAvatars,
                 SplitGroupCall,
+                BatchAddLabel,
+                BatchDeleteChatHistory,
+                BatchDeleteFriends,
+                BatchHideConversations,
+                BatchMarkAsRead,
+                BatchMuteConversations,
+                MassSendMessage,
+                MentionMembers,
+                SendCardMessage,
             )
         )
     }

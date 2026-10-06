@@ -1483,4 +1483,99 @@
     <plurals name="contacts_delete_fake_select_title"><item quantity="one">Delete fake group (%1$d found)</item><item quantity="other">Delete fake groups (%1$d found)</item></plurals>
     <plurals name="contacts_delete_fake_confirm_message"><item quantity="one">Delete the %1$d selected fake group? This cannot be undone; the original group will not be affected.</item><item quantity="other">Delete the %1$d selected fake groups? This cannot be undone; the original groups will not be affected.</item></plurals>
     <plurals name="contacts_delete_fake_done"><item quantity="one">Cleared %1$d fake group</item><item quantity="other">Cleared %1$d fake groups</item></plurals>
+
+    <!-- Batch category: 8 features -->
+    <string name="batch_select_at_least_one_conversation">Select at least one conversation</string>
+    <string name="batch_select_at_least_one_friend">Select at least one friend</string>
+    <string name="batch_add_label_create_and_apply">Create and apply</string>
+    <string name="batch_add_label_create_failed">Failed to create label “%1$s”</string>
+    <string name="batch_add_label_done_title">Labeling complete</string>
+    <string name="batch_add_label_existing_labels">Or select an existing label:</string>
+    <string name="batch_add_label_new_label_hint">New label (enter a name, then tap “Create and apply”)</string>
+    <string name="batch_add_label_progress_title">Applying label</string>
+    <string name="batch_add_label_select_friends">Select friends to label</string>
+    <string name="batch_add_label_select_label">Select label</string>
+    <string name="batch_delete_friends_block_and_delete">Block and delete</string>
+    <string name="batch_delete_friends_confirm_title">Confirm deletion</string>
+    <string name="batch_delete_friends_select">Select friends to delete</string>
+    <string name="batch_delete_history_select">Select conversations whose history you want to delete</string>
+    <string name="batch_delete_history_title">Delete chat history</string>
+    <string name="batch_hide_conversations_action">Hide</string>
+    <string name="batch_hide_conversations_select">Select conversations to hide</string>
+    <string name="batch_hide_conversations_title">Hide conversations</string>
+    <string name="batch_mark_read_select">Select conversations to mark as read</string>
+    <string name="batch_mass_send_card_hint">Paste the appmsg XML, then tap “Select recipients”</string>
+    <string name="batch_mass_send_card_label">Card XML</string>
+    <string name="batch_mass_send_card_mode">Card message (XML)</string>
+    <string name="batch_mass_send_enter_content">Enter message content</string>
+    <string name="batch_mass_send_select_at_least_one">Select at least one recipient</string>
+    <string name="batch_mass_send_select_recipients">Select recipients</string>
+    <string name="batch_mass_send_select_title">Select broadcast recipients</string>
+    <string name="batch_mass_send_text_hint">Write the text message to send, then tap “Select recipients”</string>
+    <string name="batch_mass_send_text_label">Message</string>
+    <string name="batch_mass_send_text_mode">Text message</string>
+    <string name="batch_mute_disable">Disable Do Not Disturb</string>
+    <string name="batch_mute_disable_description">Select conversations to unmute</string>
+    <string name="batch_mute_enable">Enable Do Not Disturb</string>
+    <string name="batch_mute_enable_description">Select conversations to mute</string>
+    <string name="batch_mute_select_disable">Select conversations to unmute</string>
+    <string name="batch_mute_select_enable">Select conversations to mute</string>
+    <string name="batch_mute_title">Batch Do Not Disturb</string>
+    <string name="feature_batch_add_label_description">Append the same tag to multiple selected friends. You can choose an existing tag or create a new one. The requests will be automatically spaced to avoid server anti-abuse controls.</string>
+    <string name="feature_batch_add_label_name">Batch add labels</string>
+    <string name="feature_batch_delete_chat_history_description">Completely clear the chat history of the selected conversation (delete rconversation and message records), this operation is irreversible!</string>
+    <string name="feature_batch_delete_chat_history_name">Batch delete chat history</string>
+    <string name="feature_batch_delete_friends_description">Select multiple friends and delete them at once. Requests will be automatically spaced to avoid server anti-abuse controls.</string>
+    <string name="feature_batch_delete_friends_name">Batch delete contacts</string>
+    <string name="feature_batch_hide_conversations_description">Remove the selected conversation from the conversation list (only delete the rconversation record, keep the chat history), the conversation will appear again when the message is received again</string>
+    <string name="feature_batch_hide_conversations_name">Hide conversations in batches</string>
+    <string name="feature_batch_mark_as_read_description">After selecting multiple friends or group chats, mark their conversations as read at once</string>
+    <string name="feature_batch_mark_as_read_name">Batch mark as read</string>
+    <string name="feature_batch_mute_conversations_description">After selecting multiple friends or group chats, turn on or off message do not disturb in batches</string>
+    <string name="feature_batch_mute_conversations_name">Batch mute conversations</string>
+    <string name="feature_mass_send_message_description">Write a text or card message, select multiple friends or group chats and send them in batches. Requests will be automatically spaced to avoid server anti-abuse controls.</string>
+    <string name="feature_mass_send_message_name">Mass-send messages</string>
+
+    <!-- Batch category: 8 features -->
+    <plurals name="batch_add_label_done"><item quantity="one">Added label “%3$s” to %1$d of %2$d friend</item><item quantity="other">Added label “%3$s” to %1$d of %2$d friends</item></plurals>
+    <plurals name="batch_add_label_progress"><item quantity="one">Applying label “%1$s”; please wait…\nCompleted: %2$d/%3$d friend</item><item quantity="other">Applying label “%1$s”; please wait…\nCompleted: %2$d/%3$d friends</item></plurals>
+    <plurals name="batch_delete_friends_confirm_message"><item quantity="one">Delete the %1$d selected friend? This cannot be undone. You can also block them.</item><item quantity="other">Delete the %1$d selected friends? This cannot be undone. You can also block them.</item></plurals>
+    <plurals name="batch_delete_friends_done"><item quantity="one">Deleted %1$d friend</item><item quantity="other">Deleted %1$d friends</item></plurals>
+    <plurals name="batch_delete_friends_partial"><item quantity="one">Deleted %1$d of %2$d friend</item><item quantity="other">Deleted %1$d of %2$d friends</item></plurals>
+    <plurals name="batch_delete_friends_progress"><item quantity="one">Deleting %1$d friend…</item><item quantity="other">Deleting %1$d friends…</item></plurals>
+    <plurals name="batch_delete_history_confirm"><item quantity="one">Delete all chat history for the %1$d selected conversation? This cannot be undone.</item><item quantity="other">Delete all chat history for the %1$d selected conversations? This cannot be undone.</item></plurals>
+    <plurals name="batch_delete_history_done"><item quantity="one">Deleted chat history for %1$d conversation (message rows deleted: %2$d)</item><item quantity="other">Deleted chat history for %1$d conversations (message rows deleted: %2$d)</item></plurals>
+    <plurals name="batch_delete_history_progress"><item quantity="one">Deleting chat history for %1$d conversation…</item><item quantity="other">Deleting chat history for %1$d conversations…</item></plurals>
+    <plurals name="batch_hide_conversations_confirm"><item quantity="one">Remove the %1$d selected conversation from the conversation list? Chat history will be kept, and the conversation will reappear when a new message arrives.</item><item quantity="other">Remove the %1$d selected conversations from the conversation list? Chat history will be kept, and conversations will reappear when new messages arrive.</item></plurals>
+    <plurals name="batch_hide_conversations_done"><item quantity="one">Hidden %1$d of %2$d conversation</item><item quantity="other">Hidden %1$d of %2$d conversations</item></plurals>
+    <plurals name="batch_mark_read_done"><item quantity="one">Marked %1$d conversation as read</item><item quantity="other">Marked %1$d conversations as read</item></plurals>
+    <plurals name="batch_mass_send_done"><item quantity="one">Sent to %1$d recipient</item><item quantity="other">Sent to %1$d recipients</item></plurals>
+    <plurals name="batch_mass_send_partial"><item quantity="one">Sent to %1$d of %2$d recipient</item><item quantity="other">Sent to %1$d of %2$d recipients</item></plurals>
+    <plurals name="batch_mass_send_progress"><item quantity="one">Sending to %1$d recipient…</item><item quantity="other">Sending to %1$d recipients…</item></plurals>
+    <plurals name="batch_mute_disabled"><item quantity="one">Disabled Do Not Disturb for %1$d conversation</item><item quantity="other">Disabled Do Not Disturb for %1$d conversations</item></plurals>
+    <plurals name="batch_mute_enabled"><item quantity="one">Enabled Do Not Disturb for %1$d conversation</item><item quantity="other">Enabled Do Not Disturb for %1$d conversations</item></plurals>
+    <plurals name="batch_mute_progress"><item quantity="one">Updating Do Not Disturb for %1$d conversation…</item><item quantity="other">Updating Do Not Disturb for %1$d conversations…</item></plurals>
+
+    <!-- Chat input bar menu: 2 features -->
+    <string name="feature_mention_members_description">Add the "@Everyone" function to the long-press menu of the group chat input field to support selecting receiving members; long-press this item to configure sending settings</string>
+    <string name="feature_mention_members_name">@everyone</string>
+    <string name="mention_members_action_label">@everyone (long-press to configure)</string>
+    <string name="mention_members_empty_group">The group member list is empty.</string>
+    <string name="mention_members_group_only">This action is only available in groups.</string>
+    <string name="mention_members_input_empty">The input box is empty.</string>
+    <string name="mention_members_select_one">Select at least one contact.</string>
+    <string name="mention_members_sent_unseen">Sent (you cannot see this message yourself)</string>
+    <string name="mention_members_settings_title">@everyone settings</string>
+    <string name="mention_members_stealth_description">When enabled, confirming member selection sends the input text natively (no @name prefix); recipients get the "mentioned you" notification but see no @ text in the bubble. Groups over 200 members notify only the first 200. When disabled, the message starts with @name text.</string>
+    <string name="mention_members_stealth_label">Stealth @everyone</string>
+    <string name="feature_send_card_message_description">Add the "Send Card Message" function to the long-press menu of the chat input field</string>
+    <string name="feature_send_card_message_name">Send card message</string>
+    <string name="send_card_message_failed">Failed to send the card message. Check its format.</string>
+    <string name="send_card_message_input_empty">The input is empty.</string>
+
+    <!-- Chat input bar menu: 2 features -->
+    <plurals name="mention_members_message_count">
+        <item quantity="one">You mentioned %1$d person</item>
+        <item quantity="other">You mentioned %1$d people</item>
+    </plurals>
 </resources>
