@@ -14,6 +14,7 @@ import dev.ujhhgtg.wekit.features.items.chat.DisableMessageCollapsing
 import dev.ujhhgtg.wekit.features.items.chat.DisablePat
 import dev.ujhhgtg.wekit.features.items.chat.DisablePinnedChatsCollapsing
 import dev.ujhhgtg.wekit.features.items.chat.DisableTypingStatusUploading
+import dev.ujhhgtg.wekit.features.items.chat.EmojiGameControl
 import dev.ujhhgtg.wekit.features.items.chat.ExternalSharingEvolved
 import dev.ujhhgtg.wekit.features.items.chat.FakeVoiceDuration
 import dev.ujhhgtg.wekit.features.items.chat.HideMessagesAvatars
@@ -135,7 +136,10 @@ import dev.ujhhgtg.wekit.features.items.chat.RedirectDownloadPath
 import dev.ujhhgtg.wekit.features.items.chat.RemoveChatMessageContextMenuItems
 import dev.ujhhgtg.wekit.features.items.chat.RepeatMessages
 import dev.ujhhgtg.wekit.features.items.chat.SaveStickersToLocalStorage
+import dev.ujhhgtg.wekit.features.items.chat.SaveToPanel
 import dev.ujhhgtg.wekit.features.items.chat.SaveVoicesToLocalStorage
+import dev.ujhhgtg.wekit.features.items.chat.StickerPanel
+import dev.ujhhgtg.wekit.features.items.chat.VoicePanel
 import dev.ujhhgtg.wekit.features.items.moments.ForwardMessagesToMoments
 import dev.ujhhgtg.wekit.features.items.contacts.DetectDeletedFriends
 import dev.ujhhgtg.wekit.features.items.beautify.AddMainScreenFab
@@ -156,6 +160,7 @@ import dev.ujhhgtg.wekit.features.items.batch.BatchMuteConversations
 import dev.ujhhgtg.wekit.features.items.batch.MassSendMessage
 import dev.ujhhgtg.wekit.features.items.chat_input_bar_menu.MentionMembers
 import dev.ujhhgtg.wekit.features.items.chat_input_bar_menu.SendCardMessage
+import dev.ujhhgtg.wekit.features.items.chat_input_bar_menu.SendVoiceFile
 import dev.ujhhgtg.wekit.features.items.notifications.NotificationsEvolved
 
 
@@ -327,7 +332,12 @@ object WxFeatureRegistry {
                 MassSendMessage,
                 MentionMembers,
                 SendCardMessage,
+                SendVoiceFile,
                 NotificationsEvolved,
+                SaveToPanel,
+                StickerPanel,
+                VoicePanel,
+                EmojiGameControl,
             )
         )
     }

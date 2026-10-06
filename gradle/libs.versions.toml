@@ -28,6 +28,7 @@ okhttp = "5.5.0"
 appcompat-resources = "1.8.0"
 room = "2.8.5"
 miuix = "0.9.4-rc01"
+ktor = "3.6.0"
 
 [libraries]
 androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
@@ -71,6 +72,16 @@ lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-ru
 lifecycle-runtime = { group = "androidx.lifecycle", name = "lifecycle-runtime", version.ref = "lifecycle" }
 composablehorizons-material-symbols-outlined = { module = "com.composables:icons-material-symbols-outlined-cmp", version.ref = "composablehorizons-symbols" }
 composablehorizons-material-symbols-filled = { module = "com.composables:icons-material-symbols-outlined-filled-cmp", version.ref = "composablehorizons-symbols" }
+ktor-bom = { module = "io.ktor:ktor-bom", version.ref = "ktor" }
+ktor-client-core = { module = "io.ktor:ktor-client-core" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio" }
+ktor-client-websockets = { module = "io.ktor:ktor-client-websockets" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json" }
+ktor-server-cio = { module = "io.ktor:ktor-server-cio" }
+ktor-server-cors = { module = "io.ktor:ktor-server-cors" }
+ktor-server-auth = { module = "io.ktor:ktor-server-auth" }
+ktor-server-sse = { module = "io.ktor:ktor-server-sse" }
+ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
