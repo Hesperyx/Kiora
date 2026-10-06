@@ -8,8 +8,9 @@ import cn.hxy.kiora.utils.log.LogUtils
  * WeKit 原版是一个带异步队列 + 按天滚动落盘 + 丢弃计数的完整实现；
  * 迁进 Kiora 后直接转接到 Kiora 的 [LogUtils]，不再维护第二套日志落盘体系。
  *
- * **已知简化**：WeKit 原版的日志文件查看器（`WeLogger.logsDir` / `allLogFiles` /
- * `flush`）在切片里没有对应实现。若后续要迁「日志查看」相关功能，需要补回。
+ * **已知简化**：原版日志文件查看器依赖的 `logsDir` / `allLogFiles` 没有对应实现（上游只有
+ * 未迁入的 `LogsPager` 读取它们）；`flush()` 保留为空实现——上游那套异步写盘队列在切片里
+ * 不存在，没有待刷新的缓冲，但 `utils/crash/JavaCrashHandler` 仍在调用它，故保留签名。
  */
 object WeLogger {
 

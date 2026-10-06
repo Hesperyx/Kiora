@@ -24,10 +24,10 @@ import kotlin.reflect.KClass
 /**
  * WeKit 血统功能的根基类。
  *
- * 与 WeKit 原版的差异只有一处：原版还提供了
- * `BaseReflectedMethod` / `ReflectedConstructor`（reflekt 库类型）上的
- * `hookBefore` / `hookAfter` 重载，切片未迁 —— 那部分依赖 reflekt，
- * 需要时用 Kiora 的 `utils/reflect` 或直接传 [Executable]。
+ * 与 WeKit 原版的差异：reflekt 类型（`BaseReflectedMethod` /
+ * `ReflectedConstructor`）上的 `hookBefore` / `hookAfter` 重载加了
+ * `@JvmName`——同名扩展函数在 JVM 侧签名冲突，只能显式改名；Kotlin 调用方
+ * 不受影响，`dev.ujhhgtg.reflekt` 已随源码迁入。
  */
 abstract class BaseFeature {
 

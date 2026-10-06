@@ -7,7 +7,9 @@ import dev.ujhhgtg.wekit.data.KvStore
 import dev.ujhhgtg.wekit.utils.WeLogger
 
 /**
- * 带开关的功能基类。与 WeKit 原版逐字一致（存储换成了 [KvStore] 的切片实现）。
+ * 带开关的功能基类。开关状态的权威存储是 [HostEnv.accountPreference]（键 = [technicalId]），
+ * 与设置页的 WeKit 适配项、[loadPersistedState] 共用同一份；[KvStore] 仅作为旧数据的
+ * 一次性迁移来源。
  */
 abstract class SwitchFeature : BaseFeature() {
 
@@ -65,6 +67,10 @@ abstract class SwitchFeature : BaseFeature() {
     }
 
     fun applyToggle(newState: Boolean) {
+        // 上游写 KvStore；切片里 loadPersistedState 以 HostEnv.accountPreference 为准
+        // （KvStore 只在键缺席时作为一次性迁移源），设置页开关走的是同一个键，
+        // 所以这里必须写账号偏好，否则本方法切换的状态重启即丢。
+        HostEnv.accountPreference.edit { putBoolean(technicalId, newState) }
         isEnabled = newState
         toggleCompletionCallback?.run()
     }

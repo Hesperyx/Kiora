@@ -1,5 +1,6 @@
 package dev.ujhhgtg.wekit.ui.content.m3
 
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -10,19 +11,23 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 
@@ -48,6 +53,20 @@ fun BaseWidget(
     foreContent: @Composable BoxScope.() -> Unit = {},
     trailingContent: @Composable BoxScope.(MutableInteractionSource) -> Unit = {},
 ) {
+    val haptic = LocalHapticFeedback.current
+
+    val interactionSource = remember { MutableInteractionSource() }
+    val trailingInteractionSource = remember { MutableInteractionSource() }
+    val trailingContentInteractionSource =
+        if (onTrailingClick != null || trailingDivider) trailingInteractionSource else interactionSource
+
+    val handleTrailingClick = onTrailingClick?.let { callback ->
+        {
+            clickHaptic?.let { haptic.performHapticFeedback(it) }
+            callback()
+        }
+    }
+
     val shape = LocalSegmentedItemShape.current
     val background = if (selected) {
         MaterialTheme.colorScheme.secondaryContainer
@@ -68,7 +87,15 @@ fun BaseWidget(
         .background(background)
         .then(
             if (onClick != null) {
-                Modifier.clickable(enabled = enabled, onClick = onClick)
+                Modifier.clickable(
+                    enabled = enabled,
+                    interactionSource = interactionSource,
+                    indication = LocalIndication.current,
+                    onClick = {
+                        clickHaptic?.let { haptic.performHapticFeedback(it) }
+                        onClick()
+                    }
+                )
             } else {
                 Modifier
             }
@@ -92,13 +119,16 @@ fun BaseWidget(
         }
 
         Column(modifier = Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = title,
-                    color = contentColor,
-                    style = titleStyle
-                )
-                headlineTrailingContent()
+            Box {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = title,
+                        color = contentColor,
+                        style = titleStyle
+                    )
+                    headlineTrailingContent()
+                }
+                foreContent()
             }
             if (description != null) {
                 Text(
@@ -109,9 +139,28 @@ fun BaseWidget(
             }
         }
 
-        Box {
-            foreContent()
-            trailingContent(MutableInteractionSource())
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (trailingDivider) VerticalDivider(modifier = Modifier.height(32.dp))
+
+            Box(
+                modifier = Modifier
+                    .then(
+                        if (handleTrailingClick != null) {
+                            Modifier.clickable(
+                                enabled = enabled,
+                                interactionSource = trailingInteractionSource,
+                                indication = LocalIndication.current,
+                                onClick = handleTrailingClick
+                            )
+                        } else {
+                            Modifier
+                        }
+                    )
+                    .padding(start = if (trailingDivider) 16.dp else 0.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                trailingContent(trailingContentInteractionSource)
+            }
         }
     }
 }

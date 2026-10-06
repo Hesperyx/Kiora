@@ -5,7 +5,7 @@
 > 前置：`docs/superpowers/plans/2026-10-05-wekit-full-migration.md`（Phase 1/2，已完成）。
 > 本文件为滚动计划：每完成一批就更新「进度快照」与「剩余批次」。
 
-## 进度快照（2026-10-06 实测，P1+P2+P3+P4-1+P4-1b+P4-2+P4-2b+P4-2c 已落地）
+## 进度快照（2026-10-06 实测，P1+P2+P3+P4-1+P4-1b+P4-2+P4-2b+P4-2c+P4-2d 已落地）
 
 口径：**上游相对路径存在性**（不再用单一声明名/正则口径，理由见 P4-2 节）。分母 = 上游 `app\src\main\java\dev\ujhhgtg\wekit` 下 767 个 .kt。
 
@@ -28,14 +28,16 @@
 | 上游 items 功能对象已注册 | **222** | 225 | 98.7%（**未注册 3**：`ChatToolbar` / `ForwardMessages` / `WeAgent`） |
 
 - 编译基线：`:app:compileReleaseKotlin --offline --no-daemon` → `errors: 0`；
-  `:app:assembleRelease --offline --no-daemon` → `BUILD SUCCESSFUL`，APK **14,493,895 B**。
+  `:app:assembleRelease --offline --no-daemon` → `BUILD SUCCESSFUL`，APK **14,493,895 B**
+  （P4-2d 后 sha256 `E9FCD304…`；体积与 P4-2c 相同属 zip 压缩吸收，`classes2.dex` 实测 +76 B）。
 - `git diff --cached --check` → exit 0。
 
 ### 已落地批次（新→旧）
 
 | 提交 | 内容 |
 |---|---|
-| `P4-2c`（本次） | 差分三分复检（对上游全树 .kt 逐文件比对，再对「两侧都在但仍有差值」的 68 个文件分类）：修 **1 处真回归** `features\items\chat\ChatFooterHooks.kt`（过期注释顶替了上游两段长按绑定，恢复后与上游逐字节一致）+ **1 处漏迁** `features\items\miniapps\ErudaConsole.kt` 补回 `ResourcesInjector.injectModuleRes(resources)` + 1 处 KDoc 订正（`WeChatInputBarMenuApi`）；注册表 217 不变；APK 13,562,308→**14,493,895 B** |
+| `P4-2d`（本次） | 第二轮差分分诊（90 个「两侧都在但仍有差值」文件全量派子代理核）：控件层按上游恢复 2 文件（`BaseWidget` 117→166 行补齐 `onTrailingClick`/`clickHaptic`/`trailingDivider`/`remember` 化 interactionSource + `foreContent()` 叠层归位；`SwitchWidget` 43→129 行恢复触感 / `separateClickAreas` 判据 / `Role.Switch` 语义 / 拇指图标）+ 修 **2 处真回归**（`SwitchFeature.applyToggle` 丢持久化；`HideHomeScreenSwipeDownPage` 过期注释导致分组态高度硬编码 48dp，改回上游 `if (!ConversationGrouping.isEnabled) 48 else 94` 后与上游逐字节一致）+ 3 处 KDoc 订正（`BaseFeature`/`KvStore`/`WeLogger`）+ 记 1 项能力缺口（python 脚本设置页依赖未迁入的 `scripta`） |
+| `P4-2c` | 差分三分复检（对上游全树 .kt 逐文件比对，再对「两侧都在但仍有差值」的 68 个文件分类）：修 **1 处真回归** `features\items\chat\ChatFooterHooks.kt`（过期注释顶替了上游两段长按绑定，恢复后与上游逐字节一致）+ **1 处漏迁** `features\items\miniapps\ErudaConsole.kt` 补回 `ResourcesInjector.injectModuleRes(resources)` + 1 处 KDoc 订正（`WeChatInputBarMenuApi`）；注册表 217 不变；APK 13,562,308→**14,493,895 B** |
 | `P4-2b` | `i18n\LocalizedContextFactory.kt` 恢复宿主资源注入（上游 `InjectedHost` 分支的 `ResourcesInjector.injectModuleRes(it.resources)` 曾随 lsparanoid 一起被删），24 个调用点受益；注册表 217 项 technicalId 撞键自查通过；APK 仍 13,562,308 B |
 | `P4-2` | 全树对齐复测 + 补两处漏迁行为：新增 `features\items\system\SafeMode.kt`（2 进程级「安全模式」开关，3 条字符串资源）；`WxFeatureLoader.load()` 接线 ① 安全模式门控（只加载 API 层，跳过全部 items）② `ConversationGrouping.migrateTabStyle(...)`（原先函数存在但零调用 = 死代码）；APK 13,561,264→13,562,308 B |
 | `P4-1` | scripting_python 核心 + extensions 扩展包栈：`python\api` 10 接口（vendoring）、`scripting_python` 12 文件、`extensions` 6 文件（`ExtensionSupport`/`ExtensionPackRegistryValidation`/`ScriptDepsPack`/`ExtensionPackDialogs`/`PythonRuntimeArchive`/`PythonRuntimePack`）、`activity\settings\ExtensionsSettingsActivity.kt`、`loader\utils\HybridClassLoader.kt`、`ClassLoaders` 补 `BOOT`/`HYBRID`；`ExtensionPacksProvider.ALL_PACKS` 由 `emptyList()` 改为登记两包；注册 215→216；APK 13,414,588→13,474,920 B |
@@ -302,8 +304,51 @@ L4 需决策
   差异只是约 150 处调用点的弹窗用 Material3 基线配色而非用户主题色。单点修法存在（该处 `MaterialTheme` → `InjectedUiTheme`，
   一处生效全覆盖），但会叠加影响已自行包裹主题的 6 处（`ReplaceNavigationBar.kt:591`、`ConversationGrouping.kt:391`、
   `HomeSidePanel.kt:484/1240`、`AddMainScreenFab.kt:425`、`PanelShell.kt:262`），故作独立批次。
-- 待办提示：`WeLogger`/`KvStore`（架构替换）与 `SwitchWidget`/`BaseWidget`（−3296/−8089，上游 Compose M3 控件 vs Kiora 精简版）
-  尚未逐行核，若后续出现控件行为异常，从此处入手。
+- 待办提示（已在 P4-2d 收口）：`WeLogger`/`KvStore` 与 `SwitchWidget`/`BaseWidget` 已逐个核完，结论见下节。
+
+### P4-2d 控件层对齐 + 第二轮差分分诊收口
+
+**方法**：单进程全树 `git diff --no-index --numstat` 得 **90 个**「两侧都存在但仍有差值」的文件（P4-2c 只处理了 top 项），
+按目录切三份派只读子代理逐文件核（`ui/**` 12 文件；`dexkit`+`loader`+`data`+`utils` 11 文件；`utils`+`features` 26 文件），
+每条要求「读 Kiora 本体 + 给依据」——避免重犯 P4-2c 的「只看删除行」假警报（本轮该法又产生 4 个假警报，均已纠正）。
+
+**① 控件层按上游恢复（2 文件）**
+- `ui\content\m3\BaseWidget.kt`（117→166 行）：补齐 4 个「声明却失效」的参数——`onTrailingClick` 的尾部独立 `Modifier.clickable`、
+  `clickHaptic` 触感、`trailingDivider` 的 `VerticalDivider(Modifier.height(32.dp))`、`remember` 化的 `MutableInteractionSource`
+  （原来 `trailingContent(MutableInteractionSource())` 每次重组新建实例），并把 `foreContent()` 移回 headline 叠层（原来错放进尾部 Box）。
+  未采纳上游 `alpha = 0.38f` 禁用态与 `primaryContainer` 选中色：Kiora 是色彩式禁用，改动波及约 150 处调用点观感，留 P4-3 目视。
+- `ui\content\m3\SwitchWidget.kt`（43→129 行）：恢复 ToggleOn/ToggleOff 触感、`leftClickAction`、
+  `separateClickAreas = onClick != null || trailingDivider`、`Role.Switch` + `toggleableState` 语义、`clearAndSetSemantics` 与 Check/Close 拇指图标。
+  实测 `SwitchWidget(` 无一调用点传 `trailingDivider = true` ⇒ 原判据漏项当前不可达，但仍按上游补齐。
+
+**② 真回归 2 处（已修）**
+- `features\core\SwitchFeature.kt:69-76` `applyToggle` 丢持久化：Kiora 版只改 `isEnabled`，重启即丢。上游写 `KvStore.putBool` **不可照抄**——
+  Kiora `loadPersistedState`（`:26-35`）以 `HostEnv.accountPreference` 为准，`KvStore` 只在键缺席时作一次性迁移源；
+  而设置页开关（`cn\hxy\kiora\hook\base\BaseSwitchHookItem.kt:29-36`，`hook\wekit\WeKitFeatureHookItem.kt:19-21` 传 `technicalId` 作 switchKey）
+  写的正是账号偏好 ⇒ 改为 `HostEnv.accountPreference.edit { putBoolean(technicalId, newState) }`。
+  受益调用点 7 处：`FingerprintPay.kt:299`、`AutoOpenRedPackets.kt:447`、`AutoAcceptTransfers.kt:175`、`ModifySportsStepCount.kt:216`、
+  `ForceTabletMode.kt:105`、`PreventXposedDetection.kt:38`、`UseLegacyOfficialAccountsView.kt:38`（自检失败会自动关闭 ⇒ 原行为是每次启动重复开启再自关）。
+- `features\items\beautify\HideHomeScreenSwipeDownPage.kt`：`:21-23` 的「ConversationGrouping 尚未迁入」为过期注释，
+  把分组态 TaskBarContainer 占位硬编码成 48dp（上游 `:33-34`/`:48-49` 为 `val heightDp = if (!ConversationGrouping.isEnabled) 48 else 94`）。
+  恢复后与上游**逐字节一致**（`git diff --no-index --ignore-cr-at-eol` exit 0）。原后果：开启会话分组后主页下滑「最近」页与任务栏重叠。
+
+**③ 文档订正 3 处**：`features\core\BaseFeature.kt:24-27`（原称 reflekt 重载「切片未迁」，实际 `:156-180` 已实现，差异只是 `@JvmName` 改名）、
+`data\KvStore.kt`、`utils\WeLogger.kt`（见子代理①）。
+
+**④ 能力缺口 1 项（不可离线回滚，待决策）**：`features\items\scripting_python\PythonScriptingFeature.kt:43-45` 的 `onClick`
+由「打开 Python 脚本设置页」降级为「打开 Python 运行时扩展包安装屏」。上游目标
+`dev.ujhhgtg.wekit.activity.scripting_python.PythonScriptsSettingsActivity` 在 Kiora 不存在，其依赖 `libs\common\scripta`
+（上游 `settings.gradle.kts:74-76 includeBuild`）在两边检出都无源码 ⇒ 现状无脚本编辑器 / 无插件启停 UI。
+可复用基础件已在：`plugin\PythonPluginManager.kt:29`（被 `PythonRuntimePack.kt:129` 调用），将来可据此重写精简管理屏。
+
+**⑤ 判 BENIGN 的 41 文件要点**：`DrawableIcons` 纯重排（去注释后逐字符一致）；`DropDownMenuWidget` 因 M3 1.4.0 无
+`DropdownMenuPopup`/`SelectableDropdownMenuItem` 而折叠分组形状，绑定逻辑保留；`CloudDexResolver` 是 330 行重写且 3 个调用方均已迁移；
+`DexCacheManager.methodHash` 改读 `BuildConfig.VERSION_CODE`（读写自洽，代价是版本号变动全量失效）；`BshSnapshotDecompiler` 反射字段名逐个对
+`bsh\*` 声明核验通过；`HookUtils` 7 个 hook 扩展全在（原语改 `HookEngineManager.engine as? IHookBridge`）；`BaseFeature` 上游入口齐备；
+`ActivityProxy` 是 48 行兼容层（Kiora 用自有 `cn.hxy.kiora.lifecycle.Parasitics`）；`AddMainScreenFab` 改开 Kiora 模块设置页属寄生启动架构非断链。
+
+**⑥ advisories（本轮未改）**：`dexkit\cache\CloudDexResolver.kt:202` 下载无 8MB 上限（上游有 `MAX_REPORT_BYTES`）；
+`:284-299 exportLocalReport()` 未按 `DexDelegates.isPlaceholder` 过滤即写 `"status":"SUCCESS"`。
 
 ### P0-1 云端 DexKit 报告（摸清上限，重出无增益）
 

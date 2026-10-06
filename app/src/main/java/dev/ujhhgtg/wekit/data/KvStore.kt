@@ -8,12 +8,14 @@ import kotlin.reflect.KProperty
 /**
  * WeKit 血统功能的键值存储。
  *
- * 原版基于 FastKV（mmap 写入），还带 `prefOption` 属性委托、结构化数据与历史迁移逻辑。
- * 切片改为落在 Kiora 已有的全局偏好（`Kiora_Config_global`）上，不为 4 个功能引入
- * 第二套存储引擎。
+ * 原版基于 FastKV（mmap 写入）与 `WeKitDatabase`（Room）；切片把键值部分落在 Kiora 已有的
+ * 全局偏好（`Kiora_Config_global`）上，不为这些功能引入第二套存储引擎。
  *
- * **已知简化**：`prefOption` 委托、`KvStore` 的结构化读写、以及 `WeKitDatabase`（Room）
- * 都没有迁。后续迁到用到这些的功能时，需要补回或改写。
+ * **与上游的差异只在存储引擎**：`prefOption` 委托（7 个类型重载）、`getObject` 结构化读取、
+ * `requireMigrationKeys` 都已按上游 API 形状实现，只是改为 SharedPreferences 承载（见
+ * [prefOption] / [getObject] / [requireMigrationKeys]）。`WeKitDatabase`（Room）本身仍在
+ * 本模块使用（`data/AssetStore.kt`、`data/DocumentStore.kt`、`data/JsonDataMigration.kt`、
+ * `activity/settings/BackupCoordinator.kt`），只是不由本对象承载。
  */
 object KvStore {
 
