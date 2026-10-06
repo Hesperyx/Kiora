@@ -427,6 +427,17 @@ Kiora 把进程名来源从 `ActivityManager.runningAppProcesses` 反查（带 3
   `externalCacheDir/wekit-dex-reports/wechat-*.json`，检查①每个 delegate 都显式带 `isPlaceholder`；
   ②根 `outcome == PASS`；③描述符缺失的 feature 确实不出现在报告里。
 
+**R8 反射面复检（本轮顺带，离线、产物级）**：P4-1b 的 bsh 栈靠**按名反射**取字段，云端报告靠
+kotlinx.serialization 序列名，两者都是 R8 容易破坏的面，故直接在 release APK 上核：
+
+- `app\proguard-rules.pro:25 -keep class bsh.** { *; }` —— 自 `e702cbb`（initial commit）就在，
+  早于本次融合；`utils\BshSnapshotDecompiler.kt` 用的全部按名字段（`BSHClassDeclaration.name`、
+  `BSHEnumConstant.name` 等）在 release 中不会被改名或剥离。
+- dex 字面量实测：`BSHClassDeclaration` / `BSHEnumConstant` / `Lbsh/Interpreter;` / `Lbsh/NameSpace;` /
+  `methodCallback` 均在 `classes.dex`；报告侧 `schemaVersion` / `methodHash` / `isPlaceholder` /
+  `isGooglePlay` / `technicalId` 在 `classes2.dex` ⇒ serializer 未被剥离，P4-2f 新写的
+  `isPlaceholder` 字段在 release 里确实会被读到（消费侧 `hasValidOutcome()` 才有据可依）。
+
 ### P0-1 云端 DexKit 报告（摸清上限，重出无增益）
 
 - Release `Kiora-wechat`（`id=402951057`）线上唯一资产 `wechat-8.0.78-3180-domestic.json`
