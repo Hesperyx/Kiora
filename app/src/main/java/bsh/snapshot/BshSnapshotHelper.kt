@@ -36,6 +36,7 @@ public object BshSnapshotHelper {
         return data
     }
 
+    @JvmStatic
     public fun writeEncrypted(snapshot: BshSnapshot, out: OutputStream, key: SecretKey) {
         val iv = ByteArray(IV_LENGTH)
         RANDOM.nextBytes(iv)
@@ -56,6 +57,7 @@ public object BshSnapshotHelper {
         }
     }
 
+    @JvmStatic
     public fun readEncrypted(input: InputStream, key: SecretKey): BshSnapshot {
         val magic = readExact(input, MAGIC.size)
         if (!Arrays.equals(magic, MAGIC)) throw IOException("BeanShell snapshot invalid header")

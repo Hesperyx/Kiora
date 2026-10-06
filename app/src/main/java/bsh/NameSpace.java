@@ -356,6 +356,22 @@ public class NameSpace
     }
 
     /**
+     * Set a variable without strict java rules.
+     * Convenience overload for hosts that inject values into a namespace, e.g.
+     * exposing host objects to a script.  Equivalent to
+     * {@code setVariable(name, value, false)}.
+     *
+     * @param name  the name
+     * @param value the value
+     * @throws UtilEvalError the util eval error
+     * @see #setVariable(String, Object, boolean)
+     */
+    public void setVariable(final String name, final Object value)
+            throws UtilEvalError {
+        this.setVariable(name, value, false);
+    }
+
+    /**
      * Set a variable explicitly in the local scope.
      *
      * @param name       the name

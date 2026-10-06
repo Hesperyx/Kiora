@@ -2800,6 +2800,17 @@ object R {
         val extensions_screen_title = cn.hxy.kiora.R.string.extensions_screen_title
         val feature_python_scripting_description = cn.hxy.kiora.R.string.feature_python_scripting_description
         val feature_python_scripting_name = cn.hxy.kiora.R.string.feature_python_scripting_name
+        // P4-1b scripting_java batch
+        val feature_java_scripting_hook_description = cn.hxy.kiora.R.string.feature_java_scripting_hook_description
+        val feature_java_scripting_hook_name = cn.hxy.kiora.R.string.feature_java_scripting_hook_name
+        val java_script_author = cn.hxy.kiora.R.string.java_script_author
+        val java_script_notification_channel = cn.hxy.kiora.R.string.java_script_notification_channel
+        val java_script_status_disabled = cn.hxy.kiora.R.string.java_script_status_disabled
+        val java_script_status_enabled = cn.hxy.kiora.R.string.java_script_status_enabled
+        val java_script_unnamed = cn.hxy.kiora.R.string.java_script_unnamed
+        val java_script_version = cn.hxy.kiora.R.string.java_script_version
+        val java_scripts_dialog_title = cn.hxy.kiora.R.string.java_scripts_dialog_title
+        val java_scripts_empty = cn.hxy.kiora.R.string.java_scripts_empty
     }
 
     object plurals {

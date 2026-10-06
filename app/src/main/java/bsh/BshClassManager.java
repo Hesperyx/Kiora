@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import bsh.classpath.BshScriptClassLoader;
 import bsh.util.ReferenceCache;
@@ -118,6 +119,13 @@ public class BshClassManager {
      * An external classloader supplied by the setClassLoader() command.
      */
     protected ClassLoader externalClassLoader;
+    /**
+     * Extra class loaders appended by addClassLoader(). Consulted after
+     * externalClassLoader and before falling back to plainClassForName(),
+     * so a script can see classes that live in a loader supplied later.
+     */
+    protected final List<ClassLoader> additionalClassLoaders
+            = new CopyOnWriteArrayList<ClassLoader>();
 
     protected BshScriptClassLoader scriptClassLoader;
     /**
@@ -202,6 +210,17 @@ public class BshClassManager {
                 cacheClassInfo(name, clas);
                 return clas;
             } catch (ClassNotFoundException e) {
+            }
+        }
+
+        // 3b. 尝试 addClassLoader() 追加的加载器（外部加载器解析失败后才轮到它们）
+        for (ClassLoader extra : additionalClassLoaders) {
+            try {
+                clas = extra.loadClass(name);
+                cacheClassInfo(name, clas);
+                return clas;
+            } catch (ClassNotFoundException e) {
+                // 继续尝试下一个
             }
         }
 
@@ -362,6 +381,30 @@ public class BshClassManager {
         externalClassLoader = externalCL;
         scriptClassLoader = null;
         classLoaderChanged();
+    }
+
+    /**
+     * Append an additional class loader for BeanShell class resolution.
+     * Unlike setClassLoader() this keeps the existing external class loader in
+     * place: the extra loader is only consulted when the external one cannot
+     * supply the class.  Adding the same loader twice is a no-op.
+     *
+     * @param extraCL the class loader to add, null and duplicates ignored
+     */
+    public void addClassLoader(ClassLoader extraCL) {
+        if (extraCL == null || additionalClassLoaders.contains(extraCL))
+            return;
+        additionalClassLoaders.add(extraCL);
+        classLoaderChanged();
+    }
+
+    /**
+     * The class loaders appended through addClassLoader(), in insertion order.
+     *
+     * @return an unmodifiable view of the additional class loaders
+     */
+    public List<ClassLoader> getAdditionalClassLoaders() {
+        return Collections.unmodifiableList(additionalClassLoaders);
     }
 
     public void addClassPath(URL path) throws IOException {

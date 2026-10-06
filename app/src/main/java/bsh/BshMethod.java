@@ -51,6 +51,12 @@ import java.util.stream.IntStream;
 public class BshMethod implements Serializable, Cloneable, BshClassManager.Listener {
 
     private static final long serialVersionUID = 1L;
+
+    @FunctionalInterface
+    public interface MethodCallback {
+        Object invoke(Object[] args);
+    }
+
     // Scripted method body
     protected BSHBlock methodBody;
 
@@ -76,6 +82,9 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
     private Invocable javaMethod;
     private Object javaObject;
 
+    // Callback Method, for a BshObject that delegates to a host callback
+    private transient MethodCallback methodCallback;
+
     // End method components
     private boolean reload = false;
 
@@ -99,6 +108,8 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
         this.paramModifiers = paramModifiers;
         if (paramNames != null)
             this.paramCount = paramNames.length;
+        else if (paramTypes != null)
+            this.paramCount = paramTypes.length;
         this.cparamTypes = paramTypes;
         this.methodBody = methodBody;
         this.declaringNameSpace = declaringNameSpace;
@@ -121,6 +132,18 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
 
         this.javaMethod = method;
         this.javaObject = object;
+    }
+
+    /*
+        Create a BshMethod that delegates to a callback upon invocation.
+        This is used to represent host callback methods.
+    */
+    public BshMethod(String name, Class<?>[] paramTypes, MethodCallback callback) {
+        this(name, null/*returnType*/, null/*paramNames*/,
+                paramTypes, null/*paramModifiers*/, null/*method.block*/,
+                null/*declaringNameSpace*/, null/*modifiers*/, false/*isVarArgs*/);
+
+        this.methodCallback = callback;
     }
 
     protected static boolean equal(Object obj1, Object obj2) {
@@ -280,6 +303,9 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
                 if (argValues[i] == null)
                     throw new Error("HERE!");
 
+        if (methodCallback != null)
+            return invokeMethodCallback(argValues, callerInfo, callstack);
+
         if (javaMethod != null) {
             try {
                 // Validate if can invoke this method
@@ -325,6 +351,36 @@ public class BshMethod implements Serializable, Cloneable, BshClassManager.Liste
         } else
             return invokeImpl(argValues, interpreter, callstack, callerInfo,
                     overrideNameSpace);
+    }
+
+    private Object invokeMethodCallback(
+            Object[] argValues, Node callerInfo, CallStack callstack)
+            throws EvalError {
+        if (argValues == null)
+            argValues = Reflect.ZERO_ARGS;
+
+        Class<?>[] paramTypes = getParameterTypes();
+        if (null == paramTypes || paramTypes.length == 0)
+            return methodCallback.invoke(argValues);
+
+        String[] paramNames = getParameterNames();
+        for (int i = 0; i < argValues.length; i++) {
+            Class<?> paramType = paramTypes[i];
+            if (null == paramType)
+                continue;
+            try {
+                argValues[i] = Primitive.unwrap(
+                        Types.castObject(
+                                argValues[i], paramType, Types.ASSIGNMENT));
+            } catch (UtilEvalError e) {
+                throw new EvalError(
+                        "Invalid argument: "
+                                + "`" + paramNames[i] + "'" + " for method: "
+                                + name + " : " +
+                                e.getMessage(), callerInfo, callstack);
+            }
+        }
+        return methodCallback.invoke(argValues);
     }
 
     private Object invokeImpl(

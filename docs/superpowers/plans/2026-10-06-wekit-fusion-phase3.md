@@ -5,15 +5,15 @@
 > 前置：`docs/superpowers/plans/2026-10-05-wekit-full-migration.md`（Phase 1/2，已完成）。
 > 本文件为滚动计划：每完成一批就更新「进度快照」与「剩余批次」。
 
-## 进度快照（2026-10-06 实测，P1+P2+P3+P4-1 已落地）
+## 进度快照（2026-10-06 实测，P1+P2+P3+P4-1+P4-1b 已落地）
 
 | 维度 | Kiora | WeKit 上游 | 覆盖率 |
 |---|---|---|---|
-| Kotlin 文件（`dev/ujhhgtg/wekit`） | **637** | 767 | 83.1% |
+| Kotlin 文件（`dev/ujhhgtg/wekit`） | **640** | 767 | 83.4% |
 | items 目录文件 | **324** | 333 | 97.3% |
-| `WxFeatureRegistry.all` 注册 | **216** | — | — |
+| `WxFeatureRegistry.all` 注册 | **217** | — | — |
 | `WeApiRegistry`（dexBacked 19 + startupBacked 19） | **38** | — | — |
-| 上游 items 功能对象已注册 | **221** | 225 | 98.2%（**未注册 4**） |
+| 上游 items 功能对象已注册 | **222** | 225 | 98.7%（**未注册 3**） |
 | api 层文件 | 68 | 82 | 82.9% |
 | ui 层文件 | 76 | 99 | 76.8% |
 | data 层文件 | 18 | 19 | 94.7% |
@@ -27,14 +27,15 @@
 | 全树缺失声明（FQ 名对齐） | — | 2147 | 616 → **待 P4-2 复测**（旧口径基于 547/767） |
 
 - 编译基线：`:app:compileReleaseKotlin --offline --no-daemon` → `errors: 0`；
-  `:app:assembleRelease --offline --no-daemon` → `BUILD SUCCESSFUL`，APK **13,414,588 B**。
+  `:app:assembleRelease --offline --no-daemon` → `BUILD SUCCESSFUL`，APK **13,561,264 B**。
 - `git diff --cached --check` → exit 0。
 
 ### 已落地批次（新→旧）
 
 | 提交 | 内容 |
 |---|---|
-| `P4-1`（本次） | scripting_python 核心 + extensions 扩展包栈：`python\api` 10 接口（vendoring）、`scripting_python` 12 文件、`extensions` 6 文件（`ExtensionSupport`/`ExtensionPackRegistryValidation`/`ScriptDepsPack`/`ExtensionPackDialogs`/`PythonRuntimeArchive`/`PythonRuntimePack`）、`activity\settings\ExtensionsSettingsActivity.kt`、`loader\utils\HybridClassLoader.kt`、`ClassLoaders` 补 `BOOT`/`HYBRID`；`ExtensionPacksProvider.ALL_PACKS` 由 `emptyList()` 改为登记两包；注册 215→216；APK 13,414,588→13,474,920 B |
+| `P4-1b`（本次） | scripting_java 全量落地：`JavaEngine.kt`(1965 行) / `JavaPlugin.kt` / `JavaScriptingHook.kt`；`me.hd.wauxv\data\bean` 8 文件（`ContactBean`/`ContactLabelBean`/`ConversationBean`/`MsgInfoBean`/`PayMsgBean` + `info\{FriendInfo,GroupData,GroupInfo}`）；bsh 三处加性改造（`NameSpace.setVariable(String,Object)` 双参重载、`BshClassManager.addClassLoader` + `classForName` 的「3b」追加加载器解析、`BshMethod.MethodCallback` 宿主回调 + `Interpreter` 快照 API `compileSnapshot`/`evalSnapshot` + `bsh\preprocess` 4 文件）；注册 216→217；APK 13,474,920→13,561,264 B |
+| `P4-1` | scripting_python 核心 + extensions 扩展包栈：`python\api` 10 接口（vendoring）、`scripting_python` 12 文件、`extensions` 6 文件（`ExtensionSupport`/`ExtensionPackRegistryValidation`/`ScriptDepsPack`/`ExtensionPackDialogs`/`PythonRuntimeArchive`/`PythonRuntimePack`）、`activity\settings\ExtensionsSettingsActivity.kt`、`loader\utils\HybridClassLoader.kt`、`ClassLoaders` 补 `BOOT`/`HYBRID`；`ExtensionPacksProvider.ALL_PACKS` 由 `emptyList()` 改为登记两包；注册 215→216；APK 13,414,588→13,474,920 B |
 | `P3` | 主题栈：beautify 7（`ApplyGlobalBackground` / `CenterProfileCard` / `CustomMessageBubbles` / `MonetEngine`→`WeApiRegistry` / `MonetEngineModuleGenerator` / `ReplaceNavigationBar` / `Themes`）+ `utils\monet` 12 文件；引入 ARSCLib 1.4.0（经 `prepareAndroidArsclib` Jar task 剔除 `android/**`、`org/xmlpull/v1/**`）/ apksig 9.3.3 / bouncycastle 1.86 prov+pkix；`NumberPickerWidget.kt` 换上游完整版；注册 209→215；APK 12,253,200→13,414,588 B |
 | `4c7db17` | P2：payment 5 + moments 7（含 `AutoMomentsBase` 派生两位）+ contacts 3（含 `HideContactsNotifications`→`WeApiRegistry`）+ voip 1，注册 194→209；引入 biometric 1.2.0-alpha05 / fragment 1.5.4，`TransparentActivity` 改基类为 `FragmentActivity`，`KvStore` 补 nullable `prefOption` |
 | `dbeca51` | P1 公共层：`DexResolver` / `LocalDexResolver` / `OsmLocationPicker` / `WeKitBasicDialog` / `SettingsComponents` / `DexCacheManager` / `ResolutionCoordinator` / `DexResolutionBatch` / `WeChatSettingsManager` / `WeViewTreeLifecycleProvider`；附带 debug 3 + system 4，注册 187→194 |
@@ -184,19 +185,48 @@ L4 需决策
   Kiora 侧 `assembleRelease` 在现有规则下直接通过。
 
 ### P4 决策 + 收口（Phase 4）
-- [x] **lsparanoid** → 不引入（见「待决策项的当前处置」）。**scripting_python** → 核心已迁（本次）。
+- [x] **lsparanoid** → 不引入（见「待决策项的当前处置」）。**scripting_python** → 核心已迁（P4-1）。
       **agent** → 仍未拍板。
-- [ ] 剩余 4 项未注册功能：`ChatToolbar`、`ForwardMessages`、`JavaScriptingHook`、`WeAgent`。
-      `JavaScriptingHook` + `JavaEngine` + `JavaPlugin` 已从上游复制但**未纳入本次提交**：编译出
-      871 错误，全部收敛到 3 个 Kiora 侧差异 ——
-      ①`me.hd.wauxv.data.bean.{MsgInfoBean,ContactLabelBean}` 与 `.info.{FriendInfo,GroupInfo}` 缺件；
-      ②`bsh.NameSpace.setVariable(String, Object)` 双参重载缺失（Kiora 的 bsh 只认三参 `strictJava`）；
-      ③`bsh.classpath.ClassManager.addClassLoader(ClassLoader)` 缺失。三者均为加性兼容垫片，
-      单独成批（P4-1b）处理。
+- [x] **scripting_java（P4-1b）** —— 3 个根因全部落地，871 错 → 812 错 → **0 错**：
+      ①`me.hd.wauxv\data\bean` 8 个 bean 复制（与上游逐字节一致）；②`bsh\NameSpace.java` 加
+      `setVariable(String, Object)` 双参重载（依据 `Interpreter.java:1065 globalNameSpace.setVariable(name, value, false)`，
+      即 bsh 自身 2 参约定就是 `strictJava = false`）；③`bsh\BshClassManager.java` 加
+      `addClassLoader(ClassLoader)` + `additionalClassLoaders`，并在 `classForName` 的「3. 尝试外部加载器」
+      之后插「3b」块（`ClassManagerImpl.classForName:145` 首句就是 `super.classForName(name)`，故基类插桩必被走到）。
+      真正的阻塞是第 ④ 项：`JavaEngine.kt` 有 **141 处** `BshMethod(name, Class<?>[], lambda)` 三参构造调用，
+      而 Kiora 的 bsh 只有 4 个包私有/Java-method 构造器。
+- [x] **权威源确认**：`D:\code\fenxi3\_tmp_bsh` 是上游 bsh fork 的完整克隆（163 文件 / 2,158,237 B，
+      含 `.git`），`_tmp_bsh\src\main\java\bsh\BshMethod.java` 28837B、`Interpreter.java` 63263B。
+      两侧共有文件字节数几乎全不同（`Parser.java` 222664 vs 279082）⇒ **不可整树替换**，只按符号取增量。
+      曾自造 `bsh\BshMethodHandler.java`（`throws EvalError` + 在 `invokeImpl` 基数校验后分派）取得
+      812→20 的中间结果，**已回滚**，改照上游精确形态实现：
+      - `BshMethod` 内嵌 `@FunctionalInterface public interface MethodCallback { Object invoke(Object[] args); }`（**无 `throws`**）
+        + `private transient MethodCallback methodCallback;`
+      - 9 参构造器补 `else if (paramTypes != null) this.paramCount = paramTypes.length;`（上游同款分支）
+      - `public BshMethod(String name, Class<?>[] paramTypes, MethodCallback callback)` → 转调 9 参后存字段
+      - 分派点在 `invoke(...)` 的 null 元素检查之后、`javaMethod` 分支之前：
+        `if (methodCallback != null) return invokeMethodCallback(argValues, callerInfo, callstack);`
+      - `invokeMethodCallback` 逐参 `argValues[i] = Primitive.unwrap(Types.castObject(argValues[i], paramType, Types.ASSIGNMENT))`，
+        `paramType == null` 跳过，`UtilEvalError` → `EvalError("Invalid argument: `paramName' for method: name : ...")`
+- [x] `bsh\Interpreter.java` 快照 API 照搬上游：`compileSnapshot(Reader, NameSpace, String)` /
+      `compileSnapshot(String[, String])` / `compileSnapshot(String inputPath, String outputPath, SecretKey)` /
+      `evalSnapshot(BshSnapshot[, NameSpace, String])` / `evalSnapshot(InputStream, SecretKey[, String])` /
+      `evalSnapshot(File, SecretKey)` / `evalSnapshot(String, SecretKey)` + 私有 `readSource` / `preprocessScript` /
+      `stripSnapshotRuntimeState`。配套复制 `bsh\preprocess` 4 文件
+      （`AnnotationIgnorePreprocess` 7974B、`DefaultArgsDesugar` 27260B、`GenericPreprocessor` 34493B、`KtStringTemplate` 11290B，
+      均为 `java.util` 自闭环）；`BshSnapshotHelper.kt` 的 `writeEncrypted`/`readEncrypted` 加 `@JvmStatic`
+      （Java 侧无需 `.INSTANCE`）。Kiora 侧前提件全在：`get_jjtree()`、`terminatedScript`、`pathToFile`、
+      `readLine()`、7 参 `Interpreter(Reader, PrintStream, PrintStream, boolean, NameSpace, Interpreter, String)`。
+- [ ] 剩余 3 项未注册功能：`ChatToolbar`、`ForwardMessages`、`WeAgent`。
+- [ ] 已知上游缺陷（**未修，按原样保留**）：`JavaEngine.kt:609` 脚本 API `compileSnapshot(path)` 以
+      `compileSnapshot(resolved, snapPath, null)` 传 **null** SecretKey，而 `BshSnapshotHelper.writeEncrypted`
+      对 null key 会 `InvalidKeyException`（Kotlin 侧更早触发 `Intrinsics` 非空检查）；同族 `evalSnapshot(path)`
+      却用 `BshSnapshotDecompiler.SECRET_KEY` 读取。上游 Java 版同样没有 null-key 分支 ⇒ 该脚本 API 在上游也是
+      静默失效（被 `runCatching` 吞掉只打日志）。若日后要修，正确改法是把第三参换成 `BshSnapshotDecompiler.SECRET_KEY`。
 - [ ] 复跑全树声明对齐盘点至收敛；清理 `WeApiRegistry` / `WxFeatureRegistry` 重复项与顺序问题。
 - [ ] 真机微信回归：清 DexKit 缓存冷启动，确认无自动扫描 / 自动重启、弹窗正确关闭、无崩溃；
-      逐批验证 221 项注册功能的开关与设置页。
-- [ ] 复核 APK 体积与 R8 规则（当前 13,474,920 B，`isMinifyEnabled=true` + `isShrinkResources=true`）。
+      逐批验证 222 项注册功能的开关与设置页。
+- [ ] 复核 APK 体积与 R8 规则（当前 13,561,264 B，`isMinifyEnabled=true` + `isShrinkResources=true`）。
 
 ## 当前状态：不可迁 / 永久搁置
 

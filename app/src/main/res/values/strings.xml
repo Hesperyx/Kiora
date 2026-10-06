@@ -3000,4 +3000,16 @@
     <string name="extensions_screen_title">Extension packs</string>
     <string name="feature_python_scripting_description">Run trusted CPython plugins with direct JVM access</string>
     <string name="feature_python_scripting_name">Python plugin engine</string>
+
+    <!-- P4-1b scripting_java batch -->
+    <string name="feature_java_scripting_hook_description">Execute Java script</string>
+    <string name="feature_java_scripting_hook_name">Scripting engine (Java)</string>
+    <string name="java_script_author">Author %1$s</string>
+    <string name="java_script_notification_channel">Script: %1$s</string>
+    <string name="java_script_status_disabled">Disabled</string>
+    <string name="java_script_status_enabled">Enabled</string>
+    <string name="java_script_unnamed">Unnamed</string>
+    <string name="java_script_version">Version %1$s</string>
+    <string name="java_scripts_dialog_title">Java scripts</string>
+    <string name="java_scripts_empty">No scripts</string>
 </resources>
