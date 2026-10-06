@@ -18,6 +18,7 @@ import android.os.Looper
 import android.os.ParcelFileDescriptor
 import android.os.PersistableBundle
 import android.util.Log
+import androidx.activity.ComponentActivity
 import cn.hxy.kiora.BuildConfig
 import cn.hxy.kiora.R
 import cn.hxy.kiora.activity.BaseComposeActivity
@@ -104,14 +105,33 @@ object Parasitics {
         var sResourcesLoader: ResourcesLoader? = null
     }
 
+    /**
+     * 移植进来的 WeKit 功能层命名空间。
+     *
+     * 这些类按上游原样保留包名（见 AGENTS.md 的移植约定），但同样编译在本 APK 内，
+     * 所以它们和 `cn.hxy.kiora.*` 一样属于「模块 Activity」，必须能被寄生启动 ——
+     * 否则功能自带的设置页（例如 `dev.ujhhgtg.wekit.features.items.chat.ReadReceiptsSettingsActivity`）
+     * 在运行时打不开。
+     *
+     * 两者唯一的差别是基类：Kiora 原有布局统一继承 [BaseComposeActivity]，而移植过来的
+     * Activity 沿用了上游的 `ComponentActivity` 直继承，故对移植命名空间放宽到
+     * [ComponentActivity]。对 `cn.hxy.kiora.*` 的判定保持原样，行为不变。
+     */
+    private const val PORTED_MODULE_ACTIVITY_PREFIX = "dev.ujhhgtg.wekit."
+
     private fun isTargetActivity(className: String?): Boolean {
         if (className == null) return false
         if (DynamicActivityRegistry.contains(className)) return true
-        if (!className.startsWith(BuildConfig.APPLICATION_ID)) return false
+
+        val isPortedModuleNamespace = className.startsWith(PORTED_MODULE_ACTIVITY_PREFIX)
+        if (!isPortedModuleNamespace && !className.startsWith(BuildConfig.APPLICATION_ID)) return false
 
         return runCatching {
             val targetClass = moduleLoader.loadClass(className)
-            BaseComposeActivity::class.java.isAssignableFrom(targetClass)
+            val requiredBase =
+                if (isPortedModuleNamespace) ComponentActivity::class.java
+                else BaseComposeActivity::class.java
+            requiredBase.isAssignableFrom(targetClass)
         }.getOrElse { false }
     }
 

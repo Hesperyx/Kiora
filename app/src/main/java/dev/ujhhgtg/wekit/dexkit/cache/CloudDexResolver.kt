@@ -21,7 +21,9 @@ import kotlinx.serialization.json.JsonPrimitive
  * - 落盘：直接写 [WxDexCache]，命中后本地扫描即可跳过
  *
  * 托管：GitHub Release（报告名 `wechat-<version>-<channel>.json`）。
- * 通过加速镜像 `gitproxy.mrhjx.cn` 拉取（国内可达，github.com 附件直连不稳）。
+ * 优先走加速镜像 `gitproxy.mrhjx.cn`（国内可达），失败再回落 GitHub 直连
+ * （`release-assets.githubusercontent.com`）。镜像对同一 IP 会下发 429，实测过；
+ * 单一镜像不可用就等于整条云端恢复链路失效，所以必须留直连兜底。
  * 报告需由维护者用真机扫好后发布到 `Kiora-wechat` tag；新版本无人上传则回退本地扫描。
  */
 object CloudDexResolver {
@@ -188,11 +190,26 @@ object CloudDexResolver {
         host: CloudDexHost,
         onProgress: ((downloaded: Long, total: Long) -> Unit)? = null,
     ): String {
+        val asset = CloudDexReport.assetName(host)
         // 加速镜像格式：镜像前缀 + /https://github.com/... + 文件名
-        val url = "$PROXY_PREFIX/$RELEASE_RAW_BASE/${CloudDexReport.assetName(host)}"
-        val text = HttpUtils.getSyncWithProgress(url, onProgress ?: { _, _ -> })
-        if (text.isEmpty()) throw IllegalStateException("empty response from $url")
-        return text
+        val urls = listOf(
+            "$PROXY_PREFIX/$RELEASE_RAW_BASE/$asset",
+            "$RELEASE_RAW_BASE/$asset",
+        )
+        val noProgress: (Long, Long) -> Unit = { _, _ -> }
+        var last = ""
+        for ((index, url) in urls.withIndex()) {
+            val text = HttpUtils.getSyncWithProgress(url, onProgress ?: noProgress)
+            // 以 schemaVersion 判定「拿到的确实是一份报告」：429/5xx 的响应体是错误 JSON，
+            // 不含这个字段，会被跳过并试下一个源。
+            if (text.contains("\"schemaVersion\"")) {
+                if (index > 0) WeLogger.i(TAG, "前缀源不可用，已改用第 ${index + 1} 个源")
+                return text
+            }
+            last = text
+        }
+        if (last.isEmpty()) throw IllegalStateException("empty response from ${urls.joinToString()}")
+        return last
     }
 
     /**

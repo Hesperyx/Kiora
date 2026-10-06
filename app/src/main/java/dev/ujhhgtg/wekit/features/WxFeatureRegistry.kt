@@ -32,6 +32,9 @@ import dev.ujhhgtg.wekit.features.items.debug.NativeCrashInterceptor
 import dev.ujhhgtg.wekit.features.items.debug.SendPacket
 import dev.ujhhgtg.wekit.features.items.debug.TriggerCrash
 import dev.ujhhgtg.wekit.features.items.debug.LaunchInternalUrls
+import dev.ujhhgtg.wekit.features.items.debug.Experiments
+import dev.ujhhgtg.wekit.features.items.debug.RedirectHostLogs
+import dev.ujhhgtg.wekit.features.items.debug.ResetDexCache
 import dev.ujhhgtg.wekit.features.items.miniapps.RemoveMenuLimits
 import dev.ujhhgtg.wekit.features.items.miniapps.RemoveSplashAds
 import dev.ujhhgtg.wekit.features.items.miniapps.SkipSplash
@@ -127,6 +130,10 @@ import dev.ujhhgtg.wekit.features.items.system.PreventModuleDataDeletion
 import dev.ujhhgtg.wekit.features.items.system.PreventXposedDetection
 import dev.ujhhgtg.wekit.features.items.system.SpoofEnvironment
 import dev.ujhhgtg.wekit.features.items.system.UseLegacyWalletViewInMePage
+import dev.ujhhgtg.wekit.features.items.system.AutoLikeSportsRank
+import dev.ujhhgtg.wekit.features.items.system.FakeLocation
+import dev.ujhhgtg.wekit.features.items.system.FeatureFlagManager
+import dev.ujhhgtg.wekit.features.items.system.LinkExternalAppJump
 import dev.ujhhgtg.wekit.features.items.chat.BatchRevoke
 import dev.ujhhgtg.wekit.features.items.chat.DisplayMessageDetails
 import dev.ujhhgtg.wekit.features.items.chat.DownloadFilesToLocalStorage
@@ -392,6 +399,13 @@ object WxFeatureRegistry {
                 MessageEntranceAnimation,
                 DisplayGroupMemberRoles,
                 BruteForceGroupMemberRealNamesFirstChar,
+                Experiments,
+                RedirectHostLogs,
+                ResetDexCache,
+                AutoLikeSportsRank,
+                FakeLocation,
+                FeatureFlagManager,
+                LinkExternalAppJump,
             )
         )
     }

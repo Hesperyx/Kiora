@@ -32,6 +32,8 @@ ktor = "3.6.0"
 mcp = "0.15.0"
 markwon = "4.6.2"
 dynamicanimation = "1.1.0"
+dexmaker = "2.28.6"
+osmdroid = "6.1.20"
 
 [libraries]
 androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
@@ -92,6 +94,8 @@ markwon-ext-strikethrough = { module = "io.noties.markwon:ext-strikethrough", ve
 markwon-ext-tables = { module = "io.noties.markwon:ext-tables", version.ref = "markwon" }
 markwon-ext-tasklist = { module = "io.noties.markwon:ext-tasklist", version.ref = "markwon" }
 markwon-html = { module = "io.noties.markwon:html", version.ref = "markwon" }
+dexmaker = { module = "com.linkedin.dexmaker:dexmaker", version.ref = "dexmaker" }
+osmdroid-android = { module = "org.osmdroid:osmdroid-android", version.ref = "osmdroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

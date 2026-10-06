@@ -163,6 +163,9 @@ dependencies {
     implementation(libs.markwon.ext.tables)
     implementation(libs.markwon.ext.tasklist)
     implementation(libs.markwon.html)
+    // WeKit 血统的公共层需要：ProxyBuilder 用于运行期生成代理类，osmdroid 用于地图选点。
+    implementation(libs.dexmaker)
+    implementation(libs.osmdroid.android)
 
     ksp(projects.processor)
     ksp(libs.androidx.room.compiler)

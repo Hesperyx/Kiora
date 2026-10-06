@@ -7,6 +7,7 @@ import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
 import dev.ujhhgtg.wekit.features.api.core.WeApiRegistry
 import dev.ujhhgtg.wekit.dexkit.cache.CloudDexResolver
 import dev.ujhhgtg.wekit.dexkit.cache.WxDexCache
+import dev.ujhhgtg.wekit.dexkit.resolution.DexHostMetadata
 import dev.ujhhgtg.wekit.dexkit.resolution.DexResolutionContext
 import dev.ujhhgtg.wekit.features.core.BaseFeature
 import dev.ujhhgtg.wekit.features.core.SwitchFeature
@@ -277,7 +278,7 @@ object WxFeatureLoader {
         }
         progress.update("$phaseText（0/${ordered.size}）…")
         DexKitBridge.create(sourceDir).use { bridge ->
-            DexResolutionContext.withResolutionContext(bridge) {
+            DexResolutionContext.withResolutionContext(bridge, DexHostMetadata.currentAndroidHost()) {
                 ordered.forEach { resolvable ->
                     val feature = resolvable as BaseFeature
                     val resolved = runCatching { DexResolutionContext.resolve(resolvable) }
