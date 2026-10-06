@@ -6,6 +6,8 @@ import android.widget.Button
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.tencent.mm.pluginsdk.ui.chat.ChatFooter
 import dev.ujhhgtg.wekit.R
+import dev.ujhhgtg.wekit.dexkit.abc.IResolveDex
+import dev.ujhhgtg.wekit.dexkit.dsl.dexMethod
 import dev.ujhhgtg.wekit.features.core.ApiFeature
 import dev.ujhhgtg.wekit.features.core.FeatureCategoryIds
 import dev.ujhhgtg.wekit.features.items.chat.localizedChatString
@@ -20,7 +22,7 @@ import dev.ujhhgtg.wekit.utils.WeLogger
  * 但 `ActionItem.icon` 仍保持上游的 `ImageVector` 类型，好让上游功能文件原样移植。
  * 保留 provider 注册、`findSendButton` / `showMenu` / `performSend` 接口。
  */
-object WeChatInputBarMenuApi : ApiFeature() {
+object WeChatInputBarMenuApi : ApiFeature(), IResolveDex {
 
     override val technicalId = "聊天输入栏增强 API"
     override val nameRes = R.string.feature_we_chat_input_bar_menu_api_name
@@ -50,6 +52,23 @@ object WeChatInputBarMenuApi : ApiFeature() {
 
     fun removeProvider(provider: IActionItemsProvider) {
         providers -= provider
+    }
+
+    // 上游功能（ReadReceipts / SendSecMsg / ChatToolbar）直接引用这两个 DexKit 委托，
+    // 因此这里保持与上游一致的声明；本对象在 WeApiRegistry.startupBacked 内，
+    // WxFeatureLoader 会把 startupBacked 一并送进 DexKit 解析管线。
+    val methodSendMessage by dexMethod {
+        searchPackages("com.tencent.mm.pluginsdk.ui.chat")
+        matcher {
+            usingEqStrings("MicroMsg.ChatFooter", "send msg onClick")
+        }
+    }
+
+    val methodAppGridGetView by dexMethod {
+        matcher {
+            usingStrings("MicroMsg.AppGrid", "pos:", "page:")
+            name = "getView"
+        }
     }
 
     fun findSendButton(chatFooter: ChatFooter): Button =

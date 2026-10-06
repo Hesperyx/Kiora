@@ -157,6 +157,12 @@ dependencies {
     implementation(libs.ktor.server.sse)
     implementation(libs.ktor.server.content.negotiation)
     implementation(libs.mcp.server)
+    implementation(libs.androidx.dynamicanimation)
+    implementation(libs.markwon.core)
+    implementation(libs.markwon.ext.strikethrough)
+    implementation(libs.markwon.ext.tables)
+    implementation(libs.markwon.ext.tasklist)
+    implementation(libs.markwon.html)
 
     ksp(projects.processor)
     ksp(libs.androidx.room.compiler)

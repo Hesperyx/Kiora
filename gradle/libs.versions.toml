@@ -30,6 +30,8 @@ room = "2.8.5"
 miuix = "0.9.4-rc01"
 ktor = "3.6.0"
 mcp = "0.15.0"
+markwon = "4.6.2"
+dynamicanimation = "1.1.0"
 
 [libraries]
 androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
@@ -84,6 +86,12 @@ ktor-server-auth = { module = "io.ktor:ktor-server-auth" }
 ktor-server-sse = { module = "io.ktor:ktor-server-sse" }
 ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation" }
 mcp-server = { module = "io.modelcontextprotocol:kotlin-sdk-server", version.ref = "mcp" }
+androidx-dynamicanimation = { module = "androidx.dynamicanimation:dynamicanimation", version.ref = "dynamicanimation" }
+markwon-core = { module = "io.noties.markwon:core", version.ref = "markwon" }
+markwon-ext-strikethrough = { module = "io.noties.markwon:ext-strikethrough", version.ref = "markwon" }
+markwon-ext-tables = { module = "io.noties.markwon:ext-tables", version.ref = "markwon" }
+markwon-ext-tasklist = { module = "io.noties.markwon:ext-tasklist", version.ref = "markwon" }
+markwon-html = { module = "io.noties.markwon:html", version.ref = "markwon" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

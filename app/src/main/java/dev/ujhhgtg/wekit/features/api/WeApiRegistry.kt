@@ -9,6 +9,7 @@ import dev.ujhhgtg.wekit.features.api.ui.WeChatInputBarApi
 import dev.ujhhgtg.wekit.features.api.ui.WeChatInputBarMenuApi
 import dev.ujhhgtg.wekit.features.api.ui.WeChatMessageContextMenuApi
 import dev.ujhhgtg.wekit.features.items.chat.ChatFooterHooks
+import dev.ujhhgtg.wekit.features.items.chat.BlockAtAllNotificationsRuntime
 import dev.ujhhgtg.wekit.features.api.ui.WeContactHeaderApi
 import dev.ujhhgtg.wekit.features.api.ui.WeChatMessageViewApi
 import dev.ujhhgtg.wekit.features.api.ui.WeContactPrefsScreenApi
@@ -83,5 +84,6 @@ object WeApiRegistry {
         WeMomentsContextMenuApi,
         WeChatMessageContextMenuApi,
         JavaHookApi,
+        BlockAtAllNotificationsRuntime,
     )
 }

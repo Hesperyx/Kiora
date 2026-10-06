@@ -163,6 +163,32 @@ import dev.ujhhgtg.wekit.features.items.chat_input_bar_menu.MentionMembers
 import dev.ujhhgtg.wekit.features.items.chat_input_bar_menu.SendCardMessage
 import dev.ujhhgtg.wekit.features.items.chat_input_bar_menu.SendVoiceFile
 import dev.ujhhgtg.wekit.features.items.notifications.NotificationsEvolved
+import dev.ujhhgtg.wekit.features.items.beautify.BeautifyConversationList
+import dev.ujhhgtg.wekit.features.items.chat.AddToAggregationFolder
+import dev.ujhhgtg.wekit.features.items.chat.AntiMessageRecall
+import dev.ujhhgtg.wekit.features.items.chat.AutoCacheFiles
+import dev.ujhhgtg.wekit.features.items.chat.AutoCacheImages
+import dev.ujhhgtg.wekit.features.items.chat.BlockAtAllNotifications
+import dev.ujhhgtg.wekit.features.items.chat.BruteForceGroupMemberRealNamesFirstChar
+import dev.ujhhgtg.wekit.features.items.chat.CustomChatInputBarPlaceholderText
+import dev.ujhhgtg.wekit.features.items.chat.DisplayGroupMemberRealName
+import dev.ujhhgtg.wekit.features.items.chat.DisplayGroupMemberRealNamesLastChar
+import dev.ujhhgtg.wekit.features.items.chat.DisplayGroupMemberRoles
+import dev.ujhhgtg.wekit.features.items.chat.FabricateChatHistoryMessage
+import dev.ujhhgtg.wekit.features.items.chat.FloatingChatFooter
+import dev.ujhhgtg.wekit.features.items.chat.FloatingChatHeader
+import dev.ujhhgtg.wekit.features.items.chat.ForwardFavoriteVoices
+import dev.ujhhgtg.wekit.features.items.chat.HalfScreenAlbumPicker
+import dev.ujhhgtg.wekit.features.items.chat.MarkdownRendering
+import dev.ujhhgtg.wekit.features.items.chat.MessageEntranceAnimation
+import dev.ujhhgtg.wekit.features.items.chat.MessageTimeEnhancements
+import dev.ujhhgtg.wekit.features.items.chat.QuotedMessageDirectJump
+import dev.ujhhgtg.wekit.features.items.chat.ReadReceipts
+import dev.ujhhgtg.wekit.features.items.chat.SendSecMsg
+import dev.ujhhgtg.wekit.features.items.chat.SuperConversationPinning
+import dev.ujhhgtg.wekit.features.items.chat.SwipeConversationOperations
+import dev.ujhhgtg.wekit.features.items.chat.SwipeMessageOperations
+import dev.ujhhgtg.wekit.features.items.chat.VoiceMessagePlaybackOptimization
 
 
 /**
@@ -340,6 +366,32 @@ object WxFeatureRegistry {
                 StickerPanel,
                 VoicePanel,
                 EmojiGameControl,
+                BeautifyConversationList,
+                ReadReceipts,
+                MarkdownRendering,
+                AntiMessageRecall,
+                FloatingChatFooter,
+                FloatingChatHeader,
+                SwipeConversationOperations,
+                SwipeMessageOperations,
+                MessageTimeEnhancements,
+                HalfScreenAlbumPicker,
+                VoiceMessagePlaybackOptimization,
+                ForwardFavoriteVoices,
+                AddToAggregationFolder,
+                BlockAtAllNotifications,
+                AutoCacheFiles,
+                AutoCacheImages,
+                CustomChatInputBarPlaceholderText,
+                DisplayGroupMemberRealNamesLastChar,
+                DisplayGroupMemberRealName,
+                FabricateChatHistoryMessage,
+                QuotedMessageDirectJump,
+                SendSecMsg,
+                SuperConversationPinning,
+                MessageEntranceAnimation,
+                DisplayGroupMemberRoles,
+                BruteForceGroupMemberRealNamesFirstChar,
             )
         )
     }
