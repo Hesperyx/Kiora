@@ -26,6 +26,7 @@ materialkolor = "5.0.1"
 coil = "3.6.3"
 okhttp = "5.5.0"
 appcompat-resources = "1.8.0"
+fragment = "1.5.4"
 room = "2.8.5"
 miuix = "0.9.4-rc01"
 ktor = "3.6.0"
@@ -34,6 +35,7 @@ markwon = "4.6.2"
 dynamicanimation = "1.1.0"
 dexmaker = "2.28.6"
 osmdroid = "6.1.20"
+biometric = "1.2.0-alpha05"
 
 [libraries]
 androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
@@ -64,6 +66,7 @@ coil-gif = { module = "io.coil-kt.coil3:coil-gif", version.ref = "coil" }
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 okhttp3-okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 androidx-appcompat-resources = { group = "androidx.appcompat", name = "appcompat-resources", version.ref = "appcompat-resources" }
+androidx-fragment = { group = "androidx.fragment", name = "fragment", version.ref = "fragment" }
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 miuix-blur = { module = "top.yukonga.miuix.kmp:miuix-blur-android", version.ref = "miuix" }
@@ -96,6 +99,7 @@ markwon-ext-tasklist = { module = "io.noties.markwon:ext-tasklist", version.ref 
 markwon-html = { module = "io.noties.markwon:html", version.ref = "markwon" }
 dexmaker = { module = "com.linkedin.dexmaker:dexmaker", version.ref = "dexmaker" }
 osmdroid-android = { module = "org.osmdroid:osmdroid-android", version.ref = "osmdroid" }
+androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

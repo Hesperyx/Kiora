@@ -6,14 +6,22 @@ import android.graphics.Color
 import android.os.Bundle
 import android.view.Window
 import android.view.WindowManager
-import androidx.activity.ComponentActivity
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.fragment.app.FragmentActivity
 import dev.ujhhgtg.wekit.BuildConfig
 import dev.ujhhgtg.wekit.utils.android.isDarkMode
 
-class TransparentActivity : ComponentActivity() {
+/**
+ * 透明的中转 Activity。
+ *
+ * 基类跟随上游用 [FragmentActivity] 而非 `ComponentActivity`：`BiometricPrompt` 的
+ * Activity 构造器只接受 `FragmentActivity`，指纹支付（FingerprintPay）要在这个 Activity
+ * 的 `launch` 回调里弹生物识别。`FragmentActivity` 本身就是 `ComponentActivity` 的子类，
+ * 现有调用方不受影响。
+ */
+class TransparentActivity : FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,9 +42,9 @@ class TransparentActivity : ComponentActivity() {
 
     companion object {
         @Volatile
-        private var pendingAction: (ComponentActivity.() -> Unit)? = null
+        private var pendingAction: (FragmentActivity.() -> Unit)? = null
 
-        fun launch(context: Context, action: ComponentActivity.() -> Unit) {
+        fun launch(context: Context, action: FragmentActivity.() -> Unit) {
             pendingAction = action
             context.startActivity(
                 Intent(context, TransparentActivity::class.java).apply {

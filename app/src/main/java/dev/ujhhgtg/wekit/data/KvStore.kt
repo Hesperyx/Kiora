@@ -156,4 +156,20 @@ object KvStore {
                 putStringSet(key, value)
             }
         }
+
+    /**
+     * 可空重载（WeKit 原版 `data\KvStore.kt:235`）。`null` 表示「未设置」，读时用
+     * `contains` 判定 —— SharedPreferences 无法区分「键不存在」与「存了空串」，
+     * 而调用方（如 FingerprintPay）要靠 `null` 判断指纹支付密码是否已配置。
+     */
+    @JvmName("prefOptionNullable")
+    fun prefOption(key: String, defValue: String?): ReadWriteProperty<Any?, String?> =
+        object : ReadWriteProperty<Any?, String?> {
+            override fun getValue(thisRef: Any?, property: KProperty<*>): String? =
+                if (prefs.contains(key)) prefs.getString(key, null) else defValue
+
+            override fun setValue(thisRef: Any?, property: KProperty<*>, value: String?) {
+                putString(key, value)
+            }
+        }
 }

@@ -68,6 +68,7 @@ import dev.ujhhgtg.wekit.features.items.system.AutoApproveDeviceLogin
 import dev.ujhhgtg.wekit.features.items.system.ModifySportsStepCount
 import dev.ujhhgtg.wekit.features.items.voip.RemoveLimitsDuringCalls
 import dev.ujhhgtg.wekit.features.items.voip.BlockVoipRingtone
+import dev.ujhhgtg.wekit.features.items.voip.VirtualVoipVideo
 import dev.ujhhgtg.wekit.features.items.beautify.BeautifyViewPressEffect
 import dev.ujhhgtg.wekit.features.items.beautify.DisableChatBackgroundDimming
 import dev.ujhhgtg.wekit.features.items.chat.AutoEnableSendAsMediaGroup
@@ -98,6 +99,8 @@ import dev.ujhhgtg.wekit.features.items.chat.ViewStickerAsImage
 import dev.ujhhgtg.wekit.features.items.contacts.DisplayGroupMemberMessages
 import dev.ujhhgtg.wekit.features.items.contacts.ShowFriendAddTime
 import dev.ujhhgtg.wekit.features.items.contacts.ShowWxIdInContactDetails
+import dev.ujhhgtg.wekit.features.items.contacts.AutoRemarkNewFriends
+import dev.ujhhgtg.wekit.features.items.contacts.SplitGroupChats
 import dev.ujhhgtg.wekit.features.items.entertain.TrollBan
 import dev.ujhhgtg.wekit.features.items.entertain.RainbowText
 import dev.ujhhgtg.wekit.features.items.miniapps.BypassUnderageGamingLimit
@@ -111,9 +114,21 @@ import dev.ujhhgtg.wekit.features.items.moments.AntiMomentCommentsDelete
 import dev.ujhhgtg.wekit.features.items.moments.NoCloseVideoPlayerOnClick
 import dev.ujhhgtg.wekit.features.items.moments.OpenDetailsOnItemClick
 import dev.ujhhgtg.wekit.features.items.moments.RemoveMomentsAds
+import dev.ujhhgtg.wekit.features.items.moments.AutoLikeMoments
+import dev.ujhhgtg.wekit.features.items.moments.AutoRefresh
+import dev.ujhhgtg.wekit.features.items.moments.AutoRepostMoments
+import dev.ujhhgtg.wekit.features.items.moments.CustomDetails
+import dev.ujhhgtg.wekit.features.items.moments.DisplayDetails
+import dev.ujhhgtg.wekit.features.items.moments.FakeMomentsLikes
+import dev.ujhhgtg.wekit.features.items.moments.NoCompressUploadedImages
 import dev.ujhhgtg.wekit.features.items.payment.AllowPrivateChatReceiveOutgoingRedPackets
 import dev.ujhhgtg.wekit.features.items.payment.ModifyTransferWalletBalanceDisplay
 import dev.ujhhgtg.wekit.features.items.payment.ModifyWalletBalanceDisplay
+import dev.ujhhgtg.wekit.features.items.payment.AutoAcceptTransfers
+import dev.ujhhgtg.wekit.features.items.payment.AutoOpenRedPackets
+import dev.ujhhgtg.wekit.features.items.payment.DisplayRedPacketDetails
+import dev.ujhhgtg.wekit.features.items.payment.FingerprintPay
+import dev.ujhhgtg.wekit.features.items.payment.OpenHistoryRedPackets
 import dev.ujhhgtg.wekit.features.items.profile.RemoveSignatureLimits
 import dev.ujhhgtg.wekit.features.items.system.DisableLowAvailableStorageDetection
 import dev.ujhhgtg.wekit.features.items.profile.RemoveTextStatusLengthLimit
@@ -406,6 +421,21 @@ object WxFeatureRegistry {
                 FakeLocation,
                 FeatureFlagManager,
                 LinkExternalAppJump,
+                AutoAcceptTransfers,
+                AutoOpenRedPackets,
+                DisplayRedPacketDetails,
+                FingerprintPay,
+                OpenHistoryRedPackets,
+                AutoLikeMoments,
+                AutoRefresh,
+                AutoRepostMoments,
+                CustomDetails,
+                DisplayDetails,
+                FakeMomentsLikes,
+                NoCompressUploadedImages,
+                AutoRemarkNewFriends,
+                SplitGroupChats,
+                VirtualVoipVideo,
             )
         )
     }

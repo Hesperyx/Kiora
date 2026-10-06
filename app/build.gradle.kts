@@ -166,6 +166,21 @@ dependencies {
     // WeKit 血统的公共层需要：ProxyBuilder 用于运行期生成代理类，osmdroid 用于地图选点。
     implementation(libs.dexmaker)
     implementation(libs.osmdroid.android)
+    // FingerprintPay 用 BiometricPrompt 做指纹支付解锁。
+    implementation(libs.androidx.biometric)
+    // TransparentActivity 用 FragmentActivity 作基类（BiometricPrompt 的 Activity 构造器要求）。
+    implementation(libs.androidx.fragment)
+
+    // biometric 1.2.0-alpha05 的传递依赖里 customview/drawerlayout 仍指向 1.0.0，
+    // 而离线缓存里只有 1.2.0 / 1.1.1（同大版本内的向上对齐），这里显式提版。
+    constraints {
+        implementation("androidx.customview:customview:1.2.0") {
+            because("biometric -> appcompat 1.8.0 -> drawerlayout 1.0.0 -> customview 1.0.0 不在离线缓存")
+        }
+        implementation("androidx.drawerlayout:drawerlayout:1.1.1") {
+            because("biometric -> appcompat 1.8.0 -> drawerlayout 1.0.0 不在离线缓存")
+        }
+    }
 
     ksp(projects.processor)
     ksp(libs.androidx.room.compiler)
