@@ -8,8 +8,6 @@ import org.luckypray.dexkit.DexKitBridge
  *
  * 实现类通过 [dev.ujhhgtg.wekit.dexkit.dsl.dexClass] / [dev.ujhhgtg.wekit.dexkit.dsl.dexMethod] / [dev.ujhhgtg.wekit.dexkit.dsl.dexConstructor] 工厂函数声明委托属性，
  * 这些委托在构造时自动注册到 [dexDelegates]。
- *
- * 与 WeKit 原版逐字一致。
  */
 interface IResolveDex {
 
@@ -27,7 +25,7 @@ interface IResolveDex {
 
     /**
      * 将所有委托的当前状态收集为 key → descriptor 字符串映射，
-     * 供缓存层持久化。
+     * 供 [dev.ujhhgtg.wekit.dexkit.cache.DexCacheManager] 持久化。
      */
     fun collectDescriptors(): Map<String, String> =
         dexDelegates.associate { it.key to (it.getDescriptorString() ?: "") }

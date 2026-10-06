@@ -5,7 +5,7 @@
 > 前置：`docs/superpowers/plans/2026-10-05-wekit-full-migration.md`（Phase 1/2，已完成）。
 > 本文件为滚动计划：每完成一批就更新「进度快照」与「剩余批次」。
 
-## 进度快照（2026-10-06 实测，P1+P2+P3+P4-1+P4-1b+P4-2+P4-2b+P4-2c+P4-2d 已落地）
+## 进度快照（2026-10-06 实测，P1+P2+P3+P4-1+P4-1b+P4-2+P4-2b+P4-2c+P4-2d+P4-2e 已落地）
 
 口径：**上游相对路径存在性**（不再用单一声明名/正则口径，理由见 P4-2 节）。分母 = 上游 `app\src\main\java\dev\ujhhgtg\wekit` 下 767 个 .kt。
 
@@ -29,14 +29,15 @@
 
 - 编译基线：`:app:compileReleaseKotlin --offline --no-daemon` → `errors: 0`；
   `:app:assembleRelease --offline --no-daemon` → `BUILD SUCCESSFUL`，APK **14,493,895 B**
-  （P4-2d 后 sha256 `E9FCD304…`；体积与 P4-2c 相同属 zip 压缩吸收，`classes2.dex` 实测 +76 B）。
+  （P4-2e 后 sha256 `28D9323F…`；体积与 P4-2c/P4-2d 相同属 zip 压缩吸收，`classes2.dex` 逐批微增）。
 - `git diff --cached --check` → exit 0。
 
 ### 已落地批次（新→旧）
 
 | 提交 | 内容 |
 |---|---|
-| `P4-2d`（本次） | 第二轮差分分诊（90 个「两侧都在但仍有差值」文件全量派子代理核）：控件层按上游恢复 2 文件（`BaseWidget` 117→166 行补齐 `onTrailingClick`/`clickHaptic`/`trailingDivider`/`remember` 化 interactionSource + `foreContent()` 叠层归位；`SwitchWidget` 43→129 行恢复触感 / `separateClickAreas` 判据 / `Role.Switch` 语义 / 拇指图标）+ 修 **2 处真回归**（`SwitchFeature.applyToggle` 丢持久化；`HideHomeScreenSwipeDownPage` 过期注释导致分组态高度硬编码 48dp，改回上游 `if (!ConversationGrouping.isEnabled) 48 else 94` 后与上游逐字节一致）+ 3 处 KDoc 订正（`BaseFeature`/`KvStore`/`WeLogger`）+ 记 1 项能力缺口（python 脚本设置页依赖未迁入的 `scripta`） |
+| `P4-2e`（本次） | 差分清单闭合：澄清 89 个「两侧都在但报差异」文件里 **20 个是 `features/api/core/*`→`features/api/*` 的 `0 0` 纯拍平改名**（逐字节一致），真实内容差异 **69 项至此全判完**；本轮 7 项（还原 `IResolveDex.kt` 两处 KDoc 使其与上游逐字节一致；`QuickOpenMoments` 把内联的 `"wekit_folder_"` 改回 `ConversationAggregation.FOLDER_PREFIX`（值实测相同）；`HomeSidePanelActions`/`AutoCleanCache`/`ForceTabletMode`/`Stream.kt`/`TargetProcesses` 判为等价改写并逐环节取证） |
+| `P4-2d` | 第二轮差分分诊（90 个「两侧都在但仍有差值」文件全量派子代理核）：控件层按上游恢复 2 文件（`BaseWidget` 117→166 行补齐 `onTrailingClick`/`clickHaptic`/`trailingDivider`/`remember` 化 interactionSource + `foreContent()` 叠层归位；`SwitchWidget` 43→129 行恢复触感 / `separateClickAreas` 判据 / `Role.Switch` 语义 / 拇指图标）+ 修 **2 处真回归**（`SwitchFeature.applyToggle` 丢持久化；`HideHomeScreenSwipeDownPage` 过期注释导致分组态高度硬编码 48dp，改回上游 `if (!ConversationGrouping.isEnabled) 48 else 94` 后与上游逐字节一致）+ 3 处 KDoc 订正（`BaseFeature`/`KvStore`/`WeLogger`）+ 记 1 项能力缺口（python 脚本设置页依赖未迁入的 `scripta`） |
 | `P4-2c` | 差分三分复检（对上游全树 .kt 逐文件比对，再对「两侧都在但仍有差值」的 68 个文件分类）：修 **1 处真回归** `features\items\chat\ChatFooterHooks.kt`（过期注释顶替了上游两段长按绑定，恢复后与上游逐字节一致）+ **1 处漏迁** `features\items\miniapps\ErudaConsole.kt` 补回 `ResourcesInjector.injectModuleRes(resources)` + 1 处 KDoc 订正（`WeChatInputBarMenuApi`）；注册表 217 不变；APK 13,562,308→**14,493,895 B** |
 | `P4-2b` | `i18n\LocalizedContextFactory.kt` 恢复宿主资源注入（上游 `InjectedHost` 分支的 `ResourcesInjector.injectModuleRes(it.resources)` 曾随 lsparanoid 一起被删），24 个调用点受益；注册表 217 项 technicalId 撞键自查通过；APK 仍 13,562,308 B |
 | `P4-2` | 全树对齐复测 + 补两处漏迁行为：新增 `features\items\system\SafeMode.kt`（2 进程级「安全模式」开关，3 条字符串资源）；`WxFeatureLoader.load()` 接线 ① 安全模式门控（只加载 API 层，跳过全部 items）② `ConversationGrouping.migrateTabStyle(...)`（原先函数存在但零调用 = 死代码）；APK 13,561,264→13,562,308 B |
@@ -347,8 +348,37 @@ L4 需决策
 `bsh\*` 声明核验通过；`HookUtils` 7 个 hook 扩展全在（原语改 `HookEngineManager.engine as? IHookBridge`）；`BaseFeature` 上游入口齐备；
 `ActivityProxy` 是 48 行兼容层（Kiora 用自有 `cn.hxy.kiora.lifecycle.Parasitics`）；`AddMainScreenFab` 改开 Kiora 模块设置页属寄生启动架构非断链。
 
-**⑥ advisories（本轮未改）**：`dexkit\cache\CloudDexResolver.kt:202` 下载无 8MB 上限（上游有 `MAX_REPORT_BYTES`）；
+**⑥ advisories（留 P4-2f）**：`dexkit\cache\CloudDexResolver.kt:202` 下载无 8MB 上限（上游有 `MAX_REPORT_BYTES`）；
 `:284-299 exportLocalReport()` 未按 `DexDelegates.isPlaceholder` 过滤即写 `"status":"SUCCESS"`。
+
+### P4-2e 差分清单闭合（89 项全判完）
+
+**口径修正**：`git diff --no-index --numstat` 把「路径不同」也算差异。实测 **89 个两侧都在但报差异**的文件中，
+**20 个是 `features/api/core/*` → `features/api/*` 的拍平改名**（numstat `0 0`，**逐字节一致**，无需审判），
+其余 **69 个**才是真实内容差异——至此 **69 项全部有结论**（分 P4-2c / P4-2d / P4-2e 三批完成，逐项依据见各节）。
+
+**本轮新判 7 项（1 项修正 + 6 项 BENIGN）**
+- `dexkit\abc\IResolveDex.kt`：Kiora 自行加的「与 WeKit 原版逐字一致」注释与事实不符（同文件另一处不含有 `DexCacheManager` 的 KDoc 链接），
+  两处一并还原 ⇒ 现在与上游**逐字节一致**（`--ignore-cr-at-eol` exit 0）。
+- `features\items\contacts\QuickOpenMoments.kt`：Kiora 把 `ConversationAggregation.FOLDER_PREFIX` 内联成私有常量
+  `CONVERSATION_FOLDER_PREFIX = "wekit_folder_"`。实测上游 `ConversationAggregation.kt:110 const val FOLDER_PREFIX = "wekit_folder_"`，
+  值完全一致（`const val` 编译期内联，改回引用不产生类初始化）⇒ 还原为上游写法，行为不变。
+- `features\items\beautify\home_screen_panel\HomeSidePanelActions.kt`（−1/+1）：`WEKIT_SETTINGS` 改开
+  `cn.hxy.kiora.activity.SettingActivity`（Kiora 模块设置页），与 `AddMainScreenFab.kt:443` 同类处置，属寄生启动架构非断链。
+- `features\items\system\AutoCleanCache.kt`（2/2）：`private val cleanPaths = run { …; return@run paths }` → `by lazy { …; paths }`，
+  把 `HostInfo.application.filesDir` 的探查从 object 初始化推迟到首次清理，属启动性能改良。
+- `features\items\system\ForceTabletMode.kt`（2/2）：`import android.widget.Button as AndroidButton` 避开同文件的 Compose `Button`，
+  `args[0] as? AndroidButton` 语义与上游一致（该处必须解析到 android 控件）。
+- `utils\polyfills\Stream.kt`（0/1）：仅少一个文件末尾空行。
+
+**`utils\TargetProcesses.kt`（17/27）——重写但等价，已逐环节核**
+Kiora 把进程名来源从 `ActivityManager.runningAppProcesses` 反查（带 3 次重试 + `by lazy`）改为直接读 `HostInfo.processName`，
+`currentName`/`currentType` 也由 `by lazy` 改为 getter。等价性依据：`cn\hxy\kiora\common\ModuleLoader.java:18-34`
+`initialize(…, processName)` 由加载器入口传入**当前进程的限定名**（`:30 if (packageName.equals(processName))` 即主进程判据），
+在 `Startup.init` 之前 `HostInfo.bind(packageName, processName, adapter)` 一次性写入（`host\HostInfo.kt:64-69`）；
+模块自身进程不 bind ⇒ Kiora 侧 `runCatching { HostInfo.processName }.getOrDefault("unknown")`（上游同样退化成 `"unknown"` → MAIN）。
+消费方是**功能分进程加载的判定**：`features\WxFeatureLoader.kt:51 TargetProcesses.isInMain`、`:55-57 val currentProcess = TargetProcesses.currentType`，
+`:90-94` 与 `:350` 取 `currentName` 打日志 ⇒ 该路径已核，结论为等价。
 
 ### P0-1 云端 DexKit 报告（摸清上限，重出无增益）
 
