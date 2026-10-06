@@ -3,6 +3,7 @@ package dev.ujhhgtg.wekit.i18n
 import android.content.Context
 import android.content.res.Configuration
 import android.os.LocaleList
+import dev.ujhhgtg.wekit.loader.utils.ResourcesInjector
 
 enum class LocaleResourceMode {
     InjectedHost,
@@ -12,10 +13,9 @@ enum class LocaleResourceMode {
 /**
  * 按 locale 创建本地化上下文。
  *
- * **简化说明**：原版还做了两件事 —— 用 `ResourcesInjector` 把模块资源注入宿主，
- * 再用 lsparanoid 的 `LspResourceContext` 做资源混淆解码。Kiora 的 WeKit 血统资源
- * 直接放进模块自身的 `strings.xml`（明文、无需解码），也不走宿主注入，
- * 所以这两步都省略了。`LocaleResourceMode` 两个取值因此在当前实现里等价。
+ * **简化说明**：原版最后还用 lsparanoid 的 `LspResourceContext` 做了一轮资源混淆解码。
+ * Kiora 的 WeKit 血统资源直接放进模块自身的 `strings.xml`（明文、无需解码），
+ * 故省略这一步；`ResourcesInjector` 的宿主注入保留（见下）。
  */
 object LocalizedContextFactory {
     fun create(
@@ -27,10 +27,19 @@ object LocalizedContextFactory {
             setLocales(LocaleList.forLanguageTags(locale.androidTag))
         }
         val configured = base.createConfigurationContext(configuration)
+        val localized = when (mode) {
+            // 宿主模式下，本地化上下文被用来在微信自己的界面里取字符串；模块资源必须
+            // 先注入该 Resources，否则按模块 id 取值会抛 Resources.NotFoundException。
+            LocaleResourceMode.InjectedHost -> configured.also {
+                ResourcesInjector.injectModuleRes(it.resources)
+            }
+
+            LocaleResourceMode.ModuleApp -> configured
+        }
         return if (locale == SupportedLocale.MEOW_CHINESE) {
-            MeowResourcesContext(configured)
+            MeowResourcesContext(localized)
         } else {
-            configured
+            localized
         }
     }
 }

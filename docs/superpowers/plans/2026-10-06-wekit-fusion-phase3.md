@@ -5,7 +5,7 @@
 > 前置：`docs/superpowers/plans/2026-10-05-wekit-full-migration.md`（Phase 1/2，已完成）。
 > 本文件为滚动计划：每完成一批就更新「进度快照」与「剩余批次」。
 
-## 进度快照（2026-10-06 实测，P1+P2+P3+P4-1+P4-1b+P4-2 已落地）
+## 进度快照（2026-10-06 实测，P1+P2+P3+P4-1+P4-1b+P4-2+P4-2b 已落地）
 
 口径：**上游相对路径存在性**（不再用单一声明名/正则口径，理由见 P4-2 节）。分母 = 上游 `app\src\main\java\dev\ujhhgtg\wekit` 下 767 个 .kt。
 
@@ -19,7 +19,7 @@
 | utils | **72** | 75 | 96.0%（余 = `AppUpdater` / `DebugUtils` / `hook_status\HookStatus`） |
 | loader | **5** | 21 | 23.8%（`entry\*` zygisk/frida 不迁、`startup\*` 由 Kiora 自有链路取代） |
 | activity | **5** | 23 | 21.7%（`activity\nuke` 不迁；`activity\settings` 只按需抽件） |
-| i18n | **9** | 9 | 100%（简化实现） |
+| i18n | **9** | 9 | 100%（仅去掉 lsparanoid 解码层，宿主资源注入已恢复） |
 | dexkit | **10** | 10 | 100% |
 | extensions | **12** | 13 | 92.3%（余 = `ArchLinuxPack`，随 agent 决策） |
 | **非排除区真缺件** | **22** | — | 逐个已取证，见「当前状态：不可迁 / 永久搁置」 |
@@ -35,7 +35,8 @@
 
 | 提交 | 内容 |
 |---|---|
-| `P4-2`（本次） | 全树对齐复测 + 补两处漏迁行为：新增 `features\items\system\SafeMode.kt`（2 进程级「安全模式」开关，3 条字符串资源）；`WxFeatureLoader.load()` 接线 ① 安全模式门控（只加载 API 层，跳过全部 items）② `ConversationGrouping.migrateTabStyle(...)`（原先函数存在但零调用 = 死代码）；APK 13,561,264→13,562,308 B |
+| `P4-2b`（本次） | `i18n\LocalizedContextFactory.kt` 恢复宿主资源注入（上游 `InjectedHost` 分支的 `ResourcesInjector.injectModuleRes(it.resources)` 曾随 lsparanoid 一起被删），24 个调用点受益；注册表 217 项 technicalId 撞键自查通过；APK 仍 13,562,308 B |
+| `P4-2` | 全树对齐复测 + 补两处漏迁行为：新增 `features\items\system\SafeMode.kt`（2 进程级「安全模式」开关，3 条字符串资源）；`WxFeatureLoader.load()` 接线 ① 安全模式门控（只加载 API 层，跳过全部 items）② `ConversationGrouping.migrateTabStyle(...)`（原先函数存在但零调用 = 死代码）；APK 13,561,264→13,562,308 B |
 | `P4-1` | scripting_python 核心 + extensions 扩展包栈：`python\api` 10 接口（vendoring）、`scripting_python` 12 文件、`extensions` 6 文件（`ExtensionSupport`/`ExtensionPackRegistryValidation`/`ScriptDepsPack`/`ExtensionPackDialogs`/`PythonRuntimeArchive`/`PythonRuntimePack`）、`activity\settings\ExtensionsSettingsActivity.kt`、`loader\utils\HybridClassLoader.kt`、`ClassLoaders` 补 `BOOT`/`HYBRID`；`ExtensionPacksProvider.ALL_PACKS` 由 `emptyList()` 改为登记两包；注册 215→216；APK 13,414,588→13,474,920 B |
 | `P3` | 主题栈：beautify 7（`ApplyGlobalBackground` / `CenterProfileCard` / `CustomMessageBubbles` / `MonetEngine`→`WeApiRegistry` / `MonetEngineModuleGenerator` / `ReplaceNavigationBar` / `Themes`）+ `utils\monet` 12 文件；引入 ARSCLib 1.4.0（经 `prepareAndroidArsclib` Jar task 剔除 `android/**`、`org/xmlpull/v1/**`）/ apksig 9.3.3 / bouncycastle 1.86 prov+pkix；`NumberPickerWidget.kt` 换上游完整版；注册 209→215；APK 12,253,200→13,414,588 B |
 | `4c7db17` | P2：payment 5 + moments 7（含 `AutoMomentsBase` 派生两位）+ contacts 3（含 `HideContactsNotifications`→`WeApiRegistry`）+ voip 1，注册 194→209；引入 biometric 1.2.0-alpha05 / fragment 1.5.4，`TransparentActivity` 改基类为 `FragmentActivity`，`KvStore` 补 nullable `prefOption` |
@@ -54,11 +55,19 @@
 ### 待决策项的当前处置
 
 - **okhttp3**：已引入（5.5.0），StickerPanel / VoicePanel 全量可用。
-- **lsparanoid**：**已定案——不引入**。证据：Kiora 全树零 import、仅 1 处注释提及
-  （`i18n\LocalizedContextFactory.kt:16`）；上游全树也仅 3 个文件引用 `LspBootstrap`/`LspResourceContext`。
-  Kiora 的 `i18n\` 9 文件与上游逐字节等价（`LocalizedContextFactory.kt` 唯一差 44 B = 那段注释），
-  说明替代路径已运行。收益只有 release 变体的类名/字符串混淆（反分析硬化），**不解锁任何功能**；
-  成本却是 mavenLocal group 白名单 + NDK 29.0.14206865 + omvll + arm64-only + 变体保护逻辑。
+- **lsparanoid**：**已定案——不引入**。证据：Kiora 全树零代码引用（唯一提及是
+  `i18n\LocalizedContextFactory.kt` 的注释）；上游全树也仅 3 个文件引用
+  `LspBootstrap`/`LspResourceContext`，其中 `application\ModuleApplication.kt` 与
+  `loader\utils\NativeLoader.kt` 都未迁。它买到的只有 release 变体的资源名/字符串混淆
+  （反分析硬化），**不解锁任何功能**；成本却是 mavenLocal group 白名单 + NDK 29.0.14206865
+  + omvll + arm64-only + 变体保护逻辑。Kiora 路线：WeKit 血统资源明文放进模块
+  `strings.xml`，解码这一步按定义是空操作。
+  - **连带发现并已修**：Kiora 版 `LocalizedContextFactory` 当初连**宿主注入**一并删了，
+    而 `LocaleResourceMode.InjectedHost` 有 **24 个调用点**（19 个 `*LocalizedResources.kt`
+    + `WeSettingsInjector` / `KillHostUtils` / `HostLocalizedStrings` / `InjectedUiTheme` /
+    `WeKitBasicDialog`），这些上下文用于在微信自己的界面里取字符串；未注入时按模块 id
+    取值会抛 `Resources.NotFoundException`。已恢复 `ResourcesInjector.injectModuleRes(it.resources)`，
+    与上游逐句一致（注入本身幂等：`injectModuleRes` 先 `hasModuleRes()` 判定）。
 - **scripting_python**：**已迁（核心），编辑器屏搁置**。Chaquopy 只存在于
   `extension-packs\python-runtime\runtime` 那个独立打包子构建，app 侧 12 文件零 Chaquopy 引用；
   Python 运行时是运行时下载的扩展包（`PythonRuntimePack` ← `ExtensionPacks.BASE_URL`）。
@@ -129,18 +138,25 @@ L3 主题栈 —— 已完成（P3 提交）
 
 L4 需决策
    agent 全栈（~216 声明 + WeAgent 功能 1 项）
-   scripting_python（23 声明，需 Python 运行时）
-   lsparanoid（18 项 i18n 完整形态）
+   scripting_python 编辑器屏（23 声明，需未发布的 scripta 复合构建）
+   ~~lsparanoid~~ —— 已定案：不引入，且已补齐其替代路径的宿主资源注入
 ```
 
 ## 剩余批次
 
 ### P0 收口（无编译风险，优先）
-- [ ] 重导 DexKit 云端报告：注册数已 60 → **187**，报告与 Release `Kiora-wechat` 资产需重出并上传
-      （`uploads.github.com/repos/{o}/{r}/releases/{id}/assets?name=xxx` 直传 + `gitproxy.mrhjx.cn` 镜像校验）。
-- [ ] 复检 P0 风控：`common/Startup.kt:134` 的 `LogUtils.logEnvironment()` 不再写宿主可读的
-      `/sdcard/Android/data/com.tencent.mm/Kiora/global/log/environment_info.txt`；
-      核对 `WeChatHostAdapter.kt:75 accountAnchor` 仍为 null（`MainHook.hookAccountChange()` 因此整体 return）。
+- [x] 重导 DexKit 云端报告 —— **摸清上限，重出无增益，改由真机重扫**。实测：树内目标
+      DexKit technicalId **132**，合并 4 份历史导出后覆盖 **60**，缺 **72**；线上资产
+      （`Kiora-wechat` release id `402951057`，资产 `wechat-8.0.78-3180-domestic.json` 76043 B）
+      与本地重生成结果 **同为 61 features / 276 descriptors**，仅条目顺序不同（查表不敏感）⇒
+      线上已含全部可得数据；77 个本地 JSON 里对 72 个缺口命中 **0**。`gh` CLI 未登录、无
+      `GH_TOKEN` ⇒ 也无法上传，且上传无增益。覆盖率不足的后果只是冷启动走本地扫描，功能不受损。
+- [x] 复检 P0 风控 —— **已确认落地**：`cn\hxy\kiora\common\Startup.kt:149` 只剩注释（原
+      `LogUtils.logEnvironment()` 调用已删）；`cn\hxy\kiora\wx\host\WeChatHostAdapter.kt:79`
+      `accountAnchor` 仍为 `null`，消费点 `hook\MainHook.kt:111` 安全退化。
+- [x] 离线自查：注册表 **217 项 technicalId 全distinct、零撞键**（DexKit 缓存键
+      `"${feature.technicalId}->$key"`，双血统注册表最易在此出问题；逐个按 `object <Entry>`
+      块作用域提取，0 处回退到文件级）。
 
 ### P1 公共层（做一次解锁多批）—— 已完成 `dbeca51`
 - [x] `features\api\ui\WeChatSettingsManager.kt`、`WeViewTreeLifecycleProvider.kt`
