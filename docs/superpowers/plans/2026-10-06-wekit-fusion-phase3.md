@@ -544,3 +544,62 @@ kotlinx.serialization 序列名，两者都是 R8 容易破坏的面，故直接
   上游是 shell/JVM/MCP 工具调用 + proot 环境，Kiora 自有的是插件/脚本生成型 agent）。
   真实依赖缺口：`third_party/proot-static`（原生二进制）、Arch Linux rootfs、`libs/common/scripta`，
   三者离线均无制品 ⇒ **即便决定纳入，也只能迁到「能编译但运行依赖用户自备」的状态**。
+
+## 任务清单（滚动）
+
+状态基线：`:app:compileReleaseKotlin` 0 错；APK 14,493,895 B（P4-2f sha `C5AFFFE8…`）；注册表 **217**；
+上游 .kt **767** / 路径命中 **600**（78.2%）/ 非排除区真缺 **22**（可迁 **0**）。计划内剩余复选框仅 4 条
+（`ChatToolbar`+`ForwardMessages`+`WeAgent` 处置、已知上游缺陷、P4-3 真机、APK/R8 复核），本清单把它们展开成可执行步骤。
+
+### A. 需要真机（离线不可推进）
+
+1. **A1 冷启动回归**：清 DexKit 缓存后冷启动，确认无自动扫描 / 无自动重启、弹窗正确关闭、无崩溃。
+2. **A2 功能逐项走查**：222 个上游 items 功能对象（注册表 217 项）的开关与设置页逐个打开；重点看
+   P4-2d 改过的 `BaseWidget` / `SwitchWidget` 触感与语义、P4-2c 恢复的面板长按入口（`VoicePanel` / `StickerPanel`）。
+3. **A3 导出器验证（P4-2f 的验证缺口）**：`externalCacheDir/wekit-dex-reports/wechat-*.json` 三个判据 ——
+   每个 delegate 显式带 `isPlaceholder`；根 `outcome == PASS`；描述符缺失的 feature 确实缺席。
+4. **A4 重出云端报告**：真机扫全 132 个 DexKit 键 → 导出 → 替换线上资产（`Kiora-wechat` release `402951057`
+   的 `wechat-8.0.78-3180-domestic.json`；需 `GH_TOKEN` 或 `gh auth login`；线上现覆盖 60/132）。
+5. **A5 视觉目视 3 项**：① `ui\utils\ComposeUtils.kt:21-57` 的裸 `MaterialTheme` 让约 150 处
+   `showComposeDialog` 弹窗走基线配色（修法见 C1）；② `BaseWidget` 未采纳上游 `alpha = 0.38f` 禁用态与
+   `primaryContainer` 选中色；③ 贴纸/语音面板的 ROOT 导入路径降级为 `Cancelled`（不崩）。
+6. **A6 产物复核**：`isMinifyEnabled=true` + `isShrinkResources=true` 下体积四批同值 14,493,895 B
+   （已按 dex 字面量证实产物逐批更新），剩 R8 规则复核。
+
+### B. 需要拍板
+
+1. **B1 agent 子系统**（216 声明）：`agent\*` 71 文件 + 五处衍生目录 + `ChatToolbar.kt` 48110 B + `ArchLinuxPack.kt`；
+   真缺口 `third_party/proot-static`、Arch Linux rootfs、`libs/common/scripta` 均无制品 ⇒ 纳入也只能到
+   「能编译、运行依赖用户自备」，且与 Kiora 自有 agent 架构不同（详见上节）。
+2. **B2 未注册 3 项**：`ChatToolbar`、`WeAgent`（随 B1）；`ForwardMessages` 永久搁置（上游自身缺 `ui.content.ContactsSelector`）。
+3. **B3 脚本编辑器屏**：`activity\scripting_python\{PythonHighlighter, PythonScriptsSettingsActivity}` 依赖未分发的
+   `scripta`；若要恢复「脚本编辑器 + 插件启停」，需自写精简管理屏（基础件在 `plugin\PythonPluginManager.kt:29`，
+   已被 `PythonRuntimePack.kt:129` 调用）。
+4. **B4 已知上游缺陷是否修**：`JavaEngine.kt:609` 的 `compileSnapshot(resolved, snapPath, null)` 传 null `SecretKey`
+   （`BshSnapshotHelper.writeEncrypted` 无 null 分支 ⇒ 该脚本 API 静默失效）；对称修法＝第三参换
+   `BshSnapshotDecompiler.SECRET_KEY`（`evalSnapshot` 正是这么读的）。改动会偏离上游形态，故需点头。
+
+### C. 可离线立即开批（不需设备、不需决策）
+
+1. **C1 弹窗主题单点修复**：`ui\utils\ComposeUtils.kt:21-57` 的裸 `MaterialTheme` → `InjectedUiTheme`，
+   一处生效覆盖约 150 个调用点；需复查 6 处已自带主题的调用点避免叠层（`ReplaceNavigationBar.kt:591`、
+   `ConversationGrouping.kt:391`、`HomeSidePanel.kt:484/1240`、`AddMainScreenFab.kt:425`、`PanelShell.kt:262`）。
+2. **C2 贴纸 ROOT 导入专项**：`activity\RootTelegramStickerSetPicker.kt`（15654 B）依赖
+   `com.github.topjohnwu.libsu:core` —— **离线缓存已有 6.0.0**；需同时在 `MainActivity` 处理
+   `ACTION_PICK_ROOT_STICKER_SETS`，并让 `StickerPanelSheet` 的 ROOT 源重新可选。
+3. **C3 注册表分类映射复核**：`cn\hxy\kiora\hook\wekit\WeKitHookRegistry.kt:10-28` 的 `CATEGORY_MAP` 只有 18 项，
+   实际用到的类别还有 `API` / `CONTACT_DETAILS` 等 ⇒ 这些功能落 `HookCategory.OTHER`（`:36` 的兜底，不崩）。
+   需确认是否有意为之，或补映射。
+4. **C4 CustomTabs 分享入口（可选）**：`androidx.browser:browser` 离线缓存有 1.10.0；`utils\UriUtils.kt` 的
+   `useCustomTabs` 参数保留但恒走系统浏览器（Kiora 缺 `ForwardIcon` / `toBitmap` / `toDp`，且 `useCustomTabs`
+   已无调用点）。仅在确实需要 CustomTabs 时开批。
+5. **C5 `ManagerLaunchContract` 接线（可选）**：若要在 Kiora 设置页加「打开 LSPosed 管理器」入口，
+   再迁 `activity\ManagerLaunchContract.kt`（`REQUEST_OPEN_LSPOSED_MANAGER = 0x574B`）。
+
+### D. 已定案 / 永久搁置（不计待办）
+
+1. `lsparanoid` 不引入（WeKit 血统资源明文进模块 `strings.xml`，解码为空操作）。
+2. zygisk / frida 入口与 `libwekit_native.so` 编译不做（Kiora 保持纯 Xposed）。
+3. `activity\settings`（66 声明）不迁，只按需抽件（已抽 `M3ListScaffold.kt`）。
+4. 上游自身残缺或零引用者不迁：`CustomConversationNotifications.kt`（全文件 `//` 注释）、`utils\DebugUtils.kt`
+   （Kiora 另有 `cn\hxy\kiora\hook\debug\DebugUtils.kt`）、`utils\AppUpdater.kt`、`data\MmkvReadonlyReader.kt`。
