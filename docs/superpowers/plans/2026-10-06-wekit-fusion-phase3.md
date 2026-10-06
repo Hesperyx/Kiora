@@ -5,7 +5,7 @@
 > 前置：`docs/superpowers/plans/2026-10-05-wekit-full-migration.md`（Phase 1/2，已完成）。
 > 本文件为滚动计划：每完成一批就更新「进度快照」与「剩余批次」。
 
-## 进度快照（2026-10-06 实测，P1+P2+P3+P4-1+P4-1b+P4-2+P4-2b+P4-2c+P4-2d+P4-2e+P4-2f 已落地；P4-3 真机回归 A1/A3 已 PASS）
+## 进度快照（2026-10-06 实测，P1+P2+P3+P4-1+P4-1b+P4-2+P4-2b+P4-2c+P4-2d+P4-2e+P4-2f 已落地；P4-3 真机回归 A1/A3 已 PASS；C1 弹窗主题修复已落地待目视；L1 全量中文本地化已落地待提交）
 
 口径：**上游相对路径存在性**（不再用单一声明名/正则口径，理由见 P4-2 节）。分母 = 上游 `app\src\main\java\dev\ujhhgtg\wekit` 下 767 个 .kt。
 
@@ -33,13 +33,21 @@
   已安装真机并复跑通过。体积自 P4-2c 起五批都是 14,493,895 B，属 zip 压缩吸收——已按
   dex 内字面量证实各批产物确实不同：`classes2.dex` 含 `cloud Dex report is larger than` /
   `wekit-dex-reports` / `已导出本地报告` / `PASS_WITH_EXPECTED_FAILURES`）。
+- C1 后编译基线：同上两条命令 → exit 0 / 0 错 / `BUILD SUCCESSFUL`（`_p43g_cmp.log` 1m27s、`_p43g_asm.log` 2m20s），
+  APK **14,510,279 B**（+6,384 B，正是 `ModuleTheme`/`NukeModuleTheme` 由死代码变可达、R8 不再裁剪的增量），
+  md5 `73B234BFBF66D750ED6E267B90261152`，`adb install -r -d` Success。**尚未提交**（待真机目视确认弹窗配色）。
+- L1 后编译基线：`:app:assembleRelease --offline --no-daemon` → exit 0 / `BUILD SUCCESSFUL in 2m 15s`（`_dev\_zh_asm.log`），
+  APK **14,496,819 B**（C1 的 14,510,279 B **−13,460 B**，即英文串换中文变短）、
+  md5 `431A280B1693009E2DFDAB5746751E22`，`adb install -r -d` Success。**尚未提交**（与 C1 待一并提交）。
 - `git diff --cached --check` → exit 0。
 
 ### 已落地批次（新→旧）
 
 | 提交 | 内容 |
 |---|---|
-| `P4-3`（本次） | 真机回归 A1/A3 PASS 后的四处修复：`features\items\contacts\HideContacts.kt` 的 `methodMultiTalkOnInvite` 改自足类作用域（原先跨 feature 读 `SplitGroupCall.methodExitMultiTalk.data`，8.0.78 上该委托退化为占位符 → `.data` 抛 NPE → 整个 feature 被导出剔除）；`dexkit\dsl\DexDelegates.kt` 四个 `.data` 扩展由 `!!` 改为 `unresolvedDataError(key,kind)` 可诊断报错；`dexkit\cache\CloudDexResolver.kt` 描述符改「委托优先、缓存兜底」+ 新增 `logSkipped` 记录被跳过 feature 的首个不可用委托；`features\WxFeatureLoader.kt` 启动日志节流（`LOG_STRIDE = 25`，只在启用项/每 25 项/失败/汇总输出，完整 236 行审计落 `feature_start_diag.log` 且每轮截断）——根因是 LSPosed 日志子系统被瞬时爆发打死，导致「循环停在第 139 项」的假象 |
+| `L1`（本次，未提交） | **全量中文本地化**（用户指令 m05927「先把功能和功能描述写成中文」）：`app\src\main\res\values\strings.xml` 的 **2,258 条 `<string>` + 170 条 `<plurals>` item + 42 条 `<string-array>` item** 逐条对齐上游 `WeKit-master\app\src\main\res\values-zh-rCN\strings.xml`。**根因**：Kiora 当初迁入时误取上游 `values/`（英文默认）而非 `values-zh-rCN/` —— 2,689 条 `<string>` 里非中文 2,292 条，其中 2,283 条的 key 存在于上游英文默认、2,277 条与上游英文值**逐字相同**；文件自身注释 `strings.xml:7-12` 已自称「取自 WeKit 的 values-zh-rCN」= 缺陷旁证。另把 Kiora 自有 `xposed_description` 由 `Adapted for QQ9.1.25+ and TIM4.0.95+` 改写为 `已适配 QQ 9.1.25+、TIM 4.0.95+ 与微信 8.0.78+`（版本号对齐 `cn\hxy\kiora\common\ModuleMeta.kt` 的 `ADAPTED_{QQ,TIM,WECHAT}_VERSION`，且它同时是 `AndroidManifest.xml:14 android:description` 与 `:54` 的 LSPosed meta-data）。**校验**：占位符多重集逐条比对（不可重排者拒改）、`[xml]` 解析 OK、`<string>` 2,689→2,689 与 87 个 `<plurals>`/2 个 `<string-array>` 标签计数不变、2,258+170+42 条与上游 zh 值逐字一致（mismatch 0）、APK `resources.arsc` 字符串池反查命中 **174/174 plurals item + 42/42 array item + 抽样 `<string>`**。**残留非中文 33 条全部有据**：23 条是上游 zh-rCN 本身就保留的专有名词/纯格式串（照抄上游判定）、品牌串（`app_name`/`plugin_name`/`language_english`/`A–Z`/`Z–A`）、注入探针 `res_inject_success`（`i18n\MeowResources.kt:9` 取包 id、`loader\utils\ResourcesInjector.kt:49` 探活，非 UI 文案）。工具留档：`_dev\zhapply2.ps1`、`_dev\zh_map.tsv`（2,258 行）、`_dev\zh_plurals.tsv`（83 行）、`_dev\zh_arrays.tsv`（42 行）、备份 `_dev\strings.xml.before-zh.bak`。顺带核实：`features/**` 的 258 个 `technicalId` ASCII-only = 0（本就中文）；641 个 `.kt` 的硬编码 `Text("…")` 仅 7 处且全是格式串；`res\layout` 仅 1 个文件、`android:text` 硬编码 0 处；`res\values\arrays.xml` 只有 `xposed_scope` 包名；4 个无 `descriptionRes` 的功能（`WePacketHelper`/`WeContactHeaderApi`/`WeContactPrefsScreenApi`/`WeViewTreeLifecycleProvider`）**均未注册**且上游同样无 description ⇒ 非缺陷 |
+| `C1`（未提交） | 宿主 Compose 弹窗主题单点修复：`ui\utils\ComposeUtils.kt` 的 `showComposeDialog` 由「裸 `MaterialTheme`」恢复为上游原样 —— `CommonContextWrapper(context)` 包装 + `WeKitLocaleProvider(mode = LocaleResourceMode.InjectedHost)` + `ModuleTheme`（`ThemeSettings.uiEngine == SettingsUiEngine.NUKE` 时改走 `NukeModuleTheme`），一处生效覆盖 174 个调用点 / 109 个文件。证据：上游同名文件 3350 B vs Kiora 原 2282 B；`ui\content\nuke\NukeTheme.kt:144-147` 的 KDoc 本就写明 `NukeModuleTheme` 是「供设置页与 `showComposeDialog` 共用」，而它在 Kiora 零调用（死代码、R8 裁掉）= 缺陷旁证，`ModuleAppTheme`（上游仅 `activity\MainActivity` 用）同样零调用。无叠层：6 处 `InjectedUiTheme` 全在 `ComposeView.setContent { InjectedUiTheme { … } }`，不在任何 `showComposeDialog` 内容体内；174 个调用点无 `scope.context as Activity` 造型 ⇒ `CommonContextWrapper`（ContextThemeWrapper）安全。三件套在 Kiora 各有在用点（`CommonContextWrapper`←`ui\panel\PanelShell.kt:222`、`WeKitLocaleProvider(InjectedHost)`←`InjectedUiTheme`/`ui\content\WeKitBasicDialog.kt:50`、`ModuleTheme`←`ExtensionsSettingsActivity.kt:76` + `ReadReceiptsSettingsActivity.kt:48`）；真机 `Kiora_Config_global` 无任何 `settings_theme_*` 键 ⇒ 实走 MATERIAL3 分支，NUKE 分支休眠 |
+| `P4-3` | 真机回归 A1/A3 PASS 后的四处修复：`features\items\contacts\HideContacts.kt` 的 `methodMultiTalkOnInvite` 改自足类作用域（原先跨 feature 读 `SplitGroupCall.methodExitMultiTalk.data`，8.0.78 上该委托退化为占位符 → `.data` 抛 NPE → 整个 feature 被导出剔除）；`dexkit\dsl\DexDelegates.kt` 四个 `.data` 扩展由 `!!` 改为 `unresolvedDataError(key,kind)` 可诊断报错；`dexkit\cache\CloudDexResolver.kt` 描述符改「委托优先、缓存兜底」+ 新增 `logSkipped` 记录被跳过 feature 的首个不可用委托；`features\WxFeatureLoader.kt` 启动日志节流（`LOG_STRIDE = 25`，只在启用项/每 25 项/失败/汇总输出，完整 236 行审计落 `feature_start_diag.log` 且每轮截断）——根因是 LSPosed 日志子系统被瞬时爆发打死，导致「循环停在第 139 项」的假象 |
 | `P4-2f` | 云端报告导出器修复（P4-2d 的两条 advisory）：`dexkit\cache\CloudDexResolver.kt` 330→**447 行** —— ① `fetchReport` 加 8MB 体积上限（上游 `MAX_REPORT_BYTES` 同值；进度回调里抛 `IOException`，因为 `HttpUtils.getSyncWithProgress` 吞异常返回空串，靠 `sawTooLarge` 保住原因）；② `exportLocalReport(items: List<IResolveDex>)` 重写 —— 按委托诊断写 `status` + **显式 `isPlaceholder`**（占位符一律记 `EXPECTED_FAILURE`，因为缓存恢复路径会把占位符退化成 `SUCCESS`），feature `outcome` 取 `PASS`/`PASS_WITH_EXPECTED_FAILURES`，含 `UNEXPECTED_FAILURE`/`BLOCKED`/`INCOMPLETE` 或描述符为空的 feature **整条不导出**（消费侧要求根 `outcome == PASS`，带 FAIL 会让整份报告被拒、全部功能一起失效）；调用点 `features\WxFeatureLoader.kt:330` 改传 `features.filterIsInstance<IResolveDex>()` |
 | `P4-2e` | 差分清单闭合：澄清 89 个「两侧都在但报差异」文件里 **20 个是 `features/api/core/*`→`features/api/*` 的 `0 0` 纯拍平改名**（逐字节一致），真实内容差异 **69 项至此全判完**；本轮 7 项（还原 `IResolveDex.kt` 两处 KDoc 使其与上游逐字节一致；`QuickOpenMoments` 把内联的 `"wekit_folder_"` 改回 `ConversationAggregation.FOLDER_PREFIX`（值实测相同）；`HomeSidePanelActions`/`AutoCleanCache`/`ForceTabletMode`/`Stream.kt`/`TargetProcesses` 判为等价改写并逐环节取证） |
 | `P4-2d` | 第二轮差分分诊（90 个「两侧都在但仍有差值」文件全量派子代理核）：控件层按上游恢复 2 文件（`BaseWidget` 117→166 行补齐 `onTrailingClick`/`clickHaptic`/`trailingDivider`/`remember` 化 interactionSource + `foreContent()` 叠层归位；`SwitchWidget` 43→129 行恢复触感 / `separateClickAreas` 判据 / `Role.Switch` 语义 / 拇指图标）+ 修 **2 处真回归**（`SwitchFeature.applyToggle` 丢持久化；`HideHomeScreenSwipeDownPage` 过期注释导致分组态高度硬编码 48dp，改回上游 `if (!ConversationGrouping.isEnabled) 48 else 94` 后与上游逐字节一致）+ 3 处 KDoc 订正（`BaseFeature`/`KvStore`/`WeLogger`）+ 记 1 项能力缺口（python 脚本设置页依赖未迁入的 `scripta`） |
@@ -613,9 +621,10 @@ feature outcome `PASS 125 + PASS_WITH_EXPECTED_FAILURES 7`；根 `schemaVersion=
 4. **A4 重出云端报告 —— ⏳ 待凭据**：真机扫全 132 个 DexKit 键并已导出报告（`report_v6.json`，189,863 B）；
    替换线上资产（`Kiora-wechat` release `402951057` 的 `wechat-8.0.78-3180-domestic.json`）需
    `GH_TOKEN` 或 `gh auth login`（本机 `gh` 已装未登录、相关环境变量全空）。
-5. **A5 视觉目视 3 项 —— ⏳ 待 YG 看图**：① `ui\utils\ComposeUtils.kt:21-57` 的裸 `MaterialTheme` 让约 150 处
-   `showComposeDialog` 弹窗走基线配色（修法见 C1）；② `BaseWidget` 未采纳上游 `alpha = 0.38f` 禁用态与
-   `primaryContainer` 选中色；③ 贴纸/语音面板的 ROOT 导入路径降级为 `Cancelled`（不崩）。截图 `_dev\s_v6.png`。
+5. **A5 视觉目视 3 项 —— ⏳ 待 YG 看图**：① 已按 C1 修好（裸 `MaterialTheme` → 上游 `ModuleTheme` 链，已编译 + 已装真机），
+   待目视：宿主内开任一功能设置弹窗（`showComposeDialog` 路径），确认配色随模块主题且不崩；② `BaseWidget` 未采纳
+   上游 `alpha = 0.38f` 禁用态与 `primaryContainer` 选中色；③ 贴纸/语音面板的 ROOT 导入路径降级为 `Cancelled`（不崩）。
+   截图 `_dev\s_v6.png`。
 6. **A6 产物复核 —— ⏳ 未做**：`isMinifyEnabled=true` + `isShrinkResources=true` 下体积五批同值 14,493,895 B
    （已按 dex 字面量证实产物逐批更新），剩 R8 规则复核。
 
@@ -634,9 +643,11 @@ feature outcome `PASS 125 + PASS_WITH_EXPECTED_FAILURES 7`；根 `schemaVersion=
 
 ### C. 可离线立即开批（不需设备、不需决策）
 
-1. **C1 弹窗主题单点修复**：`ui\utils\ComposeUtils.kt:21-57` 的裸 `MaterialTheme` → `InjectedUiTheme`，
-   一处生效覆盖约 150 个调用点；需复查 6 处已自带主题的调用点避免叠层（`ReplaceNavigationBar.kt:591`、
-   `ConversationGrouping.kt:391`、`HomeSidePanel.kt:484/1240`、`AddMainScreenFab.kt:425`、`PanelShell.kt:262`）。
+1. **C1 弹窗主题单点修复 —— ✅ 已落地（未提交，待真机目视）**：按上游原样把 `showComposeDialog` 改为
+   `CommonContextWrapper(context)` + `WeKitLocaleProvider(mode = InjectedHost)` + `ModuleTheme`（`uiEngine == NUKE`
+   时改走 `NukeModuleTheme`）—— **不是**本计划原先写的 `InjectedUiTheme`：上游此处用 `ModuleTheme`（模块自有 seed、
+   随设置实时换色、与设置页同观感），`InjectedUiTheme` 是「注入 WeChat 的 UI」用（微信绿、每次启动读一次），
+   且 6 处已自带 `InjectedUiTheme` 的调用点都不经 `showComposeDialog`，不存在叠层。逐条证据见「已落地批次」C1 行。
 2. **C2 贴纸 ROOT 导入专项**：`activity\RootTelegramStickerSetPicker.kt`（15654 B）依赖
    `com.github.topjohnwu.libsu:core` —— **离线缓存已有 6.0.0**；需同时在 `MainActivity` 处理
    `ACTION_PICK_ROOT_STICKER_SETS`，并让 `StickerPanelSheet` 的 ROOT 源重新可选。
@@ -656,3 +667,12 @@ feature outcome `PASS 125 + PASS_WITH_EXPECTED_FAILURES 7`；根 `schemaVersion=
 3. `activity\settings`（66 声明）不迁，只按需抽件（已抽 `M3ListScaffold.kt`）。
 4. 上游自身残缺或零引用者不迁：`CustomConversationNotifications.kt`（全文件 `//` 注释）、`utils\DebugUtils.kt`
    （Kiora 另有 `cn\hxy\kiora\hook\debug\DebugUtils.kt`）、`utils\AppUpdater.kt`、`data\MmkvReadonlyReader.kt`。
+
+### L. 用户点名（中文本地化，用户指令 m05927「先把功能和功能描述写成中文」）
+
+1. **L1 功能名 / 功能描述全量中文化 —— ✅ 已落地（未提交）**：`values\strings.xml` 的 2,258 条 `<string>` +
+   170 条 `<plurals>` item + 42 条 `<string-array>` item 逐条对齐上游 `values-zh-rCN`（根因＝当初误取上游英文默认）；
+   `xposed_description` 改写为中文并补微信版本；残留 33 条非中文全部有据（上游 zh-rCN 自身保留的专有名词/格式串、
+   品牌串、注入探针 `res_inject_success`）。APK 14,510,279→**14,496,819 B**、md5 `431A280B…`、已装机；
+   逐条证据见「已落地批次」L1 行。
+2. **随 A5 一并目视**：设置页与功能设置弹窗里的功能名/描述现在应为中文；顺带确认 C1 的弹窗配色。
