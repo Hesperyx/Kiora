@@ -8,7 +8,6 @@ import android.view.Window
 import androidx.activity.ComponentDialog
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,12 +16,25 @@ import androidx.core.graphics.drawable.toDrawable
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import dev.ujhhgtg.wekit.i18n.LocaleResourceMode
+import dev.ujhhgtg.wekit.i18n.WeKitLocaleProvider
+import dev.ujhhgtg.wekit.ui.content.nuke.NukeModuleTheme
+import dev.ujhhgtg.wekit.ui.utils.theme.ModuleTheme
+import dev.ujhhgtg.wekit.ui.utils.theme.SettingsUiEngine
+import dev.ujhhgtg.wekit.ui.utils.theme.ThemeSettings
 
+// useful for showing a compose dialog in non-compose context,
+// or when you don't want to manage the state for a dialog inside a composable
+//
+// note that you should use AlertDialogContent instead of AlertDialog inside 'content' to avoid
+// creating multiple windows
 fun showComposeDialog(
     context: Context,
     directlyDismissable: Boolean = true,
     content: @Composable ShowComposeDialogScope.() -> Unit
 ) {
+    val context = CommonContextWrapper(context)
+
     val dialog = ComponentDialog(
         context,
         android.R.style.Theme_DeviceDefault_Light_Dialog_NoActionBar_MinWidth
@@ -41,12 +53,21 @@ fun showComposeDialog(
         composeView.setViewTreeLifecycleOwner(this)
         composeView.setViewTreeSavedStateRegistryOwner(this)
         composeView.setContent {
-            MaterialTheme {
-                Box(
-                    modifier = Modifier.wrapContentSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    scope.content()
+            WeKitLocaleProvider(mode = LocaleResourceMode.InjectedHost) {
+                val themedContent: @Composable () -> Unit = {
+                    ModuleTheme {
+                        Box(
+                            modifier = Modifier.wrapContentSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            scope.content()
+                        }
+                    }
+                }
+                if (ThemeSettings.uiEngine == SettingsUiEngine.NUKE) {
+                    NukeModuleTheme(content = themedContent)
+                } else {
+                    themedContent()
                 }
             }
         }
