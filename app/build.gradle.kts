@@ -132,6 +132,13 @@ dependencies {
     implementation(libs.kyant0.backdrop)
     implementation(libs.kyant0.shapes)
     implementation(libs.materialkolor)
+    implementation(libs.coil)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.gif)
+    implementation(libs.coil.network.okhttp)
+    implementation(libs.okhttp3.okhttp)
+    // coil-android pulls appcompat-resources 1.7.1, which is not in the offline cache; 1.8.0 is.
+    implementation(libs.androidx.appcompat.resources)
     implementation(libs.composablehorizons.material.symbols.outlined)
     implementation(libs.composablehorizons.material.symbols.filled)
 
