@@ -5,23 +5,26 @@
 > 前置：`docs/superpowers/plans/2026-10-05-wekit-full-migration.md`（Phase 1/2，已完成）。
 > 本文件为滚动计划：每完成一批就更新「进度快照」与「剩余批次」。
 
-## 进度快照（2026-10-06 19:5x 实测，P1+P2+P3 已落地）
+## 进度快照（2026-10-06 实测，P1+P2+P3+P4-1 已落地）
 
 | 维度 | Kiora | WeKit 上游 | 覆盖率 |
 |---|---|---|---|
-| Kotlin 文件（`dev/ujhhgtg/wekit`） | **607** | 767 | 79.1% |
-| items 目录文件 | **312** | 333 | 93.7% |
-| `WxFeatureRegistry.all` 注册 | **215** | — | — |
+| Kotlin 文件（`dev/ujhhgtg/wekit`） | **637** | 767 | 83.1% |
+| items 目录文件 | **324** | 333 | 97.3% |
+| `WxFeatureRegistry.all` 注册 | **216** | — | — |
 | `WeApiRegistry`（dexBacked 19 + startupBacked 19） | **38** | — | — |
-| 上游 items 功能对象已注册 | **220** | 225 | 97.8%（**未注册 5**） |
+| 上游 items 功能对象已注册 | **221** | 225 | 98.2%（**未注册 4**） |
 | api 层文件 | 68 | 82 | 82.9% |
 | ui 层文件 | 76 | 99 | 76.8% |
 | data 层文件 | 18 | 19 | 94.7% |
 | utils 层文件 | 73 | 75 | 97.3% |
 | i18n 层文件 | 9 | 9 | 100%（简化实现） |
 | dexkit 层文件 | 11 | 10 | 100%+（Kiora 多 1 个自有文件） |
-| activity 层文件 | 5 | 23 | 21.7%（`activity\settings` / `activity\nuke` 不迁） |
-| 全树缺失声明（FQ 名对齐） | — | 2147 | 616 → **待 P4 复测**（旧口径基于 547/767） |
+| extensions 层文件 | 13 | 13 | 100%（两侧集合有差：Kiora 无 `ArchLinuxPack`（随 agent），上游无 `ExtensionPacksProvider`） |
+| python 层文件（vendored） | 10 | 0（上游在 `libs/python-runtime-api`） | — |
+| loader 层文件 | 5 | 21 | 23.8%（`entry\*` zygisk/frida 不迁） |
+| activity 层文件 | 6 | 23 | 26.1%（`activity\nuke` 不迁；`activity\settings` 只按需抽件） |
+| 全树缺失声明（FQ 名对齐） | — | 2147 | 616 → **待 P4-2 复测**（旧口径基于 547/767） |
 
 - 编译基线：`:app:compileReleaseKotlin --offline --no-daemon` → `errors: 0`；
   `:app:assembleRelease --offline --no-daemon` → `BUILD SUCCESSFUL`，APK **13,414,588 B**。
@@ -31,7 +34,8 @@
 
 | 提交 | 内容 |
 |---|---|
-| `P3`（本次） | 主题栈：beautify 7（`ApplyGlobalBackground` / `CenterProfileCard` / `CustomMessageBubbles` / `MonetEngine`→`WeApiRegistry` / `MonetEngineModuleGenerator` / `ReplaceNavigationBar` / `Themes`）+ `utils\monet` 12 文件；引入 ARSCLib 1.4.0（经 `prepareAndroidArsclib` Jar task 剔除 `android/**`、`org/xmlpull/v1/**`）/ apksig 9.3.3 / bouncycastle 1.86 prov+pkix；`NumberPickerWidget.kt` 换上游完整版；注册 209→215；APK 12,253,200→13,414,588 B |
+| `P4-1`（本次） | scripting_python 核心 + extensions 扩展包栈：`python\api` 10 接口（vendoring）、`scripting_python` 12 文件、`extensions` 6 文件（`ExtensionSupport`/`ExtensionPackRegistryValidation`/`ScriptDepsPack`/`ExtensionPackDialogs`/`PythonRuntimeArchive`/`PythonRuntimePack`）、`activity\settings\ExtensionsSettingsActivity.kt`、`loader\utils\HybridClassLoader.kt`、`ClassLoaders` 补 `BOOT`/`HYBRID`；`ExtensionPacksProvider.ALL_PACKS` 由 `emptyList()` 改为登记两包；注册 215→216；APK 13,414,588→13,474,920 B |
+| `P3` | 主题栈：beautify 7（`ApplyGlobalBackground` / `CenterProfileCard` / `CustomMessageBubbles` / `MonetEngine`→`WeApiRegistry` / `MonetEngineModuleGenerator` / `ReplaceNavigationBar` / `Themes`）+ `utils\monet` 12 文件；引入 ARSCLib 1.4.0（经 `prepareAndroidArsclib` Jar task 剔除 `android/**`、`org/xmlpull/v1/**`）/ apksig 9.3.3 / bouncycastle 1.86 prov+pkix；`NumberPickerWidget.kt` 换上游完整版；注册 209→215；APK 12,253,200→13,414,588 B |
 | `4c7db17` | P2：payment 5 + moments 7（含 `AutoMomentsBase` 派生两位）+ contacts 3（含 `HideContactsNotifications`→`WeApiRegistry`）+ voip 1，注册 194→209；引入 biometric 1.2.0-alpha05 / fragment 1.5.4，`TransparentActivity` 改基类为 `FragmentActivity`，`KvStore` 补 nullable `prefOption` |
 | `dbeca51` | P1 公共层：`DexResolver` / `LocalDexResolver` / `OsmLocationPicker` / `WeKitBasicDialog` / `SettingsComponents` / `DexCacheManager` / `ResolutionCoordinator` / `DexResolutionBatch` / `WeChatSettingsManager` / `WeViewTreeLifecycleProvider`；附带 debug 3 + system 4，注册 187→194 |
 | `1304d9b` | chat 功能波：ReadReceipts / MarkdownRendering / FloatingChatFooter+Header / SwipeConversation+MessageOperations / MessageTimeEnhancements / HalfScreenAlbumPicker / VoiceMessagePlaybackOptimization / ForwardFavoriteVoices / AddToAggregationFolder / BlockAtAllNotifications / AutoCacheFiles+Images / 群成员实名三件套 / 反撤回 / 拟造记录 / 引用直达 / 安全消息 / 会话置顶 / 消息入场动画 等 **26 项注册**（注册 161→187） |
@@ -48,10 +52,22 @@
 ### 待决策项的当前处置
 
 - **okhttp3**：已引入（5.5.0），StickerPanel / VoicePanel 全量可用。
-- **lsparanoid**：**仍未拍板**。当前 18 项 i18n 走简化实现（`i18n\` 9 文件同名同数），
-  不引入则相关功能保持「宿主语言 + 手工字符串」形态，不阻塞其余批次。
-- **WeAgent / `agent/` 全栈**：仍未拍板。排除后合计影响约 **216 个声明**
-  （`agent\*` 71 文件、`ui\agent\*`、`features\api\agent\*`）。
+- **lsparanoid**：**已定案——不引入**。证据：Kiora 全树零 import、仅 1 处注释提及
+  （`i18n\LocalizedContextFactory.kt:16`）；上游全树也仅 3 个文件引用 `LspBootstrap`/`LspResourceContext`。
+  Kiora 的 `i18n\` 9 文件与上游逐字节等价（`LocalizedContextFactory.kt` 唯一差 44 B = 那段注释），
+  说明替代路径已运行。收益只有 release 变体的类名/字符串混淆（反分析硬化），**不解锁任何功能**；
+  成本却是 mavenLocal group 白名单 + NDK 29.0.14206865 + omvll + arm64-only + 变体保护逻辑。
+- **scripting_python**：**已迁（核心），编辑器屏搁置**。Chaquopy 只存在于
+  `extension-packs\python-runtime\runtime` 那个独立打包子构建，app 侧 12 文件零 Chaquopy 引用；
+  Python 运行时是运行时下载的扩展包（`PythonRuntimePack` ← `ExtensionPacks.BASE_URL`）。
+  搁置的是 `activity\scripting_python\{PythonHighlighter, PythonScriptsSettingsActivity}.kt`：
+  它们依赖 `scripta` 编辑器，而 `scripta` 是上游未发布的复合构建
+  （`settings.gradle.kts:76 includeBuild("libs/common/scripta")`，submodule 内容未随源码分发，实测 0 条目），
+  mavenLocal 与离线缓存均无制品。
+- **WeAgent / `agent/` 全栈**：**仍未拍板**。离线依赖全齐（ktor / MCP SDK / okhttp3 / coil3 /
+  `com.github.mwiede:jsch` 2.28.7 / `org.jsoup:jsoup` 1.23.2 / material-symbols 全在缓存），
+  真缺口是 `third_party/proot-static`、Arch Linux rootfs、`libs/common/scripta` 三个未分发的 submodule。
+  排除后合计影响约 **216 个声明**（`agent\*` 71 文件、`ui\agent\*`、`features\api\agent\*`）。
 
 ## Global Constraints
 
@@ -78,7 +94,7 @@
 | `features\items\beautify` | 11 | **已完成（P3）** |
 | `features\items\moments` | 8 | **已完成（P2）** |
 | `features\items\system` | 8 | **已完成（P1/P2）** |
-| `features\items\scripting_python` | 23 | 决策项（Python 运行时） |
+| `features\items\scripting_python` | 23 | **已完成（P4-1）**；`activity\scripting_python` 编辑器屏因 `scripta` 缺失搁置 |
 | `ui\content\m3`（SettingsComponents 等） | 10 | **已完成（P1）** |
 | `loader\entry\zygisk` | 5 | **不迁**（Kiora 保持纯 Xposed） |
 | 其余零散 | ~120 | 随批处理；P4 复跑 `_gap.ps1` 后重新聚合 |
@@ -168,17 +184,32 @@ L4 需决策
   Kiora 侧 `assembleRelease` 在现有规则下直接通过。
 
 ### P4 决策 + 收口（Phase 4）
-- [ ] 依决策处理 agent / scripting_python / lsparanoid 相关项（剩余 5 项未注册功能：
-      `ChatToolbar`、`ForwardMessages`、`JavaScriptingHook`、`PythonScriptingFeature`、`WeAgent`）；
-      未引入者写入「暂不迁」清单。
+- [x] **lsparanoid** → 不引入（见「待决策项的当前处置」）。**scripting_python** → 核心已迁（本次）。
+      **agent** → 仍未拍板。
+- [ ] 剩余 4 项未注册功能：`ChatToolbar`、`ForwardMessages`、`JavaScriptingHook`、`WeAgent`。
+      `JavaScriptingHook` + `JavaEngine` + `JavaPlugin` 已从上游复制但**未纳入本次提交**：编译出
+      871 错误，全部收敛到 3 个 Kiora 侧差异 ——
+      ①`me.hd.wauxv.data.bean.{MsgInfoBean,ContactLabelBean}` 与 `.info.{FriendInfo,GroupInfo}` 缺件；
+      ②`bsh.NameSpace.setVariable(String, Object)` 双参重载缺失（Kiora 的 bsh 只认三参 `strictJava`）；
+      ③`bsh.classpath.ClassManager.addClassLoader(ClassLoader)` 缺失。三者均为加性兼容垫片，
+      单独成批（P4-1b）处理。
 - [ ] 复跑全树声明对齐盘点至收敛；清理 `WeApiRegistry` / `WxFeatureRegistry` 重复项与顺序问题。
 - [ ] 真机微信回归：清 DexKit 缓存冷启动，确认无自动扫描 / 自动重启、弹窗正确关闭、无崩溃；
-      逐批验证 220 项注册功能的开关与设置页。
-- [ ] 复核 APK 体积与 R8 规则（当前 13,414,588 B，`isMinifyEnabled=true` + `isShrinkResources=true`）。
+      逐批验证 221 项注册功能的开关与设置页。
+- [ ] 复核 APK 体积与 R8 规则（当前 13,474,920 B，`isMinifyEnabled=true` + `isShrinkResources=true`）。
 
 ## 当前状态：不可迁 / 永久搁置
 
 - `features\items\chat\ForwardMessages.kt` —— 上游自身缺 `ui.content.ContactsSelector`，永久搁置。
+- `...\wekit\activity\scripting_python\{PythonHighlighter,PythonScriptsSettingsActivity}.kt` ——
+  依赖 `scripta` 编辑器，而 `scripta` 是上游未发布的复合构建（`includeBuild("libs/common/scripta")`，
+  submodule 0 条目），离线环境无制品。`PythonScriptingFeature.onClick` 已退化为打开 Python 运行时扩展包屏。
+- `features\items\scripting_java\{JavaEngine,JavaPlugin,JavaScriptingHook}.kt` —— 待 P4-1b
+  （bsh 双参 `setVariable` / `addClassLoader` 垫片 + `me.hd.wauxv` 四个数据 bean）。
+- `...\wekit\loader\abc\{IClassLoaderHelper,ILoaderService}.kt` —— 无消费点，不迁。
+  `IHookBridge` 由 typealias 垫片方案**否决**：Kotlin 不支持经 typealias 访问嵌套类
+  （`IHookBridge.MemberUnhookHandle` 等一律 `Unresolved reference`），改为直连
+  `cn.hxy.kiora.loader.hookapi.IHookBridge`。
 - `features\items\chat\ChatToolbar.kt` —— 依赖 `WeAgentService` / `WeAgentOverlayController`，随 agent 决策。
 - `...\wekit\activity\RootTelegramStickerSetPicker.kt` —— 依赖 `com.topjohnwu.superuser`（libsu 6.0.0）
   且需 `MainActivity` 处理 `ACTION_PICK_ROOT_STICKER_SETS`；`StickerPanelSheet` 的 zygisk 直连路径已剔除，
@@ -186,7 +217,7 @@ L4 需决策
 
 ## 明确不在本计划范围
 
-- `extensions/` 扩展包（13 文件）：依赖扩展包索引与 `ResourcesInjector` 栈，属独立工程。
+- `extensions/` 扩展包：**已完成（P4-1）**，除 `ArchLinuxPack.kt`（随 agent 一并决策）。
 - `loader/` 的 zygisk / frida 入口与 `libwekit_native.so` 编译：Kiora 保持纯 Xposed，不引入 Zygisk。
 - `activity\settings`（66 声明）：Kiora 自有设置页取代；本计划只按需抽出其中的公共 Composable
   （已抽出 `activity\settings\M3ListScaffold.kt`）。

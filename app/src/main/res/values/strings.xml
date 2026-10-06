@@ -2971,4 +2971,33 @@
     <string name="opacity_percent">Opacity</string>
     <string name="saved_restart_wechat">Saved. Restart WeChat to apply.</string>
     <string name="unknown_author">Unknown author</string>
+
+    <!-- P4-1 scripting_python + extensions batch -->
+    <string name="extensions_pack_action_install">Install</string>
+    <string name="extensions_pack_cancel">Cancel download</string>
+    <string name="extensions_pack_delete">Delete</string>
+    <string name="extensions_pack_delete_confirm_msg">The pack must be re-downloaded before its feature works again.</string>
+    <string name="extensions_pack_delete_confirm_title">Delete extension pack?</string>
+    <string name="extensions_pack_download">Download</string>
+    <string name="extensions_pack_downloading">Downloading…</string>
+    <string name="extensions_pack_in_use">In use; delete after restarting WeChat</string>
+    <string name="extensions_pack_installed_version">Installed: %1$s</string>
+    <string name="extensions_pack_python_restart_required">Update installed; restart WeChat to use it</string>
+    <string name="extensions_pack_python_runtime_desc">CPython and Chaquopy runtime for Python plugins</string>
+    <string name="extensions_pack_python_runtime_name">Python Runtime</string>
+    <string name="extensions_pack_required_msg">This feature requires the %1$s extension pack. Install it now?</string>
+    <string name="extensions_pack_required_title">%1$s required</string>
+    <string name="extensions_pack_retry">Retry</string>
+    <string name="extensions_pack_script_deps_desc">Unobfuscated fastjson2 and okhttp DEX for the Java script engine</string>
+    <string name="extensions_pack_script_deps_name">Java script dependencies</string>
+    <string name="extensions_pack_state_failed">Failed: %1$s</string>
+    <string name="extensions_pack_state_not_installed">Not installed</string>
+    <string name="extensions_pack_state_update_available">Update available: %1$s → %2$s</string>
+    <string name="extensions_pack_suggest_msg">The %1$s extension pack is recommended for this feature. Install it now?</string>
+    <string name="extensions_pack_suggest_title">Install %1$s?</string>
+    <string name="extensions_pack_update">Update</string>
+    <string name="extensions_pack_verifying">Verifying…</string>
+    <string name="extensions_screen_title">Extension packs</string>
+    <string name="feature_python_scripting_description">Run trusted CPython plugins with direct JVM access</string>
+    <string name="feature_python_scripting_name">Python plugin engine</string>
 </resources>

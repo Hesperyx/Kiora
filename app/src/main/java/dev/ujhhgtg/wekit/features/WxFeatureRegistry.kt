@@ -108,6 +108,7 @@ import dev.ujhhgtg.wekit.features.items.miniapps.RemoveEmbeddedAds
 import dev.ujhhgtg.wekit.features.items.miniapps.RemoveVideoAds
 import dev.ujhhgtg.wekit.features.items.miniapps.SkipRewardedAds
 import dev.ujhhgtg.wekit.features.items.scripting_java.DecompileBeanShellSnapshot
+import dev.ujhhgtg.wekit.features.items.scripting_python.PythonScriptingFeature
 import dev.ujhhgtg.wekit.features.items.miniapps.ErudaConsole
 import dev.ujhhgtg.wekit.features.items.moments.AlwaysShowInteractionEntry
 import dev.ujhhgtg.wekit.features.items.moments.AntiMomentCommentsDelete
@@ -333,6 +334,7 @@ object WxFeatureRegistry {
                 RemoveVideoAds,
                 SkipRewardedAds,
                 DecompileBeanShellSnapshot,
+                PythonScriptingFeature,
                 ErudaConsole,
                 SpoofEnvironment,
                 UploadTransparentAvatars,

@@ -2772,6 +2772,34 @@ object R {
         val opacity_percent = cn.hxy.kiora.R.string.opacity_percent
         val saved_restart_wechat = cn.hxy.kiora.R.string.saved_restart_wechat
         val unknown_author = cn.hxy.kiora.R.string.unknown_author
+        // P4-1 scripting_python + extensions batch
+        val extensions_pack_action_install = cn.hxy.kiora.R.string.extensions_pack_action_install
+        val extensions_pack_cancel = cn.hxy.kiora.R.string.extensions_pack_cancel
+        val extensions_pack_delete = cn.hxy.kiora.R.string.extensions_pack_delete
+        val extensions_pack_delete_confirm_msg = cn.hxy.kiora.R.string.extensions_pack_delete_confirm_msg
+        val extensions_pack_delete_confirm_title = cn.hxy.kiora.R.string.extensions_pack_delete_confirm_title
+        val extensions_pack_download = cn.hxy.kiora.R.string.extensions_pack_download
+        val extensions_pack_downloading = cn.hxy.kiora.R.string.extensions_pack_downloading
+        val extensions_pack_in_use = cn.hxy.kiora.R.string.extensions_pack_in_use
+        val extensions_pack_installed_version = cn.hxy.kiora.R.string.extensions_pack_installed_version
+        val extensions_pack_python_restart_required = cn.hxy.kiora.R.string.extensions_pack_python_restart_required
+        val extensions_pack_python_runtime_desc = cn.hxy.kiora.R.string.extensions_pack_python_runtime_desc
+        val extensions_pack_python_runtime_name = cn.hxy.kiora.R.string.extensions_pack_python_runtime_name
+        val extensions_pack_required_msg = cn.hxy.kiora.R.string.extensions_pack_required_msg
+        val extensions_pack_required_title = cn.hxy.kiora.R.string.extensions_pack_required_title
+        val extensions_pack_retry = cn.hxy.kiora.R.string.extensions_pack_retry
+        val extensions_pack_script_deps_desc = cn.hxy.kiora.R.string.extensions_pack_script_deps_desc
+        val extensions_pack_script_deps_name = cn.hxy.kiora.R.string.extensions_pack_script_deps_name
+        val extensions_pack_state_failed = cn.hxy.kiora.R.string.extensions_pack_state_failed
+        val extensions_pack_state_not_installed = cn.hxy.kiora.R.string.extensions_pack_state_not_installed
+        val extensions_pack_state_update_available = cn.hxy.kiora.R.string.extensions_pack_state_update_available
+        val extensions_pack_suggest_msg = cn.hxy.kiora.R.string.extensions_pack_suggest_msg
+        val extensions_pack_suggest_title = cn.hxy.kiora.R.string.extensions_pack_suggest_title
+        val extensions_pack_update = cn.hxy.kiora.R.string.extensions_pack_update
+        val extensions_pack_verifying = cn.hxy.kiora.R.string.extensions_pack_verifying
+        val extensions_screen_title = cn.hxy.kiora.R.string.extensions_screen_title
+        val feature_python_scripting_description = cn.hxy.kiora.R.string.feature_python_scripting_description
+        val feature_python_scripting_name = cn.hxy.kiora.R.string.feature_python_scripting_name
     }
 
     object plurals {
