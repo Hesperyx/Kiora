@@ -138,6 +138,15 @@ import dev.ujhhgtg.wekit.features.items.chat.SaveStickersToLocalStorage
 import dev.ujhhgtg.wekit.features.items.chat.SaveVoicesToLocalStorage
 import dev.ujhhgtg.wekit.features.items.moments.ForwardMessagesToMoments
 import dev.ujhhgtg.wekit.features.items.contacts.DetectDeletedFriends
+import dev.ujhhgtg.wekit.features.items.beautify.AddMainScreenFab
+import dev.ujhhgtg.wekit.features.items.beautify.home_screen_panel.HomeSidePanel
+import dev.ujhhgtg.wekit.features.items.chat.ConversationAggregation
+import dev.ujhhgtg.wekit.features.items.chat.ConversationGrouping
+import dev.ujhhgtg.wekit.features.items.contacts.CustomLocalFriendAvatars
+import dev.ujhhgtg.wekit.features.items.contacts.DeleteFakeGroups
+import dev.ujhhgtg.wekit.features.items.contacts.HideContacts
+import dev.ujhhgtg.wekit.features.items.contacts.RoundAvatars
+import dev.ujhhgtg.wekit.features.items.contacts.SplitGroupCall
 
 
 /**
@@ -290,6 +299,15 @@ object WxFeatureRegistry {
                 RedirectDownloadPath,
                 ForwardMessagesToMoments,
                 DetectDeletedFriends,
+                AddMainScreenFab,
+                HomeSidePanel,
+                ConversationAggregation,
+                ConversationGrouping,
+                CustomLocalFriendAvatars,
+                DeleteFakeGroups,
+                HideContacts,
+                RoundAvatars,
+                SplitGroupCall,
             )
         )
     }

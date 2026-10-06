@@ -19,6 +19,7 @@ import dev.ujhhgtg.wekit.utils.hookAfterDirectly
 import dev.ujhhgtg.wekit.utils.hookBeforeDirectly
 import org.luckypray.dexkit.DexKitBridge
 import java.lang.reflect.Executable
+import kotlin.reflect.KClass
 
 /**
  * WeKit 血统功能的根基类。
@@ -130,6 +131,16 @@ abstract class BaseFeature {
 
     fun Class<*>.hookAfterOnCreate(action: HookAction) =
         this.declaredMethods.first { it.name == "onCreate" }.hookAfter(50, action)
+
+    /**
+     * `KClass` 重载（WeKit 原版 `features\core\BaseFeature.kt:139/:143`）。
+     * 原版走 `reflekt()`，这里落到本文件已有的 `Class<*>` 实现上，行为一致。
+     */
+    fun KClass<*>.hookBeforeOnCreate(action: HookAction) =
+        this.java.hookBeforeOnCreate(action)
+
+    fun KClass<*>.hookAfterOnCreate(action: HookAction) =
+        this.java.hookAfterOnCreate(action)
 
     // --- hookAfter ---
 

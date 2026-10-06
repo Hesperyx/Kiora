@@ -798,4 +798,689 @@
     <string name="contacts_detect_wechat_number">WeChat number: %1$s</string>
     <string name="feature_detect_deleted_friends_description">Scan all friends in batches to detect whether they have been deleted by the other party.</string>
     <string name="feature_detect_deleted_friends_name">Detect contacts who deleted you</string>
+
+    <!-- B1 data layer: restartHost -->
+    <string name="noncompose_restarting_host">Restarting…</string>
+
+    <!-- Closure batch: data layer + conversation cluster + settings shell -->
+    <string name="structured_storage_unavailable">This feature’s data could not be loaded. Check the migration logs and restart WeChat to retry.</string>
+    <string name="settings_saved">Settings saved</string>
+    <plurals name="automation_configured_members">
+        <item quantity="one">%1$d member configured</item>
+        <item quantity="other">%1$d members configured</item>
+    </plurals>
+    <plurals name="automation_overrides">
+        <item quantity="one">%1$d override</item>
+        <item quantity="other">%1$d overrides</item>
+    </plurals>
+    <string name="automation_all_members_follow_group">All members follow group-wide settings</string>
+    <string name="automation_auto_reply_disabled">Do not reply automatically</string>
+    <string name="automation_auto_reply_enabled">Send a message to the source conversation after success</string>
+    <string name="automation_contact_settings">Per-contact settings</string>
+    <string name="automation_contact_settings_summary">Override global settings for contacts, groups, or group members</string>
+    <string name="automation_delay_summary">Base %1$s ms, random offset ±%2$s ms</string>
+    <string name="automation_follow_global">Follow global settings</string>
+    <string name="automation_follow_group_global">Follow group-wide settings</string>
+    <string name="automation_global_settings">Global settings</string>
+    <string name="automation_global_settings_saved">Global settings saved</string>
+    <string name="automation_group_global_settings">Group-wide settings</string>
+    <string name="automation_group_member_settings">Per-member group settings</string>
+    <string name="automation_group_member_settings_title">%1$s · Per-member settings</string>
+    <string name="automation_group_settings">Group settings</string>
+    <string name="automation_invalid_base_delay">Enter a valid base delay</string>
+    <string name="automation_invalid_random_delay">Enter a valid random offset range</string>
+    <string name="automation_notification_disabled">Do not show notifications</string>
+    <string name="automation_regex_empty_summary">No regular expression entered</string>
+    <string name="automation_reply_content">Reply content</string>
+    <string name="automation_reply_required">Auto-reply content must not be empty</string>
+    <string name="contacts_hide_schedule">Scheduled show/hide</string>
+    <string name="contacts_hide_schedule_description">Temporarily show or hide contacts on schedule without changing the hidden list</string>
+    <string name="logs_save_failed">Save failed!</string>
+    <plurals name="automation_group_overrides">
+        <item quantity="one">Group settings · %1$d override</item>
+        <item quantity="other">Group settings · %1$d overrides</item>
+    </plurals>
+    <plurals name="automation_keyword_contains_summary">
+        <item quantity="one">Match any item in the string list (%1$d item)</item>
+        <item quantity="other">Match any item in the string list (%1$d items)</item>
+    </plurals>
+    <plurals name="automation_keyword_exact_summary">
+        <item quantity="one">Exactly match any item in the string list (%1$d item)</item>
+        <item quantity="other">Exactly match any item in the string list (%1$d items)</item>
+    </plurals>
+    <plurals name="chat_aggregation_auto_groups_count"><item quantity="one">Automatically include all groups (%1$d conversation currently matched)</item><item quantity="other">Automatically include all groups (%1$d conversations currently matched)</item></plurals>
+    <plurals name="chat_aggregation_auto_officials_count"><item quantity="one">Automatically include all official accounts (%1$d conversation currently matched)</item><item quantity="other">Automatically include all official accounts (%1$d conversations currently matched)</item></plurals>
+    <plurals name="chat_aggregation_current_match_count"><item quantity="one">Currently matches %1$d conversation</item><item quantity="other">Currently matches %1$d conversations</item></plurals>
+    <plurals name="chat_aggregation_groups_conversation_count"><item quantity="one">All groups: %1$d conversation</item><item quantity="other">All groups: %1$d conversations</item></plurals>
+    <plurals name="chat_aggregation_manual_conversation_count"><item quantity="one">Manual selection: %1$d conversation</item><item quantity="other">Manual selection: %1$d conversations</item></plurals>
+    <plurals name="chat_aggregation_officials_conversation_count"><item quantity="one">All official accounts: %1$d conversation</item><item quantity="other">All official accounts: %1$d conversations</item></plurals>
+    <plurals name="chat_aggregation_selected_count"><item quantity="one">%1$d conversation selected</item><item quantity="other">%1$d conversations selected</item></plurals>
+    <plurals name="chat_aggregation_sql_conversation_count"><item quantity="one">SQL rule: %1$d conversation</item><item quantity="other">SQL rule: %1$d conversations</item></plurals>
+    <plurals name="contacts_hide_saved"><item quantity="one">Saved %1$d contact</item><item quantity="other">Saved %1$d contacts</item></plurals>
+    <plurals name="contacts_schedule_dropped"><item quantity="one">%1$d one-time schedule fired and was deleted while you were editing; its changes were not saved</item><item quantity="other">%1$d one-time schedules fired and were deleted while you were editing; their changes were not saved</item></plurals>
+    <plurals name="contacts_split_call_done_cleaned"><item quantity="one">Task finished: %1$d succeeded, %2$d failed; automatically cleaned up %3$d fake group</item><item quantity="other">Task finished: %1$d succeeded, %2$d failed; automatically cleaned up %3$d fake groups</item></plurals>
+    <plurals name="contacts_split_call_done_cleanup_failed"><item quantity="one">Task finished: %1$d succeeded, %2$d failed; automatic cleanup failed for %3$d fake group</item><item quantity="other">Task finished: %1$d succeeded, %2$d failed; automatic cleanup failed for %3$d fake groups</item></plurals>
+    <plurals name="moments_automation_overridden_count"><item quantity="one">%1$d override</item><item quantity="other">%1$d overrides</item></plurals>
+    <plurals name="moments_automation_selected_type_count"><item quantity="one">%1$d type selected</item><item quantity="other">%1$d types selected</item></plurals>
+    <string name="action_add">Add</string>
+    <string name="action_done">Done</string>
+    <string name="action_reset">Reset</string>
+    <string name="action_settings">Settings</string>
+    <string name="automation_base_delay_ms">Base delay (milliseconds)</string>
+    <string name="automation_end">End</string>
+    <string name="automation_follow_parent">Follow %1$s: %2$s</string>
+    <string name="automation_group_configured">Group settings · Configured</string>
+    <string name="automation_ignore_case">Ignore case</string>
+    <string name="automation_keyword_list_required">%1$s string list must not be empty</string>
+    <string name="automation_keyword_mode_contains">Contains</string>
+    <string name="automation_keyword_mode_exact">Equals</string>
+    <string name="automation_keyword_mode_label">Match mode</string>
+    <string name="automation_keyword_mode_regex">Regex</string>
+    <string name="automation_new_keyword">New keyword</string>
+    <string name="automation_random_delay_ms">Random offset range (±milliseconds)</string>
+    <string name="automation_regex_invalid">Invalid regular expression</string>
+    <string name="automation_regex_invalid_for_label">%1$s regular expression is invalid</string>
+    <string name="automation_regex_required">%1$s regular expression must not be empty</string>
+    <string name="automation_regex_summary">Match one regular expression</string>
+    <string name="automation_start">Start</string>
+    <string name="badge_count_overflow">99+</string>
+    <string name="chat_aggregation_change_avatar">Change avatar</string>
+    <string name="chat_aggregation_choose_conversations">Choose conversations</string>
+    <string name="chat_aggregation_clear_avatar">Clear avatar</string>
+    <string name="chat_aggregation_configure">Configure</string>
+    <string name="chat_aggregation_create">Create</string>
+    <string name="chat_aggregation_create_folder">Create folder</string>
+    <string name="chat_aggregation_edit_folder">Edit folder</string>
+    <string name="chat_aggregation_enable_custom_avatar">Enable “Custom local friend avatars” to use avatar features</string>
+    <string name="chat_aggregation_folder_empty">This folder has no conversations</string>
+    <string name="chat_aggregation_folder_name">Folder name</string>
+    <string name="chat_aggregation_index_rebuilt">Folder index rebuilt</string>
+    <string name="chat_aggregation_mode">Folder mode</string>
+    <string name="chat_aggregation_mode_all_groups">All groups automatically</string>
+    <string name="chat_aggregation_mode_all_officials">All official accounts automatically</string>
+    <string name="chat_aggregation_mode_manual">Manual selection</string>
+    <string name="chat_aggregation_mode_sql">Custom SQL rule</string>
+    <string name="chat_aggregation_no_folders">No folders yet. Tap Create to add one.</string>
+    <string name="chat_aggregation_not_in_manual_folder">This conversation is not in this manual folder</string>
+    <string name="chat_aggregation_reload">Reload</string>
+    <string name="chat_aggregation_remove_from_folder">Remove from folder</string>
+    <string name="chat_aggregation_removed_from_folder">Removed from “%1$s”</string>
+    <string name="chat_aggregation_saved">Saved</string>
+    <string name="chat_aggregation_select">Select</string>
+    <string name="chat_aggregation_select_fields">SELECT fields</string>
+    <string name="chat_aggregation_select_forward_target">Choose a recipient from this folder</string>
+    <string name="chat_aggregation_set_avatar">Set avatar</string>
+    <string name="chat_aggregation_sql_help" formatted="false">Data sources: rcontact r, img_flag i, rconversation c\nExample: c.unReadCount &gt; 0 AND r.username LIKE \'%@chatroom\'</string>
+    <string name="chat_aggregation_title">Conversation folders</string>
+    <string name="chat_aggregation_where_clause">WHERE clause</string>
+    <string name="contact_confirm_selected_count">Confirm (%1$d)</string>
+    <string name="contact_deselect_all">Deselect all</string>
+    <string name="contact_filter_all">All</string>
+    <string name="contact_filter_database_unavailable">The database is not initialized; filters are unavailable.</string>
+    <string name="contact_filter_friends">Friends</string>
+    <string name="contact_filter_groups">Groups</string>
+    <string name="contact_filter_mode_aggregation">Aggregation</string>
+    <string name="contact_filter_mode_enable_more">Enable "Conversation aggregation" or "Conversation grouping" to use more filter modes.</string>
+    <string name="contact_filter_mode_grouping">Grouping</string>
+    <string name="contact_filter_mode_labels">Labels</string>
+    <string name="contact_filter_official_accounts">Official accounts</string>
+    <string name="contact_filter_others">Others</string>
+    <string name="contact_filter_with_count">%1$s (%2$d)</string>
+    <string name="contact_filters_collapse">Collapse filters</string>
+    <string name="contact_filters_expand">Expand filters</string>
+    <string name="contact_invert_selection">Invert selection</string>
+    <string name="contact_label_filter_all">All labels</string>
+    <string name="contact_label_with_count">%1$s (%2$d)</string>
+    <string name="contact_no_matches">No matching contacts</string>
+    <string name="contact_search_content_description">Search contacts</string>
+    <string name="contact_search_hint">Search by name or WeChat ID</string>
+    <string name="contact_select_all">Select all</string>
+    <string name="contact_selected_section">Selected</string>
+    <string name="contact_sort_alphabetical_ascending" translatable="false">A–Z</string>
+    <string name="contact_sort_alphabetical_descending" translatable="false">Z–A</string>
+    <string name="contact_sort_database_unavailable">The database is not initialized; sorting by time is unavailable.</string>
+    <string name="contact_sort_direction_toggle">Reverse sort order</string>
+    <string name="contact_sort_newest_first">Newest first</string>
+    <string name="contact_sort_oldest_first">Oldest first</string>
+    <string name="contacts_custom_avatar_add">Add custom avatar</string>
+    <string name="contacts_custom_avatar_change">Change custom avatar</string>
+    <string name="contacts_custom_avatar_change_action">Change</string>
+    <string name="contacts_custom_avatar_clear">Clear</string>
+    <string name="contacts_custom_avatar_cleared">Custom avatar cleared</string>
+    <string name="contacts_custom_avatar_cleared_reopen">Custom avatar cleared; reopen the page to apply the change</string>
+    <string name="contacts_custom_avatar_configured">Configured — %1$s</string>
+    <string name="contacts_custom_avatar_manage">Manage avatars</string>
+    <string name="contacts_custom_avatar_scope_chat">Chat messages</string>
+    <string name="contacts_custom_avatar_scope_contacts">Contacts and contact selectors</string>
+    <string name="contacts_custom_avatar_scope_conversation">Conversation list</string>
+    <string name="contacts_custom_avatar_scope_moments">Moments</string>
+    <string name="contacts_custom_avatar_scope_notifications">Notifications</string>
+    <string name="contacts_custom_avatar_scope_other">Other WeChat pages</string>
+    <string name="contacts_custom_avatar_scope_profile">Contact and group profiles</string>
+    <string name="contacts_custom_avatar_scope_shortcuts">Home screen shortcuts</string>
+    <string name="contacts_custom_avatar_scopes">Apply to</string>
+    <string name="contacts_custom_avatar_select">Select</string>
+    <string name="contacts_custom_avatar_set_reopen">Custom avatar set; reopen the page or restart WeChat to apply it</string>
+    <string name="contacts_custom_avatar_shortcut_hint">Applies when creating shortcuts. Recreate existing shortcuts to update their icons.</string>
+    <string name="contacts_custom_avatar_title">Custom avatar</string>
+    <string name="contacts_hide_already_shown">Hidden contacts are already temporarily visible</string>
+    <string name="contacts_hide_auto_reject">Automatically reject audio and video calls</string>
+    <string name="contacts_hide_auto_reject_description">When off, incoming calls are hidden but ring for the caller until timeout; when on, rejection is sent immediately</string>
+    <string name="contacts_hide_configure">Configure hidden list</string>
+    <string name="contacts_hide_configure_description">Tap to configure the contacts to hide</string>
+    <string name="contacts_hide_nothing_to_restore">There are no hidden contacts to restore</string>
+    <string name="contacts_hide_restored">Hidden contacts restored</string>
+    <string name="contacts_hide_select">Select contacts to hide</string>
+    <string name="contacts_hide_shown_command_hint">All hidden contacts are temporarily visible; enter #hide to hide them again</string>
+    <string name="contacts_hide_temporarily_shown">All hidden contacts are temporarily visible</string>
+    <string name="contacts_hide_triple_click">Triple-tap title to toggle</string>
+    <string name="contacts_hide_triple_click_description">Triple-tap the title bar at the top of the home screen to temporarily show or hide contacts</string>
+    <string name="contacts_schedule_action_hide">Hide</string>
+    <string name="contacts_schedule_action_show">Show</string>
+    <string name="contacts_schedule_add">Add</string>
+    <string name="contacts_schedule_add_title">Add schedule</string>
+    <string name="contacts_schedule_conflict">Another schedule fires at the same time; select a different time</string>
+    <string name="contacts_schedule_date_time">Date and time</string>
+    <string name="contacts_schedule_delete">Delete schedule</string>
+    <string name="contacts_schedule_edit_title">Edit schedule</string>
+    <string name="contacts_schedule_empty">No schedules. Tap “Add” in the upper-right corner to create one.</string>
+    <string name="contacts_schedule_every_day">Every day</string>
+    <string name="contacts_schedule_friday">Fri</string>
+    <string name="contacts_schedule_kind_once">Once</string>
+    <string name="contacts_schedule_kind_repeating">Repeats weekly</string>
+    <string name="contacts_schedule_monday">Mon</string>
+    <string name="contacts_schedule_never">Never</string>
+    <string name="contacts_schedule_once_deleted">A one-time schedule is deleted after it fires</string>
+    <string name="contacts_schedule_once_summary">%1$s · %2$s (once)</string>
+    <string name="contacts_schedule_past_time">This time has passed; select a future time</string>
+    <string name="contacts_schedule_repeating_summary">%1$s %2$s · %3$s</string>
+    <string name="contacts_schedule_saturday">Sat</string>
+    <string name="contacts_schedule_select_day">Select at least one day</string>
+    <string name="contacts_schedule_sunday">Sun</string>
+    <string name="contacts_schedule_tasks">Schedules</string>
+    <string name="contacts_schedule_thursday">Thu</string>
+    <string name="contacts_schedule_time">Time</string>
+    <string name="contacts_schedule_tuesday">Tue</string>
+    <string name="contacts_schedule_wednesday">Wed</string>
+    <string name="contacts_split_call_already_running">A split-group-call task is already running</string>
+    <string name="contacts_split_call_invalid_repeat">Enter a repeat count greater than 0</string>
+    <string name="contacts_split_call_repeat_count">Repeat count</string>
+    <string name="contacts_split_call_voip_mode">Start and hang up a fake group call</string>
+    <string name="contacts_split_call_walkie_talkie_mode">Start and stop a fake group walkie-talkie session</string>
+    <string name="conversation_group_action_delete">Delete</string>
+    <string name="conversation_group_action_edit">Edit</string>
+    <string name="conversation_group_action_new">New</string>
+    <string name="conversation_group_action_reorder">Reorder</string>
+    <string name="conversation_group_all">All</string>
+    <string name="conversation_group_create_title">New group</string>
+    <string name="conversation_group_default_friends">Friends</string>
+    <string name="conversation_group_default_groups">Group chats</string>
+    <string name="conversation_group_default_officials">Official accounts</string>
+    <string name="conversation_group_default_unread">Unread</string>
+    <string name="conversation_group_delete_message">Delete group “%1$s”?</string>
+    <string name="conversation_group_delete_title">Delete group</string>
+    <string name="conversation_group_deleted">Deleted “%1$s”</string>
+    <string name="conversation_group_edit_title">Edit group</string>
+    <string name="conversation_group_friends_match_count">Automatically group all friends (%1$d currently matched)</string>
+    <string name="conversation_group_groups_match_count">Automatically group all group chats (%1$d currently matched)</string>
+    <string name="conversation_group_match_count">Currently matches %1$d conversations</string>
+    <string name="conversation_group_mode">Grouping mode</string>
+    <string name="conversation_group_mode_friends">All friends automatically</string>
+    <string name="conversation_group_mode_groups">All group chats automatically</string>
+    <string name="conversation_group_mode_manual">Select manually</string>
+    <string name="conversation_group_mode_officials">All official accounts automatically</string>
+    <string name="conversation_group_mode_sql">Custom SQL rule</string>
+    <string name="conversation_group_mode_unread">All unread conversations automatically</string>
+    <string name="conversation_group_name">Group name</string>
+    <string name="conversation_group_new_description">New group</string>
+    <string name="conversation_group_officials_match_count">Automatically group all official accounts (%1$d currently matched)</string>
+    <string name="conversation_group_order_saved">Order saved</string>
+    <string name="conversation_group_save_order_description">Save order</string>
+    <string name="conversation_group_saved">Saved</string>
+    <string name="conversation_group_select_conversations">Select conversations</string>
+    <string name="conversation_group_select_fields">SELECT fields</string>
+    <string name="conversation_group_selected_count">Selected %1$d conversations</string>
+    <string name="conversation_group_sql_help" formatted="false">Data sources: rcontact r, img_flag i, rconversation c\nExample: c.unReadCount &gt; 0 AND r.username LIKE \'%@chatroom\'</string>
+    <string name="conversation_group_unread_match_count">Automatically group all unread conversations (%1$d currently matched)</string>
+    <string name="conversation_group_where_clause">WHERE clause</string>
+    <string name="conversation_grouping_floating_recommend_confirm">Switch to floating island</string>
+    <string name="conversation_grouping_floating_recommend_message">Conversation list beautification is now enabled. We recommend a floating island for the group tabs to match. Switch now?</string>
+    <string name="conversation_grouping_floating_recommend_title">Try a floating island</string>
+    <string name="conversation_grouping_include_official_unread">Include unread from official accounts</string>
+    <string name="conversation_grouping_include_official_unread_description">Include official accounts in unread counts and dots on group tabs</string>
+    <string name="conversation_grouping_pin_tabs">Pin group tabs</string>
+    <string name="conversation_grouping_pin_tabs_description">Keep group tabs below the title bar when scrolling up</string>
+    <string name="conversation_grouping_remember_scroll_state">Remember scroll position</string>
+    <string name="conversation_grouping_remember_scroll_state_description">Remember and restore each group’s vertical scroll position when switching groups</string>
+    <string name="conversation_grouping_show_unread">Show unread</string>
+    <string name="conversation_grouping_show_unread_description">Show unread counts and dots on group tabs</string>
+    <string name="conversation_grouping_swipe_prepare_failed">Unable to switch groups right now. Please try again.</string>
+    <string name="conversation_grouping_tab_layout_title">Tab layout</string>
+    <string name="conversation_grouping_tab_style_floating">Floating island</string>
+    <string name="conversation_grouping_tab_style_full_width">Full-width tab bar</string>
+    <string name="conversation_grouping_take_over_horizontal_scroll">Take over horizontal swiping</string>
+    <string name="conversation_grouping_take_over_horizontal_scroll_description">Swipe between adjacent groups; outward swipes at either end go to WeChat pages or the side panel</string>
+    <string name="conversation_grouping_unread_title">Unread indicators</string>
+    <string name="fab_action_type">Action type</string>
+    <string name="fab_activity_class_name">Fully qualified Activity class name</string>
+    <string name="fab_add_shortcut_message">Choose an action for the home-screen FAB menu.</string>
+    <string name="fab_add_shortcut_title">Add shortcut button</string>
+    <string name="fab_adjust_position">Adjust position</string>
+    <string name="fab_adjust_position_summary">Return to WeChat home, drag the button, then tap the green checkmark to save</string>
+    <string name="fab_all_marked_read">All unread messages marked as read</string>
+    <string name="fab_button_name">Button name</string>
+    <string name="fab_default_channels">Channels</string>
+    <string name="fab_default_favorites">Favorites</string>
+    <string name="fab_default_force_stop">Force stop</string>
+    <string name="fab_default_mark_all_read">Mark all as read</string>
+    <string name="fab_default_module_settings">Module settings</string>
+    <string name="fab_default_moments">Moments</string>
+    <string name="fab_default_restart_wechat">Restart WeChat</string>
+    <string name="fab_default_scan">Scan</string>
+    <string name="fab_default_settings">Settings</string>
+    <string name="fab_default_wallet">Wallet</string>
+    <string name="fab_delete_description">Delete %1$s</string>
+    <string name="fab_description_mark_all_read">Mark all unread messages as read</string>
+    <string name="fab_description_open_module_settings">Open module settings</string>
+    <string name="fab_description_restart_wechat">Restart the WeChat process</string>
+    <string name="fab_description_stop_wechat">Terminate the WeChat process</string>
+    <string name="fab_drag_to_reorder_description">Drag to reorder</string>
+    <string name="fab_edit_position_hint">Drag the main button to reposition it, then tap it to save</string>
+    <string name="fab_empty_shortcuts">No shortcuts yet. Tap Add in the top-right to configure one.</string>
+    <string name="fab_icon">Icon</string>
+    <string name="fab_icon_bookmark">bookmark</string>
+    <string name="fab_icon_camera">camera</string>
+    <string name="fab_icon_cancel">cancel</string>
+    <string name="fab_icon_check_circle">check circle</string>
+    <string name="fab_icon_extension">extension</string>
+    <string name="fab_icon_favorite">favorite</string>
+    <string name="fab_icon_mark_as_read">mark as read</string>
+    <string name="fab_icon_qr_scanner">QR scanner</string>
+    <string name="fab_icon_settings">settings</string>
+    <string name="fab_icon_update">update</string>
+    <string name="fab_icon_video">video</string>
+    <string name="fab_icon_wallet">wallet</string>
+    <string name="fab_position_saved">FAB position saved</string>
+    <string name="fab_preset_entry">%1$s · %2$s</string>
+    <string name="fab_presets">Preset entries</string>
+    <string name="fab_reorder_immediate_hint">Long press a drag handle to reorder. Changes take effect immediately.</string>
+    <string name="fab_reset_position">Reset position</string>
+    <string name="fab_save_position_description">Save position</string>
+    <string name="fab_select_icon_description">Select %1$s icon</string>
+    <string name="fab_settings_title">FAB buttons</string>
+    <string name="fab_shortcuts_title">Home-screen shortcuts</string>
+    <string name="fab_type_already_added">%1$s (already added)</string>
+    <string name="fab_type_start_activity">Launch Activity</string>
+    <string name="feature_add_main_screen_fab_description">Add floating action buttons to WeChat home screen</string>
+    <string name="feature_add_main_screen_fab_name">Add home-screen FAB</string>
+    <string name="feature_auto_accept_transfers_name">Automatically receive transfers</string>
+    <string name="feature_auto_like_moments_name">Auto-like Moments</string>
+    <string name="feature_auto_open_red_packets_name">Auto-open red packets</string>
+    <string name="feature_auto_repost_moments_name">Auto-repost Moments</string>
+    <string name="feature_category_api_title">API</string>
+    <string name="feature_category_batch_title">Batch actions</string>
+    <string name="feature_category_beautify_title">Appearance</string>
+    <string name="feature_category_channels_title">Channels</string>
+    <string name="feature_category_chat_title">Chat</string>
+    <string name="feature_category_contact_details_title">Contact details</string>
+    <string name="feature_category_contacts_groups_title">Contacts and groups</string>
+    <string name="feature_category_debug_title">Debugging</string>
+    <string name="feature_category_enabled_title">Enabled features</string>
+    <string name="feature_category_entertain_title">Entertainment</string>
+    <string name="feature_category_home_screen_menu_title">Home screen menu</string>
+    <string name="feature_category_miniapps_title">Mini apps</string>
+    <string name="feature_category_moments_title">Moments</string>
+    <string name="feature_category_new_features_title">New features</string>
+    <string name="feature_category_notifications_title">Notifications</string>
+    <string name="feature_category_official_accounts_title">Official accounts</string>
+    <string name="feature_category_payment_title">Payments</string>
+    <string name="feature_category_profile_title">Profile</string>
+    <string name="feature_category_scripting_java_title">Java scripting</string>
+    <string name="feature_category_scripting_python_title">Python scripting</string>
+    <string name="feature_category_system_privacy_title">System and privacy</string>
+    <string name="feature_category_voip_title">Voice and video calls</string>
+    <string name="feature_conversation_aggregation_description">Gather multiple conversations into one folder\nTo set a conversation avatar, you need to enable "Customize friend local avatar" at the same time</string>
+    <string name="feature_conversation_aggregation_name">Conversation aggregation</string>
+    <string name="feature_conversation_grouping_description">Add a Tab bar to the top of the homepage to group conversations</string>
+    <string name="feature_conversation_grouping_name">Conversation grouping</string>
+    <string name="feature_custom_local_friend_avatars_description">Replace the displayed avatar with a local image for a specified contact or group</string>
+    <string name="feature_custom_local_friend_avatars_name">Custom local contact avatars</string>
+    <string name="feature_hide_contacts_description">Hide selected contacts throughout WeChat</string>
+    <string name="feature_hide_contacts_name">Hide contacts</string>
+    <string name="feature_home_side_panel_description">Add a left-swipe sidebar panel to the WeChat homepage (minus one screen)</string>
+    <string name="feature_home_side_panel_name">Home side panel</string>
+    <string name="feature_split_group_call_description">Randomly generate a fake group ID, initiate a group call or real-time intercom and then terminate the push to other people’s mobile phones</string>
+    <string name="feature_split_group_call_name">Split group call</string>
+    <string name="moments_automation_action_type">Action type</string>
+    <string name="moments_automation_age_unrestricted">No publication-time restriction</string>
+    <string name="moments_automation_all_cached">Automatically process newly published posts</string>
+    <string name="moments_automation_all_cached_requires_refresh">Only posts published after enabling this feature; no historical catch-up. Enable “Moments / Auto refresh” for background updates.</string>
+    <string name="moments_automation_contact_settings">Per-contact settings</string>
+    <string name="moments_automation_contact_summary">Override global settings for individual contacts</string>
+    <string name="moments_automation_content_keywords">Content keywords</string>
+    <string name="moments_automation_content_type">Moments post type</string>
+    <string name="moments_automation_default_auto_like">Default auto-like behavior</string>
+    <string name="moments_automation_default_auto_repost">Default auto-repost behavior</string>
+    <string name="moments_automation_default_like_action">Use the default like action</string>
+    <string name="moments_automation_follow_global">Follow global settings</string>
+    <string name="moments_automation_global_saved">Global settings saved</string>
+    <string name="moments_automation_global_settings">Global settings</string>
+    <string name="moments_automation_global_summary">Configure default conditions and actions</string>
+    <string name="moments_automation_interval">Action interval</string>
+    <string name="moments_automation_interval_ms">Interval (milliseconds)</string>
+    <string name="moments_automation_interval_too_large">The action interval cannot exceed %1$d milliseconds</string>
+    <string name="moments_automation_interval_value">At least %1$s ms between actions</string>
+    <string name="moments_automation_invalid_interval">Enter a valid action interval</string>
+    <string name="moments_automation_invalid_maximum_age">Enter a valid maximum post age</string>
+    <string name="moments_automation_keyword_unrestricted">No Moments text restriction</string>
+    <string name="moments_automation_like">Like</string>
+    <string name="moments_automation_maximum_age">Maximum post age</string>
+    <string name="moments_automation_maximum_age_hours">Maximum post age (hours)</string>
+    <string name="moments_automation_maximum_age_value">Only process posts published within %1$s hours</string>
+    <string name="moments_automation_no_extra_wait">No additional wait</string>
+    <string name="moments_automation_process_all">Process all contacts by default; per-contact settings can disable individual contacts</string>
+    <string name="moments_automation_process_contact">Process this contact’s Moments posts</string>
+    <string name="moments_automation_process_none">Process no contacts by default; per-contact settings can enable individual contacts</string>
+    <string name="moments_automation_processing_mode">Processing mode</string>
+    <string name="moments_automation_select_type">Select at least one Moments post type</string>
+    <string name="moments_automation_skip_contact">Skip this contact’s Moments posts</string>
+    <string name="moments_automation_time_range">Active time range</string>
+    <string name="moments_automation_time_unrestricted">No time restriction</string>
+    <string name="moments_automation_type_unrestricted">No post-type restriction</string>
+    <string name="moments_automation_unlike">Unlike</string>
+    <string name="moments_automation_when_seen">Process immediately when seen</string>
+    <string name="moments_automation_when_seen_only">Only process posts as they appear</string>
+    <string name="nav_features">Features</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_logs">Logs</string>
+    <string name="nav_settings">Settings</string>
+    <string name="payment_red_packet_amount_placeholder">Use $amount for the claimed amount</string>
+    <string name="payment_red_packet_auto_reply">Reply automatically after claiming</string>
+    <string name="payment_red_packet_default_all">Claim red packets from all contacts by default; per-contact settings can disable this</string>
+    <string name="payment_red_packet_default_grab">Claim red packets by default</string>
+    <string name="payment_red_packet_default_none">Do not claim red packets from any contact by default; per-contact settings can enable this</string>
+    <string name="payment_red_packet_delay">Claim delay</string>
+    <string name="payment_red_packet_global_summary">Configure the default claiming conditions and post-claim actions</string>
+    <string name="payment_red_packet_grab_scope">Claim red packets in the current scope</string>
+    <string name="payment_red_packet_grab_self">Claim your own red packets</string>
+    <string name="payment_red_packet_grab_self_disabled">Skip red packets you sent</string>
+    <string name="payment_red_packet_grab_self_enabled">Allow claiming red packets you sent</string>
+    <string name="payment_red_packet_immediate">Claim immediately after receipt</string>
+    <string name="payment_red_packet_keyword_label">Keywords</string>
+    <string name="payment_red_packet_keywords">Claiming keywords</string>
+    <string name="payment_red_packet_keywords_unrestricted">Do not restrict red packet keywords</string>
+    <string name="payment_red_packet_manual_click">Simulate a manual tap</string>
+    <string name="payment_red_packet_network">Direct network request</string>
+    <string name="payment_red_packet_network_default">Direct network request (default)</string>
+    <string name="payment_red_packet_notification">Notify after claiming</string>
+    <string name="payment_red_packet_notification_enabled">Show the claimed amount and source</string>
+    <string name="payment_red_packet_receive_mode">Receive method</string>
+    <string name="payment_red_packet_skip_keyword_label">Skip keywords</string>
+    <string name="payment_red_packet_skip_keywords">Skip keywords</string>
+    <string name="payment_red_packet_skip_keywords_unrestricted">Do not restrict skip keywords</string>
+    <string name="payment_red_packet_skip_scope">Skip red packets in the current scope</string>
+    <string name="payment_red_packet_time_range">Red packet claiming time range</string>
+    <string name="payment_red_packet_time_unrestricted">Do not restrict claiming time</string>
+    <string name="payment_transfer_accept_scope">Accept transfers in the current scope</string>
+    <string name="payment_transfer_amount_boundary_required">Enter at least one amount boundary</string>
+    <string name="payment_transfer_amount_placeholder">Use $amount for the transfer amount</string>
+    <string name="payment_transfer_amount_range">Transfer amount range</string>
+    <string name="payment_transfer_amount_summary">%1$s – %2$s yuan</string>
+    <string name="payment_transfer_amount_unrestricted">Do not restrict transfer amounts</string>
+    <string name="payment_transfer_auto_reply">Reply automatically after acceptance</string>
+    <string name="payment_transfer_default_accept">Accept transfers by default</string>
+    <string name="payment_transfer_default_all">Accept transfers from all contacts by default; per-contact settings can disable this</string>
+    <string name="payment_transfer_default_none">Do not accept transfers from any contact by default; per-contact settings can enable this</string>
+    <string name="payment_transfer_delay">Acceptance delay</string>
+    <string name="payment_transfer_global_summary">Configure the default acceptance conditions and post-acceptance actions</string>
+    <string name="payment_transfer_immediate">Accept transfers immediately</string>
+    <string name="payment_transfer_invalid_maximum">Enter a valid maximum amount</string>
+    <string name="payment_transfer_invalid_minimum">Enter a valid minimum amount</string>
+    <string name="payment_transfer_maximum_amount">Maximum amount (yuan, optional)</string>
+    <string name="payment_transfer_memo_keywords">Transfer memo keywords</string>
+    <string name="payment_transfer_memo_unrestricted">Do not restrict transfer memos</string>
+    <string name="payment_transfer_minimum_above_maximum">The minimum amount cannot exceed the maximum amount</string>
+    <string name="payment_transfer_minimum_amount">Minimum amount (yuan, optional)</string>
+    <string name="payment_transfer_notification">Notify after acceptance</string>
+    <string name="payment_transfer_notification_enabled">Show the received amount and source</string>
+    <string name="payment_transfer_skip_scope">Skip transfers in the current scope</string>
+    <string name="payment_transfer_time_range">Transfer acceptance time range</string>
+    <string name="payment_transfer_time_unrestricted">Do not restrict acceptance time</string>
+    <string name="structured_storage_save_failed">Could not save. Your previous settings are unchanged. Check the logs and try again.</string>
+    <string name="structured_storage_saving">Saving…</string>
+    <string name="unrestricted">No limit</string>
+
+    <!-- home_screen_panel + remaining closure refs -->
+    <string name="home_side_panel_add_action">Add action</string>
+    <string name="home_side_panel_add_card">Add card</string>
+    <string name="home_side_panel_card_image">Image</string>
+    <string name="home_side_panel_delete_card">Delete card</string>
+    <string name="home_side_panel_image_aspect_ratio_unsupported">Image aspect ratio is too extreme</string>
+    <string name="home_side_panel_refresh_too_frequent">Requests are too frequent. Try again later.</string>
+    <string name="home_side_panel_settings">Side panel settings</string>
+    <string name="loading">Loading…</string>
+    <string-array name="home_side_panel_lunar_day_names">
+        <item>day 1</item>
+        <item>day 2</item>
+        <item>day 3</item>
+        <item>day 4</item>
+        <item>day 5</item>
+        <item>day 6</item>
+        <item>day 7</item>
+        <item>day 8</item>
+        <item>day 9</item>
+        <item>day 10</item>
+        <item>day 11</item>
+        <item>day 12</item>
+        <item>day 13</item>
+        <item>day 14</item>
+        <item>day 15</item>
+        <item>day 16</item>
+        <item>day 17</item>
+        <item>day 18</item>
+        <item>day 19</item>
+        <item>day 20</item>
+        <item>day 21</item>
+        <item>day 22</item>
+        <item>day 23</item>
+        <item>day 24</item>
+        <item>day 25</item>
+        <item>day 26</item>
+        <item>day 27</item>
+        <item>day 28</item>
+        <item>day 29</item>
+        <item>day 30</item>
+    </string-array>
+    <string-array name="home_side_panel_lunar_month_names">
+        <item>1st month</item>
+        <item>2nd month</item>
+        <item>3rd month</item>
+        <item>4th month</item>
+        <item>5th month</item>
+        <item>6th month</item>
+        <item>7th month</item>
+        <item>8th month</item>
+        <item>9th month</item>
+        <item>10th month</item>
+        <item>11th month</item>
+        <item>12th month</item>
+    </string-array>
+    <string name="action_restore_defaults">Restore defaults</string>
+    <string name="home_side_panel_action_add_friend">Add friends</string>
+    <string name="home_side_panel_action_launch_failed">Could not open this action in the current WeChat version</string>
+    <string name="home_side_panel_attribution_author">— %1$s</string>
+    <string name="home_side_panel_attribution_author_source">— %1$s, “%2$s”</string>
+    <string name="home_side_panel_attribution_source">— “%1$s”</string>
+    <string name="home_side_panel_auto_detect">Auto-detect</string>
+    <string name="home_side_panel_card_date_time">Date and time</string>
+    <string name="home_side_panel_card_hitokoto">Hitokoto</string>
+    <string name="home_side_panel_card_horizontal_actions">Horizontal tiles</string>
+    <string name="home_side_panel_card_vertical_actions">Vertical list</string>
+    <string name="home_side_panel_card_wallet">Wallet</string>
+    <string name="home_side_panel_card_weather">Weather</string>
+    <string name="home_side_panel_categories">Categories</string>
+    <string name="home_side_panel_current_balance">Current balance</string>
+    <string name="home_side_panel_current_city">Current city: %1$s %2$s</string>
+    <string name="home_side_panel_date_pattern">MMM d, EEE</string>
+    <string name="home_side_panel_date_time_settings">Date &amp; time settings</string>
+    <string name="home_side_panel_delete_action">Delete action</string>
+    <string name="home_side_panel_delete_empty_action_card">Delete empty action card</string>
+    <string name="home_side_panel_discard_editing">Close and discard changes</string>
+    <string name="home_side_panel_drag_action">Drag action to reorder within this card</string>
+    <string name="home_side_panel_drag_add_action">Drag to insert this action</string>
+    <string name="home_side_panel_drag_add_card">Drag to insert this card</string>
+    <string name="home_side_panel_drag_card">Drag card to reorder</string>
+    <string name="home_side_panel_edit_card">Edit card</string>
+    <string name="home_side_panel_enter_edit_mode">Enter edit mode</string>
+    <string name="home_side_panel_fallback_initial">W</string>
+    <string name="home_side_panel_feels_like">Feels like %1$s°</string>
+    <string name="home_side_panel_fetch_failed">Failed to load</string>
+    <string name="home_side_panel_geocoder_failed">Could not convert the current location into a city</string>
+    <string name="home_side_panel_greeting_afternoon">Good afternoon. Hope everything goes smoothly today.</string>
+    <string name="home_side_panel_greeting_evening">Good evening. Rest well tonight.</string>
+    <string name="home_side_panel_greeting_morning">Good morning. Keep your spirits up today.</string>
+    <string name="home_side_panel_hide_balance_default">Hide balance by default</string>
+    <string name="home_side_panel_hide_balance_details">When enabled, tap the wallet card to temporarily show or hide the balance. Closing the side panel restores the hidden state. Temporary state is not saved.</string>
+    <string name="home_side_panel_hide_balance_summary">Show ****** when the side panel opens</string>
+    <string name="home_side_panel_hide_wechat_title">Hide the WeChat title in the title bar</string>
+    <string name="home_side_panel_high_low">High / low</string>
+    <string name="home_side_panel_hitokoto">Hitokoto</string>
+    <string name="home_side_panel_hitokoto_animation">Animation</string>
+    <string name="home_side_panel_hitokoto_comics">Comics</string>
+    <string name="home_side_panel_hitokoto_connection_failed">Could not connect to the Hitokoto service</string>
+    <string name="home_side_panel_hitokoto_games">Games</string>
+    <string name="home_side_panel_hitokoto_http_error">Hitokoto service request failed: HTTP %1$d</string>
+    <string name="home_side_panel_hitokoto_invalid_range">Maximum length cannot be less than minimum length</string>
+    <string name="home_side_panel_hitokoto_literature">Literature</string>
+    <string name="home_side_panel_hitokoto_loading">Loading Hitokoto…</string>
+    <string name="home_side_panel_hitokoto_movies">Film and television</string>
+    <string name="home_side_panel_hitokoto_negative_length">Length cannot be negative</string>
+    <string name="home_side_panel_hitokoto_netease_music">NetEase Cloud Music</string>
+    <string name="home_side_panel_hitokoto_original">Original</string>
+    <string name="home_side_panel_hitokoto_other">Other</string>
+    <string name="home_side_panel_hitokoto_parse_failed">Failed to parse Hitokoto data</string>
+    <string name="home_side_panel_hitokoto_philosophy">Philosophy</string>
+    <string name="home_side_panel_hitokoto_poetry">Poetry</string>
+    <string name="home_side_panel_hitokoto_select_category">Select at least one category</string>
+    <string name="home_side_panel_hitokoto_settings">Hitokoto settings</string>
+    <string name="home_side_panel_hitokoto_tap">Tap the card to get a Hitokoto</string>
+    <string name="home_side_panel_hitokoto_timeout">Hitokoto request timed out</string>
+    <string name="home_side_panel_hitokoto_unsupported_category">An unsupported Hitokoto category is selected</string>
+    <string name="home_side_panel_hitokoto_web">Internet</string>
+    <string name="home_side_panel_hitokoto_witty">Witticisms</string>
+    <string name="home_side_panel_humidity">Humidity</string>
+    <string name="home_side_panel_image_dimensions_too_large">Image dimensions are too large</string>
+    <string name="home_side_panel_image_enter_edit">Enter edit mode to select an image</string>
+    <string name="home_side_panel_image_import_failed">Image import failed</string>
+    <string name="home_side_panel_image_invalid">Invalid image</string>
+    <string name="home_side_panel_image_load_failed">Image failed to load</string>
+    <string name="home_side_panel_image_load_failed_replace">Image failed to load; tap to replace</string>
+    <string name="home_side_panel_image_replace">Replace image</string>
+    <string name="home_side_panel_image_resize">Resize image card</string>
+    <string name="home_side_panel_image_scale_auto_ratio">Auto ratio</string>
+    <string name="home_side_panel_image_scale_crop">Crop</string>
+    <string name="home_side_panel_image_scale_fit">Fit</string>
+    <string name="home_side_panel_image_scale_mode">Scale mode</string>
+    <string name="home_side_panel_image_scale_stretch">Stretch</string>
+    <string name="home_side_panel_image_select">Click to select an image</string>
+    <string name="home_side_panel_image_too_large">Image is too large</string>
+    <string name="home_side_panel_location_city_not_found">The current city is not in the weather database</string>
+    <string name="home_side_panel_location_disabled">Turn on system location services first</string>
+    <string name="home_side_panel_location_failed">Location failed. Retry or select a city manually.</string>
+    <string name="home_side_panel_location_permission_denied">Location permission was denied. You can still search for or manually select a city.</string>
+    <string name="home_side_panel_location_permission_needed">Location permission is required. Allow it and try again.</string>
+    <string name="home_side_panel_location_permission_undeclared">This WeChat version does not declare approximate location permission. Select a city manually.</string>
+    <string name="home_side_panel_location_timeout">Location timed out. Retry or select a city manually.</string>
+    <string name="home_side_panel_location_unavailable">WeChat cannot access system location services. Select a city manually.</string>
+    <string name="home_side_panel_lunar_leap_prefix">leap\u0020</string>
+    <string name="home_side_panel_lunar_prefix">Lunar\u0020</string>
+    <string name="home_side_panel_lunar_separator">,\u0020</string>
+    <string name="home_side_panel_max_length">Maximum length</string>
+    <string name="home_side_panel_min_length">Minimum length</string>
+    <string name="home_side_panel_no_weather_data">No weather data. Tap the card to retry.</string>
+    <string name="home_side_panel_online">Online</string>
+    <string name="home_side_panel_open_panel">Open side panel</string>
+    <string name="home_side_panel_open_profile">Open profile</string>
+    <string name="home_side_panel_open_profile_failed">Could not open the profile page</string>
+    <string name="home_side_panel_open_status_failed">Could not open the status editor</string>
+    <string name="home_side_panel_payment_code">Payment code</string>
+    <string name="home_side_panel_read_profile">Read from profile</string>
+    <string name="home_side_panel_refresh_status">Refresh status</string>
+    <string name="home_side_panel_save_editing">Save side panel layout</string>
+    <string name="home_side_panel_save_failed">Could not save the side panel layout. Your draft is still open.</string>
+    <string name="home_side_panel_scan">Scan</string>
+    <string name="home_side_panel_search_city">Search cities</string>
+    <string name="home_side_panel_show_author">Show author</string>
+    <string name="home_side_panel_show_lunar_calendar">Show lunar calendar</string>
+    <string name="home_side_panel_show_source">Show source</string>
+    <string name="home_side_panel_show_toolbar_profile">Show the “Me” widget in the WeChat title bar</string>
+    <string name="home_side_panel_updated_at">Updated at %1$s</string>
+    <string name="home_side_panel_wallet_settings">Wallet settings</string>
+    <string name="home_side_panel_weather">Weather</string>
+    <string name="home_side_panel_weather_connection_failed">Could not connect to the weather service</string>
+    <string name="home_side_panel_weather_http_error">Weather service request failed: HTTP %1$d</string>
+    <string name="home_side_panel_weather_incomplete">The weather service returned incomplete data</string>
+    <string name="home_side_panel_weather_invalid">The weather service returned invalid data</string>
+    <string name="home_side_panel_weather_missing_city">No city is set in the profile</string>
+    <string name="home_side_panel_weather_missing_region">No region is set in the profile</string>
+    <string name="home_side_panel_weather_no_city">No weather city selected</string>
+    <string name="home_side_panel_weather_no_match">Could not match the city in the weather database</string>
+    <string name="home_side_panel_weather_profile_read_error">Failed to read the profile</string>
+    <string name="home_side_panel_weather_settings">Weather settings</string>
+    <string name="home_side_panel_weather_timeout">Weather request timed out</string>
+    <string name="home_side_panel_weather_unsupported_country">The profile region is not supported</string>
+    <string name="home_side_panel_wechat_user">WeChat user</string>
+    <string name="home_side_panel_wind_speed">Wind speed</string>
+    <string name="weather_blizzard">Blizzard</string>
+    <string name="weather_blowing_snow">Blowing snow</string>
+    <string name="weather_cloudy">Cloudy</string>
+    <string name="weather_dust">Floating dust</string>
+    <string name="weather_dust_storm">Dust storm</string>
+    <string name="weather_fog">Fog</string>
+    <string name="weather_freezing_rain">Freezing rain</string>
+    <string name="weather_hail_thunderstorm">Thunderstorms with hail</string>
+    <string name="weather_haze">Haze</string>
+    <string name="weather_heavy_rain">Heavy rain</string>
+    <string name="weather_heavy_rain_to_rainstorm">Heavy rain to rainstorm</string>
+    <string name="weather_heavy_rainstorm">Heavy rainstorm</string>
+    <string name="weather_heavy_snow">Heavy snow</string>
+    <string name="weather_heavy_snow_to_blizzard">Heavy snow to blizzard</string>
+    <string name="weather_heavy_to_severe_rainstorm">Heavy to severe rainstorm</string>
+    <string name="weather_light_rain">Light rain</string>
+    <string name="weather_light_snow">Light snow</string>
+    <string name="weather_light_to_moderate_rain">Light to moderate rain</string>
+    <string name="weather_light_to_moderate_snow">Light to moderate snow</string>
+    <string name="weather_mist">Mist</string>
+    <string name="weather_moderate_rain">Moderate rain</string>
+    <string name="weather_moderate_snow">Moderate snow</string>
+    <string name="weather_moderate_to_heavy_rain">Moderate to heavy rain</string>
+    <string name="weather_moderate_to_heavy_snow">Moderate to heavy snow</string>
+    <string name="weather_overcast">Overcast</string>
+    <string name="weather_rainstorm">Rainstorm</string>
+    <string name="weather_rainstorm_to_heavy">Rainstorm to heavy rainstorm</string>
+    <string name="weather_sand">Blowing sand</string>
+    <string name="weather_severe_dust_storm">Severe dust storm</string>
+    <string name="weather_severe_rainstorm">Severe rainstorm</string>
+    <string name="weather_shower">Showers</string>
+    <string name="weather_sleet">Sleet</string>
+    <string name="weather_snow_shower">Snow showers</string>
+    <string name="weather_squall">Squall</string>
+    <string name="weather_sunny">Sunny</string>
+    <string name="weather_thunderstorm">Thunderstorms</string>
+    <string name="weather_tornado">Tornado</string>
+
+    <!-- contacts: delete-fake-groups + round-avatars -->
+    <string name="feature_delete_fake_groups_name">Delete fake group</string>
+    <string name="feature_delete_fake_groups_description">Completely clear the fake group (only clear the local database, not affecting the original group).</string>
+    <string name="contacts_delete_fake_none">No fake groups found</string>
+    <string name="contacts_delete_fake_select_one">Select at least one fake group</string>
+    <string name="contacts_delete_fake_confirm_title">Confirm deletion</string>
+    <string name="feature_round_avatars_name">Rounded avatar</string>
+    <string name="feature_round_avatars_description">Customize the rounded arc of WeChat global avatar rendering</string>
+    <string name="contacts_round_avatar_radius">Corner radius</string>
+
+    <!-- contacts: delete-fake-groups plurals -->
+    <plurals name="contacts_delete_fake_select_title"><item quantity="one">Delete fake group (%1$d found)</item><item quantity="other">Delete fake groups (%1$d found)</item></plurals>
+    <plurals name="contacts_delete_fake_confirm_message"><item quantity="one">Delete the %1$d selected fake group? This cannot be undone; the original group will not be affected.</item><item quantity="other">Delete the %1$d selected fake groups? This cannot be undone; the original groups will not be affected.</item></plurals>
+    <plurals name="contacts_delete_fake_done"><item quantity="one">Cleared %1$d fake group</item><item quantity="other">Cleared %1$d fake groups</item></plurals>
 </resources>

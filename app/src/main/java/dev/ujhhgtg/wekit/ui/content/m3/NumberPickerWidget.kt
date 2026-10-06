@@ -1,5 +1,6 @@
 package dev.ujhhgtg.wekit.ui.content.m3
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,6 +25,10 @@ fun IntNumberPickerWidget(
     onValueChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    /** 值处于「未设置」等次要状态时置灰显示（WeKit 原版 `:58`）。 */
+    subduedValue: Boolean = false,
+    /** 非空时值文本可点击，用于「点击切换是否设置」（WeKit 原版 `:59`）。 */
+    onValueClick: (() -> Unit)? = null,
 ) {
     Column(
         modifier = modifier
@@ -56,8 +61,17 @@ fun IntNumberPickerWidget(
             )
             Text(
                 text = "$value$valueSuffix",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.bodyMedium
+                color = if (subduedValue) {
+                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = if (onValueClick != null) {
+                    Modifier.clickable(onClick = onValueClick)
+                } else {
+                    Modifier
+                }
             )
         }
     }

@@ -1,6 +1,7 @@
 package dev.ujhhgtg.wekit.data
 
 import cn.hxy.kiora.host.HostEnv
+import kotlin.jvm.JvmName
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -38,6 +39,13 @@ object KvStore {
         prefs.edit().putInt(key, value).apply()
     }
 
+    fun getStringOrDef(key: String, def: String): String = prefs.getString(key, def) ?: def
+
+    /**
+     * 可空重载（WeKit 原版 `data\KvStore.kt:83`）。两者在 JVM 上擦除后签名相同，
+     * 故用 `@JvmName` 区分 —— 调用方多为 `getStringOrDef(key, "literal")` 需要非空返回。
+     */
+    @JvmName("getStringOrDefNullable")
     fun getStringOrDef(key: String, def: String?): String? = prefs.getString(key, def)
 
     /** 无默认值版，返回 null 表示不存在。WeKit 原版 API 名。 */
@@ -59,6 +67,34 @@ object KvStore {
 
     fun contains(key: String): Boolean = prefs.contains(key)
 
+    /** WeKit 原版别名，语义与 [contains] 相同。 */
+    fun containsKey(key: String): Boolean = contains(key)
+
+    /** SharedPreferences 交出的 Set 由框架持有，拷贝后再返回，避免调用方原地修改污染缓存。 */
+    fun getStringSet(key: String, def: Set<String>?): Set<String>? =
+        prefs.getStringSet(key, def)?.toSet()
+
+    fun getStringSetOrDef(key: String, def: Set<String>): Set<String> = getStringSet(key, def)!!
+
+    fun putStringSet(key: String, value: Set<String>) {
+        prefs.edit().putStringSet(key, value.toSet()).apply()
+    }
+
+    fun getObject(key: String): Any? = if (prefs.contains(key)) prefs.all[key] else null
+
+    /**
+     * WeKit 原版用它强制「老设置已迁移到新权威域」后才允许读取。
+     * Kiora 版全部键都落在同一个 `Kiora_Config_global` 上，没有独立的老存储可迁，
+     * 因此退化为可读性校验：键存在时必须能读出值。
+     */
+    fun requireMigrationKeys(keys: Collection<String>) {
+        keys.forEach { key ->
+            if (prefs.contains(key)) {
+                checkNotNull(getObject(key)) { "Unreadable legacy preference value for $key" }
+            }
+        }
+    }
+
     // ── prefOption 属性委托（WeKit 原版是 Room 实现，这里落在 SharedPreferences 上）──
 
     fun prefOption(key: String, defValue: Boolean): ReadWriteProperty<Any?, Boolean> =
@@ -74,7 +110,7 @@ object KvStore {
     fun prefOption(key: String, defValue: String): ReadWriteProperty<Any?, String> =
         object : ReadWriteProperty<Any?, String> {
             override fun getValue(thisRef: Any?, property: KProperty<*>): String =
-                getStringOrDef(key, defValue) ?: defValue
+                getStringOrDef(key, defValue)
 
             override fun setValue(thisRef: Any?, property: KProperty<*>, value: String) {
                 putString(key, value)
@@ -98,6 +134,26 @@ object KvStore {
 
             override fun setValue(thisRef: Any?, property: KProperty<*>, value: Long) {
                 putLong(key, value)
+            }
+        }
+
+    fun prefOption(key: String, defValue: Float): ReadWriteProperty<Any?, Float> =
+        object : ReadWriteProperty<Any?, Float> {
+            override fun getValue(thisRef: Any?, property: KProperty<*>): Float =
+                getFloatOrDef(key, defValue)
+
+            override fun setValue(thisRef: Any?, property: KProperty<*>, value: Float) {
+                putFloat(key, value)
+            }
+        }
+
+    fun prefOption(key: String, defValue: Set<String>): ReadWriteProperty<Any?, Set<String>> =
+        object : ReadWriteProperty<Any?, Set<String>> {
+            override fun getValue(thisRef: Any?, property: KProperty<*>): Set<String> =
+                getStringSetOrDef(key, defValue)
+
+            override fun setValue(thisRef: Any?, property: KProperty<*>, value: Set<String>) {
+                putStringSet(key, value)
             }
         }
 }

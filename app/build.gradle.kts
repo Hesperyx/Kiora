@@ -141,13 +141,25 @@ dependencies {
     implementation(libs.androidx.appcompat.resources)
     implementation(libs.composablehorizons.material.symbols.outlined)
     implementation(libs.composablehorizons.material.symbols.filled)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.miuix.blur)
+    implementation(libs.miuix.shader)
+    implementation(libs.miuix.nav)
+    implementation(libs.miuix.squircle)
 
     ksp(projects.processor)
+    ksp(libs.androidx.room.compiler)
 
     compileOnly(libs.libxposed.api)
     compileOnly(libs.xposed)
     compileOnly(projects.qqinterface)
     compileOnly(projects.wxinterface)
+}
+
+ksp {
+    // Room schema export for migration diffing
+    arg("room.schemaLocation", "$projectDir/schemas")
+    arg("room.generateKotlin", "true")
 }
 
 protobuf {

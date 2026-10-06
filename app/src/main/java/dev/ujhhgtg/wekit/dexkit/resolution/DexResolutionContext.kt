@@ -21,6 +21,9 @@ object DexResolutionContext {
 
     private val current = ThreadLocal<DexKitBridge?>()
 
+    /** 本线程正在解析中的 owner，用于 [ensureResolved] 的重入判定。 */
+    private val activeOwners = ThreadLocal.withInitial { mutableSetOf<IResolveDex>() }
+
     val dexKit: DexKitBridge
         get() = current.get() ?: error("Dex resolution context is not active")
 
@@ -39,15 +42,46 @@ object DexResolutionContext {
         val dexKit = current.get() ?: error("Dex resolution context is not active")
         val feature = item as BaseFeature
 
-        item.dexDelegates.forEach(BaseDexDelegate::resetForResolution)
-        feature.resolveInlineDex(dexKit)
-        item.resolveDex(dexKit)
-        item.dexDelegates.forEach(BaseDexDelegate::markIncomplete)
+        val active = activeOwners.get()
+        active += item
+        try {
+            item.dexDelegates.forEach(BaseDexDelegate::resetForResolution)
+            feature.resolveInlineDex(dexKit)
+            item.resolveDex(dexKit)
+            item.dexDelegates.forEach(BaseDexDelegate::markIncomplete)
 
-        check(item.dexDelegates.all {
-            it.diagnostic.status == DexResolutionStatus.SUCCESS ||
-                it.diagnostic.status == DexResolutionStatus.EXPECTED_FAILURE
-        }) { "Incomplete or failed Dex resolution: ${feature.technicalPath}" }
+            check(item.dexDelegates.all {
+                it.diagnostic.status == DexResolutionStatus.SUCCESS ||
+                    it.diagnostic.status == DexResolutionStatus.EXPECTED_FAILURE
+            }) { "Incomplete or failed Dex resolution: ${feature.technicalPath}" }
+        } finally {
+            active -= item
+        }
+    }
+
+    /**
+     * 确保某个委托已被解析（对上游 `dexkit\resolution\DexResolutionContext.kt:39` 的切片实现）。
+     *
+     * 上游用会话栈 + `ResolutionCoordinator.isOwnedByCurrentThread` 判定「是否正在由本线程
+     * 解析」，以便把跨 feature 依赖递归解析并把环归因清楚。Kiora 没有协调器，改用
+     * [activeOwners]（本线程正在解析中的 owner 集合）做同样的重入判定 —— 已在解析中的
+     * owner 只校验描述符，其余情况就地补一次解析。
+     */
+    fun ensureResolved(delegate: BaseDexDelegate) {
+        if (delegate.getDescriptorString() != null) return
+        val owner = delegate.owner as? IResolveDex
+            ?: error("Dex delegate has no resolvable owner: ${delegate.key}")
+        val path = (owner as? BaseFeature)?.technicalPath ?: owner.toString()
+
+        if (owner in activeOwners.get()) {
+            error("Unresolved recursive Dex dependency: $path#${delegate.key}")
+        }
+
+        resolve(owner)
+
+        check(delegate.getDescriptorString() != null) {
+            "Incomplete or failed Dex dependency: $path#${delegate.key}"
+        }
     }
 }
 
