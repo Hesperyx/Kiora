@@ -25,6 +25,7 @@ import dev.ujhhgtg.wekit.features.api.ui.WeMomentsApi
 import dev.ujhhgtg.wekit.features.api.ui.WeMomentsContextMenuApi
 import dev.ujhhgtg.wekit.features.items.scripting_java.JavaHookApi
 import dev.ujhhgtg.wekit.features.items.contacts.hidecontacts.HideContactsNotifications
+import dev.ujhhgtg.wekit.features.items.beautify.MonetEngine
 import dev.ujhhgtg.wekit.features.core.BaseFeature
 
 /**
@@ -87,5 +88,6 @@ object WeApiRegistry {
         JavaHookApi,
         BlockAtAllNotificationsRuntime,
         HideContactsNotifications,
+        MonetEngine,
     )
 }

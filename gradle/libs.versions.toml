@@ -36,6 +36,9 @@ dynamicanimation = "1.1.0"
 dexmaker = "2.28.6"
 osmdroid = "6.1.20"
 biometric = "1.2.0-alpha05"
+arsclib = "1.4.0"
+apksig = "9.3.3"
+bouncycastle = "1.86"
 
 [libraries]
 androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
@@ -100,6 +103,10 @@ markwon-html = { module = "io.noties.markwon:html", version.ref = "markwon" }
 dexmaker = { module = "com.linkedin.dexmaker:dexmaker", version.ref = "dexmaker" }
 osmdroid-android = { module = "org.osmdroid:osmdroid-android", version.ref = "osmdroid" }
 androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
+arsclib = { module = "io.github.reandroid:ARSCLib", version.ref = "arsclib" }
+apksig = { module = "com.android.tools.build:apksig", version.ref = "apksig" }
+bouncycastle-prov = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
+bouncycastle-pkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncycastle" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

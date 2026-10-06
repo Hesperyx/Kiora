@@ -5,30 +5,35 @@
 > 前置：`docs/superpowers/plans/2026-10-05-wekit-full-migration.md`（Phase 1/2，已完成）。
 > 本文件为滚动计划：每完成一批就更新「进度快照」与「剩余批次」。
 
-## 进度快照（2026-10-06 18:5x 实测）
+## 进度快照（2026-10-06 19:5x 实测，P1+P2+P3 已落地）
 
 | 维度 | Kiora | WeKit 上游 | 覆盖率 |
 |---|---|---|---|
-| Kotlin 文件（`dev/ujhhgtg/wekit`） | **547** | 767 | 71.3% |
-| items 目录文件 | **281** | 333 | 84.4% |
-| `WxFeatureRegistry.all` 注册 | **187** | — | — |
-| 上游 items 功能对象已注册 | 190 | 223 | 85.2%（**未注册 33**） |
-| api 层文件 | 66 | 82 | 80.5% |
-| ui 层文件 | 71 | 99 | 71.7% |
+| Kotlin 文件（`dev/ujhhgtg/wekit`） | **607** | 767 | 79.1% |
+| items 目录文件 | **312** | 333 | 93.7% |
+| `WxFeatureRegistry.all` 注册 | **215** | — | — |
+| `WeApiRegistry`（dexBacked 19 + startupBacked 19） | **38** | — | — |
+| 上游 items 功能对象已注册 | **220** | 225 | 97.8%（**未注册 5**） |
+| api 层文件 | 68 | 82 | 82.9% |
+| ui 层文件 | 76 | 99 | 76.8% |
 | data 层文件 | 18 | 19 | 94.7% |
-| utils 层文件 | 56 | 75 | 74.7% |
+| utils 层文件 | 73 | 75 | 97.3% |
 | i18n 层文件 | 9 | 9 | 100%（简化实现） |
-| dexkit 层文件 | 8 | 10 | 80% |
-| **全树缺失声明（FQ 名对齐）** | — | 2147 | 缺 **616** |
+| dexkit 层文件 | 11 | 10 | 100%+（Kiora 多 1 个自有文件） |
+| activity 层文件 | 5 | 23 | 21.7%（`activity\settings` / `activity\nuke` 不迁） |
+| 全树缺失声明（FQ 名对齐） | — | 2147 | 616 → **待 P4 复测**（旧口径基于 547/767） |
 
 - 编译基线：`:app:compileReleaseKotlin --offline --no-daemon` → `errors: 0`；
-  `:app:assembleRelease --offline --no-daemon` → `BUILD SUCCESSFUL`，APK **10,909,301 B**。
+  `:app:assembleRelease --offline --no-daemon` → `BUILD SUCCESSFUL`，APK **13,414,588 B**。
 - `git diff --cached --check` → exit 0。
 
 ### 已落地批次（新→旧）
 
 | 提交 | 内容 |
 |---|---|
+| `P3`（本次） | 主题栈：beautify 7（`ApplyGlobalBackground` / `CenterProfileCard` / `CustomMessageBubbles` / `MonetEngine`→`WeApiRegistry` / `MonetEngineModuleGenerator` / `ReplaceNavigationBar` / `Themes`）+ `utils\monet` 12 文件；引入 ARSCLib 1.4.0（经 `prepareAndroidArsclib` Jar task 剔除 `android/**`、`org/xmlpull/v1/**`）/ apksig 9.3.3 / bouncycastle 1.86 prov+pkix；`NumberPickerWidget.kt` 换上游完整版；注册 209→215；APK 12,253,200→13,414,588 B |
+| `4c7db17` | P2：payment 5 + moments 7（含 `AutoMomentsBase` 派生两位）+ contacts 3（含 `HideContactsNotifications`→`WeApiRegistry`）+ voip 1，注册 194→209；引入 biometric 1.2.0-alpha05 / fragment 1.5.4，`TransparentActivity` 改基类为 `FragmentActivity`，`KvStore` 补 nullable `prefOption` |
+| `dbeca51` | P1 公共层：`DexResolver` / `LocalDexResolver` / `OsmLocationPicker` / `WeKitBasicDialog` / `SettingsComponents` / `DexCacheManager` / `ResolutionCoordinator` / `DexResolutionBatch` / `WeChatSettingsManager` / `WeViewTreeLifecycleProvider`；附带 debug 3 + system 4，注册 187→194 |
 | `1304d9b` | chat 功能波：ReadReceipts / MarkdownRendering / FloatingChatFooter+Header / SwipeConversation+MessageOperations / MessageTimeEnhancements / HalfScreenAlbumPicker / VoiceMessagePlaybackOptimization / ForwardFavoriteVoices / AddToAggregationFolder / BlockAtAllNotifications / AutoCacheFiles+Images / 群成员实名三件套 / 反撤回 / 拟造记录 / 引用直达 / 安全消息 / 会话置顶 / 消息入场动画 等 **26 项注册**（注册 161→187） |
 | `f24ff25` | ApiServer REST+MCP + WeChatService，引入 `io.modelcontextprotocol:kotlin-sdk-server:0.15.0`，proguard 加 `-dontwarn java.lang.management.**` |
 | `8d28216` | 贴纸/语音面板 UI 层（`ui\panel\` 10 文件）+ EdgeTtsClient，引入 ktor 3.6.0 |
@@ -59,50 +64,50 @@
 - 不做无关重构；不提交 `local.properties`、签名、`dex-reports/*`、`*.png`、`docs/superpowers/notes/`。
 - 每批验证：`:app:compileReleaseKotlin` → `:app:assembleRelease --offline --no-daemon` → `git diff --check`。
 
-## 剩余缺口（616 缺失声明，按上游目录聚合）
+## 剩余缺口（616 缺失声明旧口径；P1/P2/P3 已消化左列各项）
 
 | 上游目录 | 缺失数 | 归属批次 |
 |---|---|---|
 | `activity\settings` | 66 | **不迁**（Kiora 自有 `cn.hxy.kiora.activity.SettingActivity` 取代；仅 `M3ListScaffold` 已被单独抽出） |
 | `ui\agent` + `ui\agent\settings` | 98 | 决策项（agent） |
-| `ui\content\nuke` | 54 | **P3 主题栈** |
-| `activity\nuke` | 39 | **P3 主题栈** |
+| `ui\content\nuke` | 54 | **已定案（P3）**：只保留 `NukeTheme.kt`/`NukeMotion.kt`，其余与 `activity\nuke` 同属上游设置 App 的屏幕栈，不迁 |
+| `activity\nuke` | 39 | **已定案（P3）**：不迁 |
 | `agent\*` 全栈 | ~118 | 决策项（agent） |
-| `utils\monet` | 36 | **P3 主题栈**（MonetEngine 动态取色） |
-| `ui\content`（DexResolver/LocalDexResolver/OsmLocationPicker/WeKitBasicDialog/DexResolver 等） | 18 | **P1 公共层** |
-| `features\items\beautify` | 11 | **P3** |
-| `features\items\moments` | 8 | **P2** |
-| `features\items\system` | 8 | **P1/P2** |
+| `utils\monet` | 36 | **已完成（P3）** |
+| `ui\content`（DexResolver/LocalDexResolver/OsmLocationPicker/WeKitBasicDialog 等） | 18 | **已完成（P1）** |
+| `features\items\beautify` | 11 | **已完成（P3）** |
+| `features\items\moments` | 8 | **已完成（P2）** |
+| `features\items\system` | 8 | **已完成（P1/P2）** |
 | `features\items\scripting_python` | 23 | 决策项（Python 运行时） |
-| `ui\content\m3`（SettingsComponents 等） | 10 | **P1 公共层** |
+| `ui\content\m3`（SettingsComponents 等） | 10 | **已完成（P1）** |
 | `loader\entry\zygisk` | 5 | **不迁**（Kiora 保持纯 Xposed） |
-| 其余零散 | ~120 | 随批处理 |
+| 其余零散 | ~120 | 随批处理；P4 复跑 `_gap.ps1` 后重新聚合 |
 
 ## 依赖拓扑
 
 ```
-L0 已就绪（187 项在用）
+L0 已就绪（220 项在用）
    showComposeDialog / AlertDialogContent / TextButton / Button / DefaultColumn
    SegmentedColumn / SwitchWidget / BaseWidget / BaseItemContainer / BaseSupportingWidget
-   ListItem / NumberPickerWidget / KvStore.prefOption / showToast / panel 全套
-   + 服务层 WeApiRegistry（dexBacked 19 + startupBacked 17）
+   ListItem / NumberPickerWidget（上游完整版）/ KvStore.prefOption / showToast / panel 全套
+   + 服务层 WeApiRegistry（dexBacked 19 + startupBacked 19）
    + ktor 3.6.0 / okhttp3 5.5.0 / coil3 / material3 1.5.0-alpha28 / miuix 0.9.4-rc01
+   + ARSCLib 1.4.0 / apksig 9.3.3 / bouncycastle 1.86（P3 主题栈）
 
-L1 公共层（本计划下一步）
+L1 公共层 —— 已完成（`dbeca51`）
    ui\content: DexResolver / LocalDexResolver / OsmLocationPicker / WeKitBasicDialog
    ui\content\m3: SettingsComponents / ExpressiveBackButton
-   ui\agent 排除后为 *零依赖* 的其余 content 文件
    features\api\ui: WeChatSettingsManager / WeViewTreeLifecycleProvider
    dexkit: DexCacheManager / ResolutionCoordinator / DexResolutionBatch
    utils: ByteArrayUtils / CryptoManager / reflection.MethodUtils / polyfills.Stream
 
-L2 支付 / moments / contacts 组
-   支付 5 项、moments 5 项、contacts 3 项
+L2 支付 / moments / contacts 组 —— 已完成（`4c7db17`）
+   支付 5 项、moments 7 项、contacts 3 项、voip 1 项
 
-L3 主题栈（beautify 7 项全解锁）
-   ui\utils\theme 8 文件 + ui\content\{nuke 12, liquid 4, animation 2}
-   activity\nuke 5 文件 + utils\monet 12 文件
-   （`kyant0.backdrop` / `kyant0.shapes` 已在依赖清单，可直接承接）
+L3 主题栈 —— 已完成（P3 提交）
+   utils\monet 12 文件；beautify 7 项全解锁
+   ui\utils\theme 8 / ui\content\{liquid 4, animation 2} 经逐目录 diff 确认 Kiora 早已齐备
+   ui\content\nuke 只留 Theme/Motion 两件（`kyant0.backdrop` / `kyant0.shapes` 已在依赖清单）
 
 L4 需决策
    agent 全栈（~216 声明 + WeAgent 功能 1 项）
@@ -119,32 +124,57 @@ L4 需决策
       `/sdcard/Android/data/com.tencent.mm/Kiora/global/log/environment_info.txt`；
       核对 `WeChatHostAdapter.kt:75 accountAnchor` 仍为 null（`MainHook.hookAccountChange()` 因此整体 return）。
 
-### P1 公共层（做一次解锁多批）
-- [ ] `features\api\ui\WeChatSettingsManager.kt`、`WeViewTreeLifecycleProvider.kt`
-- [ ] `ui\content\DexResolver.kt`、`LocalDexResolver.kt`、`OsmLocationPicker.kt`、`WeKitBasicDialog.kt`
-- [ ] `ui\content\m3\SettingsComponents.kt`
-- [ ] `dexkit\{cache\DexCacheManager, resolution\ResolutionCoordinator, resolution\DexResolutionBatch}.kt`
-- [ ] `utils\{ByteArrayUtils, CryptoManager, reflection\MethodUtils, polyfills\Stream}.kt`
-- [ ] 附带功能：`debug\{RedirectHostLogs, ResetDexCache, Experiments}`、`system\{LinkExternalAppJump, AutoLikeSportsRank, FeatureFlagManager, FakeLocation}`
+### P1 公共层（做一次解锁多批）—— 已完成 `dbeca51`
+- [x] `features\api\ui\WeChatSettingsManager.kt`、`WeViewTreeLifecycleProvider.kt`
+- [x] `ui\content\DexResolver.kt`、`LocalDexResolver.kt`、`OsmLocationPicker.kt`、`WeKitBasicDialog.kt`
+- [x] `ui\content\m3\SettingsComponents.kt`
+- [x] `dexkit\{cache\DexCacheManager, resolution\ResolutionCoordinator, resolution\DexResolutionBatch}.kt`
+- [x] `utils\{ByteArrayUtils, CryptoManager, reflection\MethodUtils, polyfills\Stream}.kt`
+- [x] 附带功能：`debug\{RedirectHostLogs, ResetDexCache, Experiments}`、`system\{LinkExternalAppJump, AutoLikeSportsRank, FeatureFlagManager, FakeLocation}`
+- 额外：新建 `loader\utils\ActivityProxy.kt`（`ActProxyMgr` 兼容层）；`DexResolutionContext` 换上上游完整版
+  （`DexHostMetadata` + `ResolutionCoordinator` 会话）；`cn\hxy\kiora\lifecycle\Parasitics.kt` 的
+  `isTargetActivity` 拓宽到 `dev.ujhhgtg.wekit.` 命名空间（否则移植 Activity 无法寄生启动）。
+- `DexCacheManager.methodHash` **不移植 buildSrc**，改用 `CloudDexResolver.methodHash()`（= 模块 VERSION_CODE），
+  与云端报告的 `"28"` 口径对齐；否则 `isItemCacheValid` 永远失配、云端缓存整份白拉。
 
-### P2 支付 / moments / contacts
-- [ ] payment 5：`AutoAcceptTransfers`、`AutoOpenRedPackets`、`DisplayRedPacketDetails`、`FingerprintPay`、`OpenHistoryRedPackets`
-- [ ] moments 5：`AutoRefresh`、`CustomDetails`、`DisplayDetails`、`FakeMomentsLikes`、`NoCompressUploadedImages`
-- [ ] contacts 3：`AutoRemarkNewFriends`、`SplitGroupChats`、`hidecontacts\HideContactsNotifications`
-- [ ] voip 1：`VirtualVoipVideo`
+### P2 支付 / moments / contacts —— 已完成 `4c7db17`
+- [x] payment 5：`AutoAcceptTransfers`、`AutoOpenRedPackets`、`DisplayRedPacketDetails`、`FingerprintPay`、`OpenHistoryRedPackets`
+- [x] moments 7：`AutoRefresh`、`CustomDetails`、`DisplayDetails`、`FakeMomentsLikes`、`NoCompressUploadedImages`，
+  外加计划漏列的 `AutoLikeMoments` / `AutoRepostMoments`（基类 `AutoMomentsBase` 不注册）
+- [x] contacts 3：`AutoRemarkNewFriends`、`SplitGroupChats`、`hidecontacts\HideContactsNotifications`（→`WeApiRegistry`）
+- [x] voip 1：`VirtualVoipVideo`
 
-### P3 主题栈（beautify 全解锁）
-- [ ] `ui\utils\theme` 8 文件 + `ui\content\nuke` 12 + `ui\content\liquid` 4 + `ui\content\animation` 2
-- [ ] `activity\nuke` 5 文件 + `utils\monet` 12 文件
-- [ ] beautify 7 项：`ApplyGlobalBackground`、`CenterProfileCard`、`CustomMessageBubbles`、`MonetEngine`、
-      `MonetEngineModuleGenerator`、`ReplaceNavigationBar`、`Themes`
+### P3 主题栈 —— 已完成（本次提交）
+- [x] `ui\utils\theme` 8 文件 —— 逐目录 diff 后确认 **Kiora 已 100% 具备，无缺**
+- [x] `ui\content\liquid` 4 / `ui\content\animation` 2 —— 同上，**无缺**
+- [x] `ui\content\nuke` —— 只保留 `NukeTheme.kt` + `NukeMotion.kt`（换上上游精确版）。
+      其余 10 个组件与 `activity\nuke` 5 个一起**删去**：`activity.nuke` 的消费方只有自身 +
+      已删除的 `activity\settings\SettingsActivity.kt`，且 `NukeScreens`/`NukeSecondaryScreens`
+      依赖 KSP 生成的 `FeaturesProvider`/`FeatureCategoryState` 栈，物理上无法编译；
+      Kiora 侧 `ui\utils\theme\ThemeSettings.kt` 只用 `NukePopupAnimationMode`（在 `NukeTheme.kt`）。
+- [x] `utils\monet` 12 文件 —— 全量迁入
+- [x] beautify 7 项：`ApplyGlobalBackground`、`CenterProfileCard`、`CustomMessageBubbles`、`MonetEngine`
+      （`ApiFeature` → `WeApiRegistry.startupBacked`）、`MonetEngineModuleGenerator`、`ReplaceNavigationBar`、`Themes`
+- 附带：`ui\content\m3\NumberPickerWidget.kt` 换上游完整版（Kiora 精简版缺 `icon`/`iconPlaceholder`/
+  `description`/`showTooltip` 与 `SliderState` API，`ApplyGlobalBackground.kt:311` 传 `icon` 直接编译失败；
+  该文件全部 25 处调用点均来自上游，`ImageRotation.kt` 是唯一行号有偏移的）。
+- 新增依赖（离线缓存已齐）：ARSCLib 1.4.0（上游接法：自定义 `arsclibSource` configuration +
+  `prepareAndroidArsclib` Jar task 剔除 `android/**`、`org/xmlpull/v1/**`，避免 R8 把
+  `AttributeSet::class` 改写成 ARSCLib 自带的混淆副本）、apksig 9.3.3、bcprov/bcpkix 1.86。
+- 打包排除：`META-INF/LICENSE.md`（bcprov/bcpkix/bcutil 三件套各带一份，直接撞
+  `mergeReleaseJavaResource`）、`META-INF/BCRSA204.SF|RSA`、`META-INF/versions/**`（JDK9+ MR-JAR
+  覆盖层，Android 不读）、`frameworks/android/**`、`org/bouncycastle/pqc/crypto/picnic/**`。
+- **R8 无需新增 `-dontwarn`**：上游没有 `WeKit-master\app\proguard-rules.pro`，
+  Kiora 侧 `assembleRelease` 在现有规则下直接通过。
 
 ### P4 决策 + 收口（Phase 4）
-- [ ] 依决策处理 agent / scripting_python / lsparanoid 相关项；未引入者写入「暂不迁」清单。
+- [ ] 依决策处理 agent / scripting_python / lsparanoid 相关项（剩余 5 项未注册功能：
+      `ChatToolbar`、`ForwardMessages`、`JavaScriptingHook`、`PythonScriptingFeature`、`WeAgent`）；
+      未引入者写入「暂不迁」清单。
 - [ ] 复跑全树声明对齐盘点至收敛；清理 `WeApiRegistry` / `WxFeatureRegistry` 重复项与顺序问题。
 - [ ] 真机微信回归：清 DexKit 缓存冷启动，确认无自动扫描 / 自动重启、弹窗正确关闭、无崩溃；
-      逐批验证 187 项注册功能的开关与设置页。
-- [ ] 复核 APK 体积与 R8 规则（当前 10,909,301 B，`isMinifyEnabled=true` + `isShrinkResources=true`）。
+      逐批验证 220 项注册功能的开关与设置页。
+- [ ] 复核 APK 体积与 R8 规则（当前 13,414,588 B，`isMinifyEnabled=true` + `isShrinkResources=true`）。
 
 ## 当前状态：不可迁 / 永久搁置
 

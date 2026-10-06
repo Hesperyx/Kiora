@@ -186,6 +186,12 @@ import dev.ujhhgtg.wekit.features.items.chat_input_bar_menu.SendCardMessage
 import dev.ujhhgtg.wekit.features.items.chat_input_bar_menu.SendVoiceFile
 import dev.ujhhgtg.wekit.features.items.notifications.NotificationsEvolved
 import dev.ujhhgtg.wekit.features.items.beautify.BeautifyConversationList
+import dev.ujhhgtg.wekit.features.items.beautify.ApplyGlobalBackground
+import dev.ujhhgtg.wekit.features.items.beautify.CenterProfileCard
+import dev.ujhhgtg.wekit.features.items.beautify.CustomMessageBubbles
+import dev.ujhhgtg.wekit.features.items.beautify.MonetEngineModuleGenerator
+import dev.ujhhgtg.wekit.features.items.beautify.ReplaceNavigationBar
+import dev.ujhhgtg.wekit.features.items.beautify.Themes
 import dev.ujhhgtg.wekit.features.items.chat.AddToAggregationFolder
 import dev.ujhhgtg.wekit.features.items.chat.AntiMessageRecall
 import dev.ujhhgtg.wekit.features.items.chat.AutoCacheFiles
@@ -436,6 +442,12 @@ object WxFeatureRegistry {
                 AutoRemarkNewFriends,
                 SplitGroupChats,
                 VirtualVoipVideo,
+                ApplyGlobalBackground,
+                CenterProfileCard,
+                CustomMessageBubbles,
+                MonetEngineModuleGenerator,
+                ReplaceNavigationBar,
+                Themes,
             )
         )
     }

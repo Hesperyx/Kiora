@@ -97,7 +97,19 @@ extensions.configure<ApplicationExtension> {
     packaging {
         resources {
             excludes += setOf(
-                "META-INF*.proto"
+                "META-INF*.proto",
+                // Monet 用 ARSCLib 读宿主资源表、用 apksig + bouncycastle 签 overlay APK。
+                // bouncycastle 三件套（bcprov/bcpkix/bcutil）各自带同名许可与 jar 签名文件，
+                // 不排会直接撞 mergeReleaseJavaResource；versions/** 是 JDK9+ 的 MR-JAR 覆盖层，Android 不读。
+                "META-INF/LICENSE.md",
+                "META-INF/INDEX.LIST",
+                "META-INF/BCRSA204.SF",
+                "META-INF/BCRSA204.RSA",
+                "META-INF/versions/**",
+                // Monet 读宿主资源表时禁用了框架默认加载。
+                "frameworks/android/**",
+                // Monet 用 RSA 签名，Picnic 的后量子查表用不到。
+                "org/bouncycastle/pqc/crypto/picnic/**"
             )
             pickFirsts += setOf(
                 "META-INF/xposed/**",
@@ -106,6 +118,22 @@ extensions.configure<ApplicationExtension> {
         }
     }
 
+}
+
+// ARSCLib 打包了桌面版 android/** 与 org/xmlpull/v1/** 实现。若把它当 program class 交给 R8，
+// 连构造函数查询里的 AttributeSet::class 都会被改写成它自带（混淆后）的副本，从而不再匹配 Android 版；
+// 因此把这两棵树从 jar 中剔除，只留纯资源表解析部分给宿主 APK 用。
+val arsclibSource = configurations.create("arsclibSource") {
+    isCanBeResolved = true
+    isCanBeConsumed = false
+    isTransitive = false
+}
+
+val prepareAndroidArsclib = tasks.register<Jar>("prepareAndroidArsclib") {
+    from(provider { arsclibSource.map { zipTree(it) } })
+    exclude("android/**", "org/xmlpull/v1/**")
+    archiveFileName.set("arsclib-android.jar")
+    destinationDirectory.set(layout.buildDirectory.dir("generated/arsclib"))
 }
 
 dependencies {
@@ -170,6 +198,12 @@ dependencies {
     implementation(libs.androidx.biometric)
     // TransparentActivity 用 FragmentActivity 作基类（BiometricPrompt 的 Activity 构造器要求）。
     implementation(libs.androidx.fragment)
+    // 主题引擎（MonetEngineModuleGenerator）用 ARSCLib 读宿主资源表，用 apksig/bouncycastle 签出 overlay APK。
+    add(arsclibSource.name, libs.arsclib)
+    implementation(files(prepareAndroidArsclib))
+    implementation(libs.apksig)
+    implementation(libs.bouncycastle.prov)
+    implementation(libs.bouncycastle.pkix)
 
     // biometric 1.2.0-alpha05 的传递依赖里 customview/drawerlayout 仍指向 1.0.0，
     // 而离线缓存里只有 1.2.0 / 1.1.1（同大版本内的向上对齐），这里显式提版。
