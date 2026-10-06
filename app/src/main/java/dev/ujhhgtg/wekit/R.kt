@@ -2811,6 +2811,10 @@ object R {
         val java_script_version = cn.hxy.kiora.R.string.java_script_version
         val java_scripts_dialog_title = cn.hxy.kiora.R.string.java_scripts_dialog_title
         val java_scripts_empty = cn.hxy.kiora.R.string.java_scripts_empty
+        // P4-2 SafeMode
+        val system_safe_mode_enable_title = cn.hxy.kiora.R.string.system_safe_mode_enable_title
+        val system_safe_mode_enable_message = cn.hxy.kiora.R.string.system_safe_mode_enable_message
+        val system_safe_mode_enable = cn.hxy.kiora.R.string.system_safe_mode_enable
     }
 
     object plurals {

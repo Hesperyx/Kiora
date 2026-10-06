@@ -9,8 +9,12 @@ import dev.ujhhgtg.wekit.dexkit.cache.CloudDexResolver
 import dev.ujhhgtg.wekit.dexkit.cache.WxDexCache
 import dev.ujhhgtg.wekit.dexkit.resolution.DexHostMetadata
 import dev.ujhhgtg.wekit.dexkit.resolution.DexResolutionContext
+import dev.ujhhgtg.wekit.features.core.ApiFeature
 import dev.ujhhgtg.wekit.features.core.BaseFeature
 import dev.ujhhgtg.wekit.features.core.SwitchFeature
+import dev.ujhhgtg.wekit.features.items.beautify.BeautifyConversationList
+import dev.ujhhgtg.wekit.features.items.chat.ConversationGrouping
+import dev.ujhhgtg.wekit.features.items.system.SafeMode
 import dev.ujhhgtg.wekit.utils.TargetProcesses
 import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.android.showChoiceDialog
@@ -41,9 +45,28 @@ object WxFeatureLoader {
         if (!HostInfo.isWeChat) return
         if (!loaded.compareAndSet(false, true)) return
 
+        // 上游 FeaturesLoader.loadFeatures() 的同款迁移：把「布局美化」时代的浮动标签页选择
+        // 落成独立的 tab 风格偏好。即使分组功能关闭、或它的 DexKit 缓存待重建也必须执行 ——
+        // 否则事后读旧值会把新引入的美化开关误当成升级前用户的真实选择。
+        if (TargetProcesses.isInMain) {
+            ConversationGrouping.migrateTabStyle(BeautifyConversationList.isLayoutBeautificationEnabled)
+        }
+
         val currentProcess = TargetProcesses.currentType
-        val relevant = WxFeatureRegistry.all.filter { currentProcess in it.targetProcesses }
+        val registered = WxFeatureRegistry.all.filter { currentProcess in it.targetProcesses }
         val startupApis = WeApiRegistry.startupBacked.filter { currentProcess in it.targetProcesses }
+
+        // 安全模式（模块根目录存在 safe_mode.flag）：只启动 API 层，跳过全部 items 功能。
+        // 用于某个功能把微信搞挂后的自救 —— 用来关开关的入口本身不能是被关掉的那些功能。
+        // 与上游 FeaturesLoader.loadFeatures() 的语义一致。
+        val safeMode = SafeMode.isEnabled
+        val relevant = if (safeMode) registered.filterIsInstance<ApiFeature>() else registered
+        if (safeMode) {
+            WeLogger.i(
+                TAG,
+                "安全模式已启用：跳过 ${registered.size - relevant.size} 个功能，仅加载 ${relevant.size} 个 API 项",
+            )
+        }
         val activeFeatures = relevant + startupApis
 
         runCatching {

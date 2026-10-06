@@ -3012,4 +3012,9 @@
     <string name="java_script_version">Version %1$s</string>
     <string name="java_scripts_dialog_title">Java scripts</string>
     <string name="java_scripts_empty">No scripts</string>
+
+    <!-- P4-2 SafeMode -->
+    <string name="system_safe_mode_enable_title">Enable safe mode?</string>
+    <string name="system_safe_mode_enable_message">Once enabled, regular features will not be loaded the next time WeChat starts. Only core features will remain, but regular features will still appear in Settings so you can restore them after disabling safe mode.\n\nEnable safe mode?</string>
+    <string name="system_safe_mode_enable">Enable</string>
 </resources>

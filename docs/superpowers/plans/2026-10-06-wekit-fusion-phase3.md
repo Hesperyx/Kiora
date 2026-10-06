@@ -5,36 +5,37 @@
 > 前置：`docs/superpowers/plans/2026-10-05-wekit-full-migration.md`（Phase 1/2，已完成）。
 > 本文件为滚动计划：每完成一批就更新「进度快照」与「剩余批次」。
 
-## 进度快照（2026-10-06 实测，P1+P2+P3+P4-1+P4-1b 已落地）
+## 进度快照（2026-10-06 实测，P1+P2+P3+P4-1+P4-1b+P4-2 已落地）
+
+口径：**上游相对路径存在性**（不再用单一声明名/正则口径，理由见 P4-2 节）。分母 = 上游 `app\src\main\java\dev\ujhhgtg\wekit` 下 767 个 .kt。
 
 | 维度 | Kiora | WeKit 上游 | 覆盖率 |
 |---|---|---|---|
-| Kotlin 文件（`dev/ujhhgtg/wekit`） | **640** | 767 | 83.4% |
-| items 目录文件 | **324** | 333 | 97.3% |
+| `dev/ujhhgtg/wekit` 路径命中 | **600**（Kiora 实际 641 个 .kt，多 41 个自有） | 767 | **78.2%** |
+| features\items | **326** | 333 | 97.9%（余 7 = 3 未注册 + agent 3 + CustomConversationNotifications） |
+| features\api | **47** | 82 | 57.3%（20 个 `core\*`/`core\models\*` 被 Kiora 拍平成 `features\api\*.kt`，15 个属 agent） |
+| ui | **76** | 99 | 76.8%（余 23 = agent 13 + nuke 11 等） |
+| data | **18** | 19 | 94.7%（余 = `MmkvReadonlyReader`） |
+| utils | **72** | 75 | 96.0%（余 = `AppUpdater` / `DebugUtils` / `hook_status\HookStatus`） |
+| loader | **5** | 21 | 23.8%（`entry\*` zygisk/frida 不迁、`startup\*` 由 Kiora 自有链路取代） |
+| activity | **5** | 23 | 21.7%（`activity\nuke` 不迁；`activity\settings` 只按需抽件） |
+| i18n | **9** | 9 | 100%（简化实现） |
+| dexkit | **10** | 10 | 100% |
+| extensions | **12** | 13 | 92.3%（余 = `ArchLinuxPack`，随 agent 决策） |
+| **非排除区真缺件** | **22** | — | 逐个已取证，见「当前状态：不可迁 / 永久搁置」 |
 | `WxFeatureRegistry.all` 注册 | **217** | — | — |
 | `WeApiRegistry`（dexBacked 19 + startupBacked 19） | **38** | — | — |
-| 上游 items 功能对象已注册 | **222** | 225 | 98.7%（**未注册 3**） |
-| api 层文件 | 68 | 82 | 82.9% |
-| ui 层文件 | 76 | 99 | 76.8% |
-| data 层文件 | 18 | 19 | 94.7% |
-| utils 层文件 | 73 | 75 | 97.3% |
-| i18n 层文件 | 9 | 9 | 100%（简化实现） |
-| dexkit 层文件 | 11 | 10 | 100%+（Kiora 多 1 个自有文件） |
-| extensions 层文件 | 13 | 13 | 100%（两侧集合有差：Kiora 无 `ArchLinuxPack`（随 agent），上游无 `ExtensionPacksProvider`） |
-| python 层文件（vendored） | 10 | 0（上游在 `libs/python-runtime-api`） | — |
-| loader 层文件 | 5 | 21 | 23.8%（`entry\*` zygisk/frida 不迁） |
-| activity 层文件 | 6 | 23 | 26.1%（`activity\nuke` 不迁；`activity\settings` 只按需抽件） |
-| 全树缺失声明（FQ 名对齐） | — | 2147 | 616 → **待 P4-2 复测**（旧口径基于 547/767） |
+| 上游 items 功能对象已注册 | **222** | 225 | 98.7%（**未注册 3**：`ChatToolbar` / `ForwardMessages` / `WeAgent`） |
 
 - 编译基线：`:app:compileReleaseKotlin --offline --no-daemon` → `errors: 0`；
-  `:app:assembleRelease --offline --no-daemon` → `BUILD SUCCESSFUL`，APK **13,561,264 B**。
+  `:app:assembleRelease --offline --no-daemon` → `BUILD SUCCESSFUL`，APK **13,562,308 B**。
 - `git diff --cached --check` → exit 0。
 
 ### 已落地批次（新→旧）
 
 | 提交 | 内容 |
 |---|---|
-| `P4-1b`（本次） | scripting_java 全量落地：`JavaEngine.kt`(1965 行) / `JavaPlugin.kt` / `JavaScriptingHook.kt`；`me.hd.wauxv\data\bean` 8 文件（`ContactBean`/`ContactLabelBean`/`ConversationBean`/`MsgInfoBean`/`PayMsgBean` + `info\{FriendInfo,GroupData,GroupInfo}`）；bsh 三处加性改造（`NameSpace.setVariable(String,Object)` 双参重载、`BshClassManager.addClassLoader` + `classForName` 的「3b」追加加载器解析、`BshMethod.MethodCallback` 宿主回调 + `Interpreter` 快照 API `compileSnapshot`/`evalSnapshot` + `bsh\preprocess` 4 文件）；注册 216→217；APK 13,474,920→13,561,264 B |
+| `P4-2`（本次） | 全树对齐复测 + 补两处漏迁行为：新增 `features\items\system\SafeMode.kt`（2 进程级「安全模式」开关，3 条字符串资源）；`WxFeatureLoader.load()` 接线 ① 安全模式门控（只加载 API 层，跳过全部 items）② `ConversationGrouping.migrateTabStyle(...)`（原先函数存在但零调用 = 死代码）；APK 13,561,264→13,562,308 B |
 | `P4-1` | scripting_python 核心 + extensions 扩展包栈：`python\api` 10 接口（vendoring）、`scripting_python` 12 文件、`extensions` 6 文件（`ExtensionSupport`/`ExtensionPackRegistryValidation`/`ScriptDepsPack`/`ExtensionPackDialogs`/`PythonRuntimeArchive`/`PythonRuntimePack`）、`activity\settings\ExtensionsSettingsActivity.kt`、`loader\utils\HybridClassLoader.kt`、`ClassLoaders` 补 `BOOT`/`HYBRID`；`ExtensionPacksProvider.ALL_PACKS` 由 `emptyList()` 改为登记两包；注册 215→216；APK 13,414,588→13,474,920 B |
 | `P3` | 主题栈：beautify 7（`ApplyGlobalBackground` / `CenterProfileCard` / `CustomMessageBubbles` / `MonetEngine`→`WeApiRegistry` / `MonetEngineModuleGenerator` / `ReplaceNavigationBar` / `Themes`）+ `utils\monet` 12 文件；引入 ARSCLib 1.4.0（经 `prepareAndroidArsclib` Jar task 剔除 `android/**`、`org/xmlpull/v1/**`）/ apksig 9.3.3 / bouncycastle 1.86 prov+pkix；`NumberPickerWidget.kt` 换上游完整版；注册 209→215；APK 12,253,200→13,414,588 B |
 | `4c7db17` | P2：payment 5 + moments 7（含 `AutoMomentsBase` 派生两位）+ contacts 3（含 `HideContactsNotifications`→`WeApiRegistry`）+ voip 1，注册 194→209；引入 biometric 1.2.0-alpha05 / fragment 1.5.4，`TransparentActivity` 改基类为 `FragmentActivity`，`KvStore` 补 nullable `prefOption` |
@@ -217,33 +218,127 @@ L4 需决策
       均为 `java.util` 自闭环）；`BshSnapshotHelper.kt` 的 `writeEncrypted`/`readEncrypted` 加 `@JvmStatic`
       （Java 侧无需 `.INSTANCE`）。Kiora 侧前提件全在：`get_jjtree()`、`terminatedScript`、`pathToFile`、
       `readLine()`、7 参 `Interpreter(Reader, PrintStream, PrintStream, boolean, NameSpace, Interpreter, String)`。
-- [ ] 剩余 3 项未注册功能：`ChatToolbar`、`ForwardMessages`、`WeAgent`。
+- [ ] 剩余 3 项未注册功能：`ChatToolbar`、`ForwardMessages`、`WeAgent`（处置见「当前状态」）。
 - [ ] 已知上游缺陷（**未修，按原样保留**）：`JavaEngine.kt:609` 脚本 API `compileSnapshot(path)` 以
       `compileSnapshot(resolved, snapPath, null)` 传 **null** SecretKey，而 `BshSnapshotHelper.writeEncrypted`
       对 null key 会 `InvalidKeyException`（Kotlin 侧更早触发 `Intrinsics` 非空检查）；同族 `evalSnapshot(path)`
       却用 `BshSnapshotDecompiler.SECRET_KEY` 读取。上游 Java 版同样没有 null-key 分支 ⇒ 该脚本 API 在上游也是
       静默失效（被 `runCatching` 吞掉只打日志）。若日后要修，正确改法是把第三参换成 `BshSnapshotDecompiler.SECRET_KEY`。
-- [ ] 复跑全树声明对齐盘点至收敛；清理 `WeApiRegistry` / `WxFeatureRegistry` 重复项与顺序问题。
-- [ ] 真机微信回归：清 DexKit 缓存冷启动，确认无自动扫描 / 自动重启、弹窗正确关闭、无崩溃；
-      逐批验证 222 项注册功能的开关与设置页。
+
+### P4-2 全树声明对齐（已复测收敛）
+
+判定方法（单一、可复现）：对上游 `app\src\main\java` 下逐个 .kt 做
+①**相对路径存在性** → ②缺失者再按**顶层声明名**在 Kiora 全树（.kt + .java，1116 文件）索引里查一次
+→ ③仍缺者按排除区切分。不看单一口径。
+
+- 上游 .kt 总数 **776**；相对路径已存在 **608**，缺失 **168**。
+- 168 中属排除区 **121**：`agent\*`、`ui\agent\*`、`ui\agent\settings\*`、`features\api\agent\*`、
+  `features\items\system\agent\*`、`activity\agent\*`、`activity\nuke\*`、`ui\content\nuke\*`、
+  `activity\settings\*`、`loader\entry\{zygisk,frida}\*`。
+- 非排除区缺失 **47**，其中顶层声明名已在 Kiora 别处存在（**Kiora 拍平/改名/自有实现**）**25**：
+  `features\api\core\*`(15) 与 `features\api\core\models\*`(5) 是 Kiora 把 `core` 层拍平
+  （实际在 `features\api\WeMessageApi.kt`、`features\api\models\MessageInfo.kt`），
+  `activity\MainActivity.kt` 由 `cn.hxy.kiora.activity.MainActivity` 取代，
+  `loader\entry\common\ModuleLoader.kt` 由 Java 版 `cn\hxy\kiora\common\ModuleLoader.java:59-60` 取代，
+  `utils\hook_status\HookStatus.kt` 由 `cn\hxy\kiora\utils\hook\hookstatus\HookStatus.java` 取代，
+  `loader\abc\IHookBridge.kt` 由 `cn.hxy.kiora.loader.hookapi.IHookBridge` 取代。
+- **真正缺件的 22 个**（本批处理掉 `SafeMode.kt` 后剩 22），逐个取证理由见「当前状态」节。
+
+> 注：`_gap.ps1`（`D:\code\fenxi3\_gap.ps1`）报 greenfield 119 / greenfield leaves 58 / adapted 56 /
+> unresolved imports 11，**该口径是上界**，实测会漏报两类已存在文件：
+> ① 属性委托写法（`val X by lazy { }` / `by dexMethod`）——`$valRe` 要求名字后紧跟 `:` 或 `=`，
+>    例：`ui\utils\ComposableIcons.kt` 与上游逐字节一致却被列为 greenfield；
+> ② 换行 getter 的扩展属性 —— `utils\strings\WxIdUtils.kt`。
+> 故「已迁/未迁」以上面的三段式判定为准。
+
+### P0-1 云端 DexKit 报告（摸清上限，重出无增益）
+
+- Release `Kiora-wechat`（`id=402951057`）线上唯一资产 `wechat-8.0.78-3180-domestic.json`
+  （`id=609841432`，76043 B，2026-10-04 发布）。资产名由 `CloudDexReport.assetName`
+  拼为 `wechat-<HostInfo.versionName>-<HostInfo.versionCode>-<domestic|google-play>.json`。
+- `D:\code\fenxi3\_dexmerge.ps1` 重跑（3 份历史真机导出取并集）：276 descriptor / 61 feature /
+  0 冲突 / `SELF-CHECK OK`，与线上资产同尺寸同 feature 数（SHA 不同仅因条目顺序，`select` 按 key 查表，顺序无关）。
+- **真实缺口是覆盖率，不是重出**：当前代码树里有 **132 个 DexKit technicalId**，该报告只覆盖 **60**，
+  **缺 72**。对 `D:\code\fenxi3` 下 77 个本地 JSON 全量解析，72 个缺口 **0 命中** ⇒
+  只能靠真机重扫补齐，离线无法合成。覆盖率不足的后果是冷启动要做本地扫描（功能不受损）。
+- `methodHash` 口径已核对：`CloudDexResolver.methodHash() = BuildConfig.VERSION_CODE`，
+  Kiora `app\build.gradle.kts` 的 `versionCode = 28` ⇒ 合并报告里写死的 `"methodHash": "28"` 正确。
+- 上传通道：本机 SSH 对 GitHub 认证可用（`Hi Hesperyx!`），但 release asset 必须走 REST API，
+  `gh` CLI 未登录、环境无 `GH_TOKEN` ⇒ 当前不可执行；且如上所述**重传无增益**，留到真机重扫后一并做。
+
+### P0-2 风控复检（已确认落地）
+
+- `cn\hxy\kiora\common\Startup.kt:149` —— 原 `LogUtils.logEnvironment()` 调用已移除（改为注释说明来源），
+  不再向宿主可读路径写环境信息（含 Xposed 框架指纹）。
+- `cn\hxy\kiora\wx\host\WeChatHostAdapter.kt:79` —— `override val accountAnchor: AnchorSpec? = null`；
+  消费点 `cn\hxy\kiora\hook\MainHook.kt:111 val anchor = HostInfo.adapter?.accountAnchor ?: return` 安全退化。
+
+### 待办（离线之外）
+
+- [ ] **P4-3 真机回归**：清 DexKit 缓存冷启动，确认无自动扫描 / 自动重启、弹窗正确关闭、无崩溃；
+      逐批验证 222 项注册功能的开关与设置页；顺带在真机扫全 132 个 DexKit 键后**导出新报告并替换线上资产**
+      （需要 `GH_TOKEN` 或 `gh auth login`）。
 - [ ] 复核 APK 体积与 R8 规则（当前 13,561,264 B，`isMinifyEnabled=true` + `isShrinkResources=true`）。
 
 ## 当前状态：不可迁 / 永久搁置
 
+以下 22 个文件是（排除区之外）真正尚未迁入的全部残留，逐个已取证。
+
+**上游自身的问题（迁了也是死代码/残缺）**
+- `features\items\notifications\CustomConversationNotifications.kt`（38227 B）—— 首行 `// TODO` /
+  `// Claude has been going insane while writing this` / `// needs more review`，**全文件逐行 `//` 注释**
+  （含 `Disabled feature metadata`），全树零引用（只被自己命中）⇒ 不迁。
+  上游 `notifications` 分类实际只有 `NotificationsEvolved.kt` + `NotificationLocalizedResources.kt`，均已迁。
+- `utils\DebugUtils.kt`（2370 B）—— 上游全树**零引用**（`debugCursor` / `debugViewTree` 等调试辅助）⇒ 不迁。
 - `features\items\chat\ForwardMessages.kt` —— 上游自身缺 `ui.content.ContactsSelector`，永久搁置。
-- `...\wekit\activity\scripting_python\{PythonHighlighter,PythonScriptsSettingsActivity}.kt` ——
-  依赖 `scripta` 编辑器，而 `scripta` 是上游未发布的复合构建（`includeBuild("libs/common/scripta")`，
-  submodule 0 条目），离线环境无制品。`PythonScriptingFeature.onClick` 已退化为打开 Python 运行时扩展包屏。
-- `features\items\scripting_java\{JavaEngine,JavaPlugin,JavaScriptingHook}.kt` —— 待 P4-1b
-  （bsh 双参 `setVariable` / `addClassLoader` 垫片 + `me.hd.wauxv` 四个数据 bean）。
-- `...\wekit\loader\abc\{IClassLoaderHelper,ILoaderService}.kt` —— 无消费点，不迁。
-  `IHookBridge` 由 typealias 垫片方案**否决**：Kotlin 不支持经 typealias 访问嵌套类
+- `utils\AppUpdater.kt`（12166 B）—— Kiora 全树零调用；上游消费点只在 `NukeSecondaryScreens.kt:459` 与
+  `SettingsPager.kt:863` 两个不迁的 KSP 设置页（`checkForUpdate` / `downloadAndInstall`）⇒ 无消费点，不迁。
+
+**已有等价实现（Kiora 自有/已改名/已适配）**
+- `utils\hook_status\HookStatus.kt`（1384 B）—— Kiora 自有 `cn\hxy\kiora\utils\hook\hookstatus\HookStatus.java`
+  （同样基于 `io.github.libxposed.service.XposedService`），上游唯一消费点是 `activity\MainActivity.kt`。
+- `application\ModuleApplication.kt`（575 B）—— Kiora 自有 Application 取代。
+- `loader\entry\common\ModuleLoader.kt` —— Kiora 用 Java 版 `cn\hxy\kiora\common\ModuleLoader.java:59-60`
+  （`StartupInfo.kt` 已重写为 `ModuleLoader.getMODULE_PATH()` 桥接）。
+- `loader\abc\{IClassLoaderHelper 250 B, ILoaderService 428 B}` —— 无消费点，不迁。
+  `IHookBridge` 的 typealias 垫片方案**已否决**：Kotlin 不支持经 typealias 访问嵌套类
   （`IHookBridge.MemberUnhookHandle` 等一律 `Unresolved reference`），改为直连
   `cn.hxy.kiora.loader.hookapi.IHookBridge`。
-- `features\items\chat\ChatToolbar.kt` —— 依赖 `WeAgentService` / `WeAgentOverlayController`，随 agent 决策。
-- `...\wekit\activity\RootTelegramStickerSetPicker.kt` —— 依赖 `com.topjohnwu.superuser`（libsu 6.0.0）
+- `features\items\system\QrCodeRecordSettingsActivity.kt`（14278 B）—— Kiora 已把 `QrCodeRecord.kt`
+  改接自有 `QrCodeRecordDialog.kt`（`onClick` → `showQrCodeRecordDialog(context)`），不再需要该 Activity。
+- `data\MmkvReadonlyReader.kt`（8647 B）—— 上游唯一消费点是 `data\KvStore.kt:395` 的「旧 WeKit MMKV 迁移」
+  路径；Kiora 的 `KvStore.kt` 是 SharedPreferences 重写版（`HostEnv.globalPreference` + `Kiora_Config_global`），
+  自有 `requireMigrationKeys`（KvStore.kt:90），全树无 `mmkv` / `wekit_prefs` 引用 ⇒ 不迁。
+
+**无消费点（消费方都是不迁的 KSP 设置壳）**
+- `features\core\FeatureCategoryOrdering.kt`（1342 B）—— `fun featureCategoryComparator(nameComparator)`
+  的消费点只有 `activity\nuke\NukeScreens.kt`、`activity\settings\FeaturesPager.kt`、其单测。
+- `activity\ManagerLaunchContract.kt`（1919 B）—— `REQUEST_OPEN_LSPOSED_MANAGER = 0x574B` /
+  `ACTION_OPEN_LSPOSED_MANAGER` / `EXTRA_ERROR`，消费点只有 `activity\MainActivity.kt:107`/`:191`。
+  若日后要在 Kiora 设置页加「打开 LSPosed 管理器」入口，再单独接线。
+- `loader\startup\{WeLauncher 1602 B, UnifiedEntryPoint 2505 B, StartupAgent 5257 B}` —— Kiora 自有
+  bootstrap / 入口链路，不迁。
+
+**依赖缺失或策略排除**
+- `...\wekit\activity\scripting_python\{PythonHighlighter 7612 B, PythonScriptsSettingsActivity 44510 B}` ——
+  依赖 `scripta` 编辑器，是上游未发布的复合构建（`includeBuild("libs/common/scripta")`，submodule 0 条目），
+  离线无制品。`PythonScriptingFeature.onClick` 已退化为打开 Python 运行时扩展包屏。
+- `loader\utils\{NativeLoader, ZygiskNativePayload 3939 B}` —— zygisk / frida 入口，Kiora 保持纯 Xposed。
+- `features\items\chat\ChatToolbar.kt`（48110 B）—— 依赖 `WeAgentService` / `WeAgentOverlayController`，随 agent 决策。
+- `extensions\ArchLinuxPack.kt` —— 随 agent 决策（依赖 Arch rootfs）。
+- `...\wekit\activity\RootTelegramStickerSetPicker.kt`（15654 B）—— 依赖 `com.topjohnwu.superuser`（libsu 6.0.0）
   且需 `MainActivity` 处理 `ACTION_PICK_ROOT_STICKER_SETS`；`StickerPanelSheet` 的 zygisk 直连路径已剔除，
   ROOT 路径在 Kiora 下降级为 `Cancelled`（不崩），MANUAL 路径可用。留待「贴纸 root 导入」专项。
+
+**已在本批（P4-2）补齐**
+- `features\items\system\SafeMode.kt`（2097 B）—— **已迁**（含 3 条字符串资源）。
+- `features\core\FeaturesLoader.kt`（171 行）—— 主体由 `WxFeatureLoader.kt` 取代，但其中**两条行为曾漏掉，
+  本批已补进 `WxFeatureLoader.load()`**：
+  ① 安全模式门控（上游 :43-55：`SafeMode.isEnabled` 时只 `filterIsInstance<ApiFeature>()`）；
+  ② `ConversationGrouping.migrateTabStyle(BeautifyConversationList.isLayoutBeautificationEnabled)`
+     （上游 :37-41；Kiora 侧 `ConversationGrouping.kt:211` 早有函数定义但**零调用点 = 死代码**，已接线）。
+  未迁的 `loadDescriptorsFromCache` / `handleBrokenItems` 由 Kiora 的 `collectMissing` + 用户选择式
+  `promptAndResolve` 取代（Kiora 明确不静默自动扫描 / 自动云端）。
 
 ## 明确不在本计划范围
 
@@ -251,5 +346,11 @@ L4 需决策
 - `loader/` 的 zygisk / frida 入口与 `libwekit_native.so` 编译：Kiora 保持纯 Xposed，不引入 Zygisk。
 - `activity\settings`（66 声明）：Kiora 自有设置页取代；本计划只按需抽出其中的公共 Composable
   （已抽出 `activity\settings\M3ListScaffold.kt`）。
-- `agent/` 与其 3 处衍生目录（`ui\agent`、`ui\agent\settings`、`features\api\agent`）：**待决策**；
-  当前不计入分母，若决定纳入则新增约 216 声明 + 1 项功能。
+- `agent/` 与其 5 处衍生目录（`ui\agent`、`ui\agent\settings`、`features\api\agent`、
+  `features\items\system\agent`、`activity\agent`）：**待决策**。规模实测上游 71+ 文件，
+  含 `WeAgentService.kt` 57484 B、`WeAgentToolBindings.kt` 18263 B；且在 Kiora 侧会与
+  **已有的一套自有 agent** 并存（`cn\hxy\kiora\plugin\agent\*` 9 文件 + `plugin\net\AgentService.kt` 30250 B
+  + `ui\pages\plugin\AgentPage.kt` 78153 B + `ui\viewmodel\PluginViewModel.kt` 53295 B，架构完全不同：
+  上游是 shell/JVM/MCP 工具调用 + proot 环境，Kiora 自有的是插件/脚本生成型 agent）。
+  真实依赖缺口：`third_party/proot-static`（原生二进制）、Arch Linux rootfs、`libs/common/scripta`，
+  三者离线均无制品 ⇒ **即便决定纳入，也只能迁到「能编译但运行依赖用户自备」的状态**。
