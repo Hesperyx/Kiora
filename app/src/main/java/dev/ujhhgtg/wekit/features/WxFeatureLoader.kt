@@ -327,7 +327,7 @@ object WxFeatureLoader {
         }
         WxDexCache.saveCache()
         progress.update("DexKit 本地解析完成（成功 $done/${ordered.size}）")
-        val exported = CloudDexResolver.exportLocalReport()
+        val exported = CloudDexResolver.exportLocalReport(features.filterIsInstance<IResolveDex>())
         if (exported != null) {
             progress.update("本地解析完成，报告已导出：\n$exported")
         }

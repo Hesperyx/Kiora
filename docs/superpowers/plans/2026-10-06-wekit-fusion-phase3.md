@@ -5,7 +5,7 @@
 > 前置：`docs/superpowers/plans/2026-10-05-wekit-full-migration.md`（Phase 1/2，已完成）。
 > 本文件为滚动计划：每完成一批就更新「进度快照」与「剩余批次」。
 
-## 进度快照（2026-10-06 实测，P1+P2+P3+P4-1+P4-1b+P4-2+P4-2b+P4-2c+P4-2d+P4-2e 已落地）
+## 进度快照（2026-10-06 实测，P1+P2+P3+P4-1+P4-1b+P4-2+P4-2b+P4-2c+P4-2d+P4-2e+P4-2f 已落地）
 
 口径：**上游相对路径存在性**（不再用单一声明名/正则口径，理由见 P4-2 节）。分母 = 上游 `app\src\main\java\dev\ujhhgtg\wekit` 下 767 个 .kt。
 
@@ -29,14 +29,17 @@
 
 - 编译基线：`:app:compileReleaseKotlin --offline --no-daemon` → `errors: 0`；
   `:app:assembleRelease --offline --no-daemon` → `BUILD SUCCESSFUL`，APK **14,493,895 B**
-  （P4-2e 后 sha256 `28D9323F…`；体积与 P4-2c/P4-2d 相同属 zip 压缩吸收，`classes2.dex` 逐批微增）。
+  （P4-2f 后 sha256 `C5AFFFE8…`；体积自 P4-2c 起四批都是 14,493,895 B，属 zip 压缩吸收——已按
+  dex 内字面量证实各批产物确实不同：`classes2.dex` 含 `cloud Dex report is larger than` /
+  `wekit-dex-reports` / `已导出本地报告` / `PASS_WITH_EXPECTED_FAILURES`）。
 - `git diff --cached --check` → exit 0。
 
 ### 已落地批次（新→旧）
 
 | 提交 | 内容 |
 |---|---|
-| `P4-2e`（本次） | 差分清单闭合：澄清 89 个「两侧都在但报差异」文件里 **20 个是 `features/api/core/*`→`features/api/*` 的 `0 0` 纯拍平改名**（逐字节一致），真实内容差异 **69 项至此全判完**；本轮 7 项（还原 `IResolveDex.kt` 两处 KDoc 使其与上游逐字节一致；`QuickOpenMoments` 把内联的 `"wekit_folder_"` 改回 `ConversationAggregation.FOLDER_PREFIX`（值实测相同）；`HomeSidePanelActions`/`AutoCleanCache`/`ForceTabletMode`/`Stream.kt`/`TargetProcesses` 判为等价改写并逐环节取证） |
+| `P4-2f`（本次） | 云端报告导出器修复（P4-2d 的两条 advisory）：`dexkit\cache\CloudDexResolver.kt` 330→**447 行** —— ① `fetchReport` 加 8MB 体积上限（上游 `MAX_REPORT_BYTES` 同值；进度回调里抛 `IOException`，因为 `HttpUtils.getSyncWithProgress` 吞异常返回空串，靠 `sawTooLarge` 保住原因）；② `exportLocalReport(items: List<IResolveDex>)` 重写 —— 按委托诊断写 `status` + **显式 `isPlaceholder`**（占位符一律记 `EXPECTED_FAILURE`，因为缓存恢复路径会把占位符退化成 `SUCCESS`），feature `outcome` 取 `PASS`/`PASS_WITH_EXPECTED_FAILURES`，含 `UNEXPECTED_FAILURE`/`BLOCKED`/`INCOMPLETE` 或描述符为空的 feature **整条不导出**（消费侧要求根 `outcome == PASS`，带 FAIL 会让整份报告被拒、全部功能一起失效）；调用点 `features\WxFeatureLoader.kt:330` 改传 `features.filterIsInstance<IResolveDex>()` |
+| `P4-2e` | 差分清单闭合：澄清 89 个「两侧都在但报差异」文件里 **20 个是 `features/api/core/*`→`features/api/*` 的 `0 0` 纯拍平改名**（逐字节一致），真实内容差异 **69 项至此全判完**；本轮 7 项（还原 `IResolveDex.kt` 两处 KDoc 使其与上游逐字节一致；`QuickOpenMoments` 把内联的 `"wekit_folder_"` 改回 `ConversationAggregation.FOLDER_PREFIX`（值实测相同）；`HomeSidePanelActions`/`AutoCleanCache`/`ForceTabletMode`/`Stream.kt`/`TargetProcesses` 判为等价改写并逐环节取证） |
 | `P4-2d` | 第二轮差分分诊（90 个「两侧都在但仍有差值」文件全量派子代理核）：控件层按上游恢复 2 文件（`BaseWidget` 117→166 行补齐 `onTrailingClick`/`clickHaptic`/`trailingDivider`/`remember` 化 interactionSource + `foreContent()` 叠层归位；`SwitchWidget` 43→129 行恢复触感 / `separateClickAreas` 判据 / `Role.Switch` 语义 / 拇指图标）+ 修 **2 处真回归**（`SwitchFeature.applyToggle` 丢持久化；`HideHomeScreenSwipeDownPage` 过期注释导致分组态高度硬编码 48dp，改回上游 `if (!ConversationGrouping.isEnabled) 48 else 94` 后与上游逐字节一致）+ 3 处 KDoc 订正（`BaseFeature`/`KvStore`/`WeLogger`）+ 记 1 项能力缺口（python 脚本设置页依赖未迁入的 `scripta`） |
 | `P4-2c` | 差分三分复检（对上游全树 .kt 逐文件比对，再对「两侧都在但仍有差值」的 68 个文件分类）：修 **1 处真回归** `features\items\chat\ChatFooterHooks.kt`（过期注释顶替了上游两段长按绑定，恢复后与上游逐字节一致）+ **1 处漏迁** `features\items\miniapps\ErudaConsole.kt` 补回 `ResourcesInjector.injectModuleRes(resources)` + 1 处 KDoc 订正（`WeChatInputBarMenuApi`）；注册表 217 不变；APK 13,562,308→**14,493,895 B** |
 | `P4-2b` | `i18n\LocalizedContextFactory.kt` 恢复宿主资源注入（上游 `InjectedHost` 分支的 `ResourcesInjector.injectModuleRes(it.resources)` 曾随 lsparanoid 一起被删），24 个调用点受益；注册表 217 项 technicalId 撞键自查通过；APK 仍 13,562,308 B |
@@ -348,8 +351,8 @@ L4 需决策
 `bsh\*` 声明核验通过；`HookUtils` 7 个 hook 扩展全在（原语改 `HookEngineManager.engine as? IHookBridge`）；`BaseFeature` 上游入口齐备；
 `ActivityProxy` 是 48 行兼容层（Kiora 用自有 `cn.hxy.kiora.lifecycle.Parasitics`）；`AddMainScreenFab` 改开 Kiora 模块设置页属寄生启动架构非断链。
 
-**⑥ advisories（留 P4-2f）**：`dexkit\cache\CloudDexResolver.kt:202` 下载无 8MB 上限（上游有 `MAX_REPORT_BYTES`）；
-`:284-299 exportLocalReport()` 未按 `DexDelegates.isPlaceholder` 过滤即写 `"status":"SUCCESS"`。
+**⑥ advisories（已在 P4-2f 修复）**：`dexkit\cache\CloudDexResolver.kt` 下载无 8MB 上限（上游有 `MAX_REPORT_BYTES`）；
+`exportLocalReport()` 未按 `DexDelegates.isPlaceholder` 过滤即写 `"status":"SUCCESS"`。两项处置见下节。
 
 ### P4-2e 差分清单闭合（89 项全判完）
 
@@ -380,6 +383,50 @@ Kiora 把进程名来源从 `ActivityManager.runningAppProcesses` 反查（带 3
 消费方是**功能分进程加载的判定**：`features\WxFeatureLoader.kt:51 TargetProcesses.isInMain`、`:55-57 val currentProcess = TargetProcesses.currentType`，
 `:90-94` 与 `:350` 取 `currentName` 打日志 ⇒ 该路径已核，结论为等价。
 
+### P4-2f 云端报告导出器（两条 advisory 已修）
+
+**背景**：`CloudDexResolver.exportLocalReport()` 是 Kiora 独有的维护工具（上游 main 源集没有写出器，
+只有 `app\src\test\...\dextest\` 侧的测试框架会产出报告）。P4-2d 子代理①发现两处缺陷，本轮修完。
+
+- **① 下载无体积上限** → 加 `private const val MAX_REPORT_BYTES = 8 * 1024 * 1024`（与上游
+  `WeKit-master\app\...\dexkit\cache\CloudDexResolver.kt:36` 同值）。实现方式受限于
+  `HttpUtils.getSyncWithProgress`（`cn\hxy\kiora\utils\net\HttpUtils.kt:61-100`）内部
+  `catch (_: Exception) { "" }` 会吞掉一切异常并返回空串：因此在**进度回调**里判定
+  `total > MAX || downloaded > MAX` 时置 `tooLarge` 并 `throw IOException`——抛出用于中断读取循环并关连接，
+  循环外的 `sawTooLarge` 用于给出可诊断的原因（否则只剩一句「响应为空」）。上游另有 `contentLength`
+  预检 + `readBoundedUtf8` 流式上限（其 `:118-140`），语义等价。
+- **② 导出把占位符标成 `SUCCESS`** → 重写为「读委托诊断 + 显式写 `isPlaceholder`」：
+
+| delegate 情形 | 导出的 `status` | 依据 |
+|---|---|---|
+| `status == UNEXPECTED_FAILURE` | `UNEXPECTED_FAILURE` | 上游 `DexFeatureRunner.featureOutcome` 判 FAIL |
+| `isPlaceholder == true` | `EXPECTED_FAILURE` | **只有**这一组合能通过消费侧 `hasValidOutcome()` |
+| `status == SUCCESS` 且非占位符 | `SUCCESS` | 消费侧要求 `SUCCESS` 必须非占位符 |
+| `PENDING`/`BLOCKED`/`INCOMPLETE` | `UNEXPECTED_FAILURE` | 本地没扫出结果，任何情况都不该被云端接受 |
+
+- **占位符为何不能靠 `status` 判断**：缓存恢复路径 `BaseDexDelegate.loadDescriptor`
+  → `setDescriptor` → `recordDescriptorAfterSet`（`dexkit\dsl\DexDelegates.kt:103-107`）只在
+  `status == PENDING` 时记 `SUCCESS`，于是「扫描期判定期望失败」的委托重载后变成 `SUCCESS` + 占位符哨兵。
+  故导出侧一律以 `isPlaceholder` 为准归成 `EXPECTED_FAILURE`。
+- **feature 级与根级**：`featureJson()` 在描述符为空或任一 delegate 不可用时返回 null ⇒ 该 feature
+  整条不导出；`outcome` 取 `PASS_WITH_EXPECTED_FAILURES`（含占位符）/ `PASS`（否则）。根 `outcome`
+  恒写 `PASS`，因为上游口径（`DexTestWorkerTest.kt:157-168`）是「全部 feature 通过才 PASS」，而消费侧
+  `CloudDexReport.select` 要求根 `outcome == "PASS"`，否则**整份报告被拒、全部功能一起失效**；
+  被剔除的功能回退本地扫描（`remainingFeatures` 机制），代价最小。
+- **调用点**：`features\WxFeatureLoader.kt:330` 由 `exportLocalReport()` 改为
+  `exportLocalReport(features.filterIsInstance<IResolveDex>())`——导出需要遍历全部已注册 feature 以发现
+  「导入后仍 PENDING」的委托，交由方法内部按诊断过滤。
+- **未动的相邻事实**：`DexKitFinder.mainDexItems()` 的 tag 沿用「缓存值非空即 SUCCESS」，空串（本地未解析）
+  整条不导出；`CloudDexReport` 的 `Json { ignoreUnknownKeys = true }` 使多写的 `message`/`blockedBy` 字段安全。
+- **验证**：`:app:compileReleaseKotlin` exit 0（132 行日志 / 0 错误）；`:app:assembleRelease` exit 0、
+  BUILD SUCCESSFUL in 2m 3s；APK 14,493,895 B、sha256 `C5AFFFE8…`；dex 内已确认含新字面量
+  `cloud Dex report is larger than` / `wekit-dex-reports` / `已导出本地报告` / `PASS_WITH_EXPECTED_FAILURES`
+  （故四批同体积确属 zip 压缩吸收，而非产物未更新）。
+- **验证缺口（列 P4-3 真机回归）**：导出器与 Android 运行时耦合（`HostInfo.application`、`DexKitFinder`），
+  本轮只到编译级。真机步骤：清空 DexKit 缓存 → 完整本地扫描 → 取
+  `externalCacheDir/wekit-dex-reports/wechat-*.json`，检查①每个 delegate 都显式带 `isPlaceholder`；
+  ②根 `outcome == PASS`；③描述符缺失的 feature 确实不出现在报告里。
+
 ### P0-1 云端 DexKit 报告（摸清上限，重出无增益）
 
 - Release `Kiora-wechat`（`id=402951057`）线上唯一资产 `wechat-8.0.78-3180-domestic.json`
@@ -405,10 +452,12 @@ Kiora 把进程名来源从 `ActivityManager.runningAppProcesses` 反查（带 3
 ### 待办（离线之外）
 
 - [ ] **P4-3 真机回归**：清 DexKit 缓存冷启动，确认无自动扫描 / 自动重启、弹窗正确关闭、无崩溃；
-      逐批验证 222 项注册功能的开关与设置页；顺带在真机扫全 132 个 DexKit 键后**导出新报告并替换线上资产**
-      （需要 `GH_TOKEN` 或 `gh auth login`）。
+      逐批验证 222 项注册功能的开关与设置页；**顺带验证 P4-2f 导出器**（清缓存 → 完整本地扫描 →
+      检查 `externalCacheDir/wekit-dex-reports/wechat-*.json` 的 `isPlaceholder`/根 `outcome`/缺失 feature 缺席）
+      后导出新报告并替换线上资产（需要 `GH_TOKEN` 或 `gh auth login`）。
 - [ ] 复核 APK 体积与 R8 规则（当前 14,493,895 B，`isMinifyEnabled=true` + `isShrinkResources=true`；
-      P4-2c 前为 13,562,308 B，增量来自面板子系统重回可达集，属预期）。
+      P4-2c 前为 13,562,308 B，增量来自面板子系统重回可达集，属预期；该体积自 P4-2c 起四批不变，
+      已按 dex 内字面量证实产物确实逐批更新，属 zip 压缩吸收）。
 
 ## 当前状态：不可迁 / 永久搁置
 
