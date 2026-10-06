@@ -2080,6 +2080,15 @@ object R {
         val chat_send_failed = cn.hxy.kiora.R.string.chat_send_failed
         val feature_emoji_game_control_description = cn.hxy.kiora.R.string.feature_emoji_game_control_description
         val feature_emoji_game_control_name = cn.hxy.kiora.R.string.feature_emoji_game_control_name
+        // ApiServer feature
+        val feature_api_server_description = cn.hxy.kiora.R.string.feature_api_server_description
+        val feature_api_server_name = cn.hxy.kiora.R.string.feature_api_server_name
+        val system_api_server_auth_token = cn.hxy.kiora.R.string.system_api_server_auth_token
+        val system_api_server_invalid_port = cn.hxy.kiora.R.string.system_api_server_invalid_port
+        val system_api_server_mcp_started = cn.hxy.kiora.R.string.system_api_server_mcp_started
+        val system_api_server_port = cn.hxy.kiora.R.string.system_api_server_port
+        val system_api_server_rest_started = cn.hxy.kiora.R.string.system_api_server_rest_started
+        val system_api_server_stopped = cn.hxy.kiora.R.string.system_api_server_stopped
     }
 
     object plurals {

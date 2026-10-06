@@ -49,6 +49,7 @@ import dev.ujhhgtg.wekit.features.items.official_accounts.RemoveOfficialAccountA
 import dev.ujhhgtg.wekit.features.items.official_accounts.UseLegacyOfficialAccountsView
 import dev.ujhhgtg.wekit.features.items.official_accounts.UseMultiWebViewForOfficialAccounts
 import dev.ujhhgtg.wekit.features.items.system.AutoCleanCache
+import dev.ujhhgtg.wekit.features.items.system.servers.ApiServer
 import dev.ujhhgtg.wekit.features.items.system.CustomDpi
 import dev.ujhhgtg.wekit.features.items.system.DisableResumeWatchingToast
 import dev.ujhhgtg.wekit.features.items.system.DisableShareScreenshotToast
@@ -211,6 +212,7 @@ object WxFeatureRegistry {
                 RemoveOfficialAccountAds,
                 UseMultiWebViewForOfficialAccounts,
                 AutoCleanCache,
+                ApiServer,
                 CustomDpi,
                 DisableResumeWatchingToast,
                 DisableShareScreenshotToast,

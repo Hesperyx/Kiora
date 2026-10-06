@@ -84,6 +84,9 @@
 -dontwarn edu.umd.cs.findbugs.annotations.**
 -dontwarn java.lang.instrument.**
 
+# ktor 的 IntellijIdeaDebugDetector 引用桌面 JVM 的 java.lang.management，Android 上不存在
+-dontwarn java.lang.management.**
+
 -keepattributes LineNumberTable,SourceFile
 
 -dontoptimize

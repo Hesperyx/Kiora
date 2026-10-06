@@ -156,6 +156,7 @@ dependencies {
     implementation(libs.ktor.server.auth)
     implementation(libs.ktor.server.sse)
     implementation(libs.ktor.server.content.negotiation)
+    implementation(libs.mcp.server)
 
     ksp(projects.processor)
     ksp(libs.androidx.room.compiler)

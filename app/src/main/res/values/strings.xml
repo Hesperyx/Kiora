@@ -2230,4 +2230,14 @@
         <item quantity="one">Sent %1$d time</item>
         <item quantity="other">Sent %1$d times</item>
     </plurals>
+
+    <!-- ApiServer feature -->
+    <string name="feature_api_server_description">Enable REST API and MCP server to allow humans and AI to access WeChat capabilities</string>
+    <string name="feature_api_server_name">API + MCP server</string>
+    <string name="system_api_server_auth_token">Authentication token</string>
+    <string name="system_api_server_invalid_port">Invalid port!</string>
+    <string name="system_api_server_mcp_started">MCP server started at http://0.0.0.0:%1$d/mcp</string>
+    <string name="system_api_server_port">Port</string>
+    <string name="system_api_server_rest_started">REST API server started at http://0.0.0.0:%1$d/api</string>
+    <string name="system_api_server_stopped">Server stopped</string>
 </resources>
