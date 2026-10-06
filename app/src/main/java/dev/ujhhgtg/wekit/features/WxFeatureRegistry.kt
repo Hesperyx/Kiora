@@ -156,6 +156,7 @@ import dev.ujhhgtg.wekit.features.items.batch.BatchMuteConversations
 import dev.ujhhgtg.wekit.features.items.batch.MassSendMessage
 import dev.ujhhgtg.wekit.features.items.chat_input_bar_menu.MentionMembers
 import dev.ujhhgtg.wekit.features.items.chat_input_bar_menu.SendCardMessage
+import dev.ujhhgtg.wekit.features.items.notifications.NotificationsEvolved
 
 
 /**
@@ -326,6 +327,7 @@ object WxFeatureRegistry {
                 MassSendMessage,
                 MentionMembers,
                 SendCardMessage,
+                NotificationsEvolved,
             )
         )
     }

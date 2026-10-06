@@ -1480,6 +1480,24 @@ object R {
         val feature_send_card_message_name = cn.hxy.kiora.R.string.feature_send_card_message_name
         val send_card_message_failed = cn.hxy.kiora.R.string.send_card_message_failed
         val send_card_message_input_empty = cn.hxy.kiora.R.string.send_card_message_input_empty
+        // Notifications category: NotificationsEvolved
+        val feature_notifications_evolved_description = cn.hxy.kiora.R.string.feature_notifications_evolved_description
+        val feature_notifications_evolved_name = cn.hxy.kiora.R.string.feature_notifications_evolved_name
+        val notifications_action_mark_read = cn.hxy.kiora.R.string.notifications_action_mark_read
+        val notifications_action_reply = cn.hxy.kiora.R.string.notifications_action_reply
+        val notifications_clear_history_after_quick_reply = cn.hxy.kiora.R.string.notifications_clear_history_after_quick_reply
+        val notifications_image_behavior = cn.hxy.kiora.R.string.notifications_image_behavior
+        val notifications_image_disabled = cn.hxy.kiora.R.string.notifications_image_disabled
+        val notifications_image_wait_large = cn.hxy.kiora.R.string.notifications_image_wait_large
+        val notifications_image_wait_thumbnail = cn.hxy.kiora.R.string.notifications_image_wait_thumbnail
+        val notifications_reply_hint = cn.hxy.kiora.R.string.notifications_reply_hint
+        val notifications_self = cn.hxy.kiora.R.string.notifications_self
+        val notifications_settings_title = cn.hxy.kiora.R.string.notifications_settings_title
+        val notifications_sticker_behavior = cn.hxy.kiora.R.string.notifications_sticker_behavior
+        val notifications_sticker_loaded_only = cn.hxy.kiora.R.string.notifications_sticker_loaded_only
+        val notifications_sticker_wait_load = cn.hxy.kiora.R.string.notifications_sticker_wait_load
+        val notifications_unknown_content = cn.hxy.kiora.R.string.notifications_unknown_content
+        val notifications_unknown_conversation = cn.hxy.kiora.R.string.notifications_unknown_conversation
     }
 
     object plurals {

@@ -1578,4 +1578,23 @@
         <item quantity="one">You mentioned %1$d person</item>
         <item quantity="other">You mentioned %1$d people</item>
     </plurals>
+
+    <!-- Notifications category: NotificationsEvolved -->
+    <string name="feature_notifications_evolved_description">Make WeChat’s new message notifications easier to use\n1. “Quick reply” button\n2. “Mark as read” button\n3. Use native conversation style (MessagingStyle)</string>
+    <string name="feature_notifications_evolved_name">Enhanced notifications</string>
+    <string name="notifications_action_mark_read">Mark as read</string>
+    <string name="notifications_action_reply">Reply</string>
+    <string name="notifications_clear_history_after_quick_reply">Clear message history after quick reply</string>
+    <string name="notifications_image_behavior">Image messages</string>
+    <string name="notifications_image_disabled">Do not show images</string>
+    <string name="notifications_image_wait_large">Wait for large image</string>
+    <string name="notifications_image_wait_thumbnail">Wait for thumbnail</string>
+    <string name="notifications_reply_hint">Enter a reply…</string>
+    <string name="notifications_self">Me</string>
+    <string name="notifications_settings_title">Enhanced notification settings</string>
+    <string name="notifications_sticker_behavior">Sticker messages</string>
+    <string name="notifications_sticker_loaded_only">Loaded stickers only</string>
+    <string name="notifications_sticker_wait_load">Wait for sticker loading</string>
+    <string name="notifications_unknown_content">Unknown content (please report this to the module developer)</string>
+    <string name="notifications_unknown_conversation">Unknown conversation (please report this to the module developer)</string>
 </resources>
