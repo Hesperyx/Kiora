@@ -20,7 +20,9 @@ import dev.ujhhgtg.wekit.utils.WeLogger
  *
  * 上游使用 Compose 弹窗渲染图标；这里改为 `AlertDialog.setItems`，弹窗不画图标，
  * 但 `ActionItem.icon` 仍保持上游的 `ImageVector` 类型，好让上游功能文件原样移植。
- * 保留 provider 注册、`findSendButton` / `showMenu` / `performSend` 接口。
+ * 保留 provider 注册与 `findSendButton` / `showMenu` 接口；上游 `performSend`
+ * （反射 `View.mListenerInfo.mOnClickListener` 模拟点发送）在上游全树没有任何调用点，
+ * 属于死代码，因此不迁入。
  */
 object WeChatInputBarMenuApi : ApiFeature(), IResolveDex {
 

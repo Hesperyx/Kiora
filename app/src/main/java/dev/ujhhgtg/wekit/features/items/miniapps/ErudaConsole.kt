@@ -7,6 +7,7 @@ import dev.ujhhgtg.wekit.R
 import dev.ujhhgtg.wekit.features.api.ui.WeWebViewApi
 import dev.ujhhgtg.wekit.features.core.FeatureCategoryIds
 import dev.ujhhgtg.wekit.features.core.SwitchFeature
+import dev.ujhhgtg.wekit.loader.utils.ResourcesInjector
 import dev.ujhhgtg.wekit.utils.HostInfo
 import dev.ujhhgtg.wekit.utils.TargetProcess
 import dev.ujhhgtg.wekit.utils.WeLogger
@@ -21,6 +22,8 @@ object ErudaConsole : SwitchFeature() {
 
     private val erudaScript by lazy {
         val resources = HostInfo.application.resources
+        // R.raw.eruda 是模块自己的资源 id；宿主 Resources 不认它，必须先注入模块 APK。
+        ResourcesInjector.injectModuleRes(resources)
         resources.openRawResource(R.raw.eruda)
             .bufferedReader()
             .use { it.readText() }

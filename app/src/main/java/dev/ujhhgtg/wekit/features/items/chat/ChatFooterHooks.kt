@@ -34,8 +34,22 @@ object ChatFooterHooks : ApiFeature(), IResolveDex {
                 view.javaClass.simpleName == "WeImageButton"
             }.map { it as ImageButton }.toList()
 
-            // VoicePanel / StickerPanel 的面板子系统尚未迁入，先保留它们的长按入口位置；
-            // 面板文件迁移完成后恢复对应 openPanel 调用。
+            if (VoicePanel.isEnabled) {
+                val voiceBtn = imgButtons.first()
+                voiceBtn.setOnLongClickListener { view ->
+                    VoicePanel.openPanel(view)
+                    true
+                }
+            }
+
+            if (StickerPanel.isEnabled) {
+                val emojiBtn = imgButtons[1]
+                emojiBtn.setOnLongClickListener { v ->
+                    StickerPanel.openPanel(v)
+                    true
+                }
+            }
+
             val menuBtn = imgButtons.last()
             val sendBtn = WeChatInputBarMenuApi.findSendButton(chatFooter)
 

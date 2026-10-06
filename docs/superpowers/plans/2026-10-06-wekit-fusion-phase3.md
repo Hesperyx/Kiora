@@ -5,7 +5,7 @@
 > 前置：`docs/superpowers/plans/2026-10-05-wekit-full-migration.md`（Phase 1/2，已完成）。
 > 本文件为滚动计划：每完成一批就更新「进度快照」与「剩余批次」。
 
-## 进度快照（2026-10-06 实测，P1+P2+P3+P4-1+P4-1b+P4-2+P4-2b 已落地）
+## 进度快照（2026-10-06 实测，P1+P2+P3+P4-1+P4-1b+P4-2+P4-2b+P4-2c 已落地）
 
 口径：**上游相对路径存在性**（不再用单一声明名/正则口径，理由见 P4-2 节）。分母 = 上游 `app\src\main\java\dev\ujhhgtg\wekit` 下 767 个 .kt。
 
@@ -28,14 +28,15 @@
 | 上游 items 功能对象已注册 | **222** | 225 | 98.7%（**未注册 3**：`ChatToolbar` / `ForwardMessages` / `WeAgent`） |
 
 - 编译基线：`:app:compileReleaseKotlin --offline --no-daemon` → `errors: 0`；
-  `:app:assembleRelease --offline --no-daemon` → `BUILD SUCCESSFUL`，APK **13,562,308 B**。
+  `:app:assembleRelease --offline --no-daemon` → `BUILD SUCCESSFUL`，APK **14,493,895 B**。
 - `git diff --cached --check` → exit 0。
 
 ### 已落地批次（新→旧）
 
 | 提交 | 内容 |
 |---|---|
-| `P4-2b`（本次） | `i18n\LocalizedContextFactory.kt` 恢复宿主资源注入（上游 `InjectedHost` 分支的 `ResourcesInjector.injectModuleRes(it.resources)` 曾随 lsparanoid 一起被删），24 个调用点受益；注册表 217 项 technicalId 撞键自查通过；APK 仍 13,562,308 B |
+| `P4-2c`（本次） | 差分三分复检（对上游全树 .kt 逐文件比对，再对「两侧都在但仍有差值」的 68 个文件分类）：修 **1 处真回归** `features\items\chat\ChatFooterHooks.kt`（过期注释顶替了上游两段长按绑定，恢复后与上游逐字节一致）+ **1 处漏迁** `features\items\miniapps\ErudaConsole.kt` 补回 `ResourcesInjector.injectModuleRes(resources)` + 1 处 KDoc 订正（`WeChatInputBarMenuApi`）；注册表 217 不变；APK 13,562,308→**14,493,895 B** |
+| `P4-2b` | `i18n\LocalizedContextFactory.kt` 恢复宿主资源注入（上游 `InjectedHost` 分支的 `ResourcesInjector.injectModuleRes(it.resources)` 曾随 lsparanoid 一起被删），24 个调用点受益；注册表 217 项 technicalId 撞键自查通过；APK 仍 13,562,308 B |
 | `P4-2` | 全树对齐复测 + 补两处漏迁行为：新增 `features\items\system\SafeMode.kt`（2 进程级「安全模式」开关，3 条字符串资源）；`WxFeatureLoader.load()` 接线 ① 安全模式门控（只加载 API 层，跳过全部 items）② `ConversationGrouping.migrateTabStyle(...)`（原先函数存在但零调用 = 死代码）；APK 13,561,264→13,562,308 B |
 | `P4-1` | scripting_python 核心 + extensions 扩展包栈：`python\api` 10 接口（vendoring）、`scripting_python` 12 文件、`extensions` 6 文件（`ExtensionSupport`/`ExtensionPackRegistryValidation`/`ScriptDepsPack`/`ExtensionPackDialogs`/`PythonRuntimeArchive`/`PythonRuntimePack`）、`activity\settings\ExtensionsSettingsActivity.kt`、`loader\utils\HybridClassLoader.kt`、`ClassLoaders` 补 `BOOT`/`HYBRID`；`ExtensionPacksProvider.ALL_PACKS` 由 `emptyList()` 改为登记两包；注册 215→216；APK 13,414,588→13,474,920 B |
 | `P3` | 主题栈：beautify 7（`ApplyGlobalBackground` / `CenterProfileCard` / `CustomMessageBubbles` / `MonetEngine`→`WeApiRegistry` / `MonetEngineModuleGenerator` / `ReplaceNavigationBar` / `Themes`）+ `utils\monet` 12 文件；引入 ARSCLib 1.4.0（经 `prepareAndroidArsclib` Jar task 剔除 `android/**`、`org/xmlpull/v1/**`）/ apksig 9.3.3 / bouncycastle 1.86 prov+pkix；`NumberPickerWidget.kt` 换上游完整版；注册 209→215；APK 12,253,200→13,414,588 B |
@@ -267,6 +268,43 @@ L4 需决策
 > ② 换行 getter 的扩展属性 —— `utils\strings\WxIdUtils.kt`。
 > 故「已迁/未迁」以上面的三段式判定为准。
 
+### P4-2c 差分三分复检（全树逐文件比对）
+
+方法：对上游每个 .kt 跑 `git --no-pager diff --no-index --ignore-cr-at-eol`，先取出**两侧都存在且仍有差值**的 68 个文件，
+再按差值绝对值聚类；**负差值（删除行）必须回读 Kiora 文件本体才能定性**——Kiora 系统性以「原生控件 / 原生 `AlertDialog`」
+替换上游 Compose，只看 `^-` 行必然误报，本轮由此产生的 **4 个误报已全部纠正**（`DexMethodDescriptor` / `ModifySportsStepCount` /
+`QrCodeRecord` / `OpenConversation`）。
+
+- ① **真回归 1 项（已修）**：`features\items\chat\ChatFooterHooks.kt`（−311 B）。上游同位置的两段长按绑定
+  （`if (VoicePanel.isEnabled) { imgButtons.first().setOnLongClickListener { VoicePanel.openPanel(it); true } }` 与
+  `if (StickerPanel.isEnabled) { imgButtons[1].setOnLongClickListener { StickerPanel.openPanel(it); true } }`）
+  被换成了「面板子系统尚未迁入」的过期注释；实测面板子系统早已完整迁入（`ui\panel\VoicePanelSheet.kt` 140525 B、
+  `ui\panel\PanelShell.kt` 41050 B 与上游逐字节一致，`ui\panel\StickerPanelSheet.kt` 149311 B 的唯一差值是 zygisk 多实例选择器）。
+  关键佐证：`VoicePanel` / `StickerPanel` 在 Kiora 全树**只有 `ChatFooterHooks` 一个引用点**（`grep` 命中仅该文件
+  `:37/:40/:45/:48`）⇒ 入口被删后 R8 把整个面板子系统判为不可达并剥离——恢复后 **APK +931,587 B**，
+  删除的从来不是「注释占位」，而是这两个面板**唯一的打开入口**。
+- ② **漏迁 1 项（已修）**：`features\items\miniapps\ErudaConsole.kt` 缺上游 `:25 ResourcesInjector.injectModuleRes(resources)`。
+  `erudaScript` 读 `R.raw.eruda`（模块自身资源 id），宿主 `Resources` 不认，必须先注入模块 APK；补回后与上游该函数体一致。
+- ③ **设计差异 10 项（无需改，逐条读 Kiora 本体确认）**：
+  `WeChatInputBarMenuApi`（−2599：Compose 菜单弹窗改原生 `AlertDialog.setItems`；被删的 `performSend` 在上游全树零调用点）、
+  `OpenConversation`（−2431：Compose 对话框迁到同包 `OpenConversationDialog.kt`）、
+  `CrashInterceptorUtils`（−2427：改写为原生 `AlertDialog.Builder` 链）、
+  `UriUtils`（−1297：CustomTabs 降级为系统浏览器——`androidx.browser` 只在离线缓存里、未进 `app\build.gradle.kts`，
+  且 `ForwardIcon`/`toBitmap`/`toDp` 在 Kiora 不存在）、
+  `WeSettingsInjector`（−13121：上游是「微信设置页注入器 + `openSettingsDialog`」；Kiora 只留后者，
+  入口改由 `features\items\home_screen_menu\ModuleSettings.kt:32` 提供）、
+  `SegmentedColumn`（−12727：上游独有的 `SegmentedItemData`/`expandableItem`/`bouncy*` 无调用点）、
+  `DexDelegates`（−786：DSL 面 `dexClass`/`dexField`/`dexMethod`/`dexConstructor`/`findClassData` 全在）、
+  `ComposeUtils`（−1068：见下）、`WeLogger`（−11043）/`KvStore`（−12776）（架构自有实现替换）。
+- ④ **遗留可见差异 1 项（本轮不改，留 P4-3 目视）**：`ui\utils\ComposeUtils.kt` 的 `showComposeDialog` 用裸 `MaterialTheme`，
+  上游是 `CommonContextWrapper(context)` + `WeKitLocaleProvider(mode = InjectedHost)` + `ModuleTheme`/`NukeModuleTheme` 分支。
+  **资源解析不受影响**（`ResourcesInjector.injectModuleRes` 原地改写宿主 `Resources` 实例，见 `loader\utils\ResourcesInjector.kt:33-49`）；
+  差异只是约 150 处调用点的弹窗用 Material3 基线配色而非用户主题色。单点修法存在（该处 `MaterialTheme` → `InjectedUiTheme`，
+  一处生效全覆盖），但会叠加影响已自行包裹主题的 6 处（`ReplaceNavigationBar.kt:591`、`ConversationGrouping.kt:391`、
+  `HomeSidePanel.kt:484/1240`、`AddMainScreenFab.kt:425`、`PanelShell.kt:262`），故作独立批次。
+- 待办提示：`WeLogger`/`KvStore`（架构替换）与 `SwitchWidget`/`BaseWidget`（−3296/−8089，上游 Compose M3 控件 vs Kiora 精简版）
+  尚未逐行核，若后续出现控件行为异常，从此处入手。
+
 ### P0-1 云端 DexKit 报告（摸清上限，重出无增益）
 
 - Release `Kiora-wechat`（`id=402951057`）线上唯一资产 `wechat-8.0.78-3180-domestic.json`
@@ -294,7 +332,8 @@ L4 需决策
 - [ ] **P4-3 真机回归**：清 DexKit 缓存冷启动，确认无自动扫描 / 自动重启、弹窗正确关闭、无崩溃；
       逐批验证 222 项注册功能的开关与设置页；顺带在真机扫全 132 个 DexKit 键后**导出新报告并替换线上资产**
       （需要 `GH_TOKEN` 或 `gh auth login`）。
-- [ ] 复核 APK 体积与 R8 规则（当前 13,561,264 B，`isMinifyEnabled=true` + `isShrinkResources=true`）。
+- [ ] 复核 APK 体积与 R8 规则（当前 14,493,895 B，`isMinifyEnabled=true` + `isShrinkResources=true`；
+      P4-2c 前为 13,562,308 B，增量来自面板子系统重回可达集，属预期）。
 
 ## 当前状态：不可迁 / 永久搁置
 
