@@ -23,6 +23,19 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * 防撤回（对齐 QQ 侧 [cn.hxy.kiora.hook.msg.AntiRevoke] 的「消息保留 + 红字标记」）。
  *
+ * 与 WeKit 血统的
+ * [dev.ujhhgtg.wekit.features.items.chat.AntiMessageRecall] 的分工与共存：
+ *
+ * - 两者都拦「别人撤回」和「自己撤回」，但落点不同：本类是 **DexKit 方法替换**
+ *   （直接吞掉 `doRevokeMsg` 函数，撤回指令根本落不了地），
+ *   [dev.ujhhgtg.wekit.features.items.chat.AntiMessageRecall] 是 **XML 解析拦截**
+ *   （把撤回 sysmsg 的类型置空）。两条通路互补，任一失效都还有另一条兜底。
+ * - 两者都带 `tag = "防撤回"`，因此设置页会出现两个同名开关。这是**刻意保留**的：
+ *   本类承担的是 DexKit 方法替换那条通路，摘掉本类的 `@HookItemAnnotation`
+ *   （KSP 只收集带注解的类）会让这条通路整个消失，微信侧只剩 XML 解析拦截。
+ * - 两个都开启时同一次撤回会被两套 hook 处理，但两者都只是「阻止撤回 + 记 svrId」，
+ *   幂等，不会互相拆台。
+ *
  * ## 两步
  *
  * 1. **拦撤回**：hook 撤回处理方法 [WeChatDexKit.ANTI_REVOKE_1]
@@ -44,6 +57,8 @@ import java.util.concurrent.ConcurrentHashMap
  *   「消息上方」的精确位置可能需要在真机上微调 [markIfRevoked] 里的布局参数。
  * - 撤回集合目前只存内存，微信进程重启后已打的标记会丢失（消息本身还在，
  *   只是不再补红字）；如需跨重启保留，再加 ObjectStore 持久化（对齐 QQ 侧）。
+ * - RecyclerView 复用 itemView 时不会清掉旧的 `KioraRevokeMark`，普通消息上会残留
+ *   红色「已撤回」标记（见 [markIfRevoked] 的非撤回分支直接 return）。
  */
 @HookItemAnnotation(
     tag = "防撤回",

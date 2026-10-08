@@ -57,6 +57,7 @@ import dev.ujhhgtg.wekit.utils.android.isDarkMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import cn.hxy.kiora.wx.util.WeChatDexKit
 import java.util.Collections
 import java.util.WeakHashMap
 
@@ -81,6 +82,11 @@ object AntiMessageRecall : ClickableFeature(), IResolveDex, WeXmlParserApi.IAfte
     @Volatile
     private var recalledKeyCache: Set<String> = emptySet()
 
+    // Guards the read-modify-write of [recalledKeyCache]/[recalledRecords]: `onParse` may run on a
+    // worker thread while the scene-end hook runs on another, so concurrent recalls must be
+    // serialized, otherwise one of them silently overwrites the other's record.
+    private val recordLock = Any()
+
     // Content views currently dimmed by us, keyed by their bound row, so a rebind restores the
     // exact view we changed instead of clobbering other features' animations (e.g.
     // MessageEntranceAnimation).
@@ -99,6 +105,7 @@ object AntiMessageRecall : ClickableFeature(), IResolveDex, WeXmlParserApi.IAfte
 
     private const val TYPE_KEY = $$".sysmsg.$type"
     private const val RECORD_SEPARATOR = "\u001F"
+    private const val MAX_RECALL_RECORDS = 2000
     private const val RECALL_ALPHA = 0.4f
     private const val BADGE_SIZE_DP = 28
     private const val BADGE_PADDING_DP = 6
@@ -122,6 +129,29 @@ object AntiMessageRecall : ClickableFeature(), IResolveDex, WeXmlParserApi.IAfte
     )
 
     private fun encodeKey(talker: String, serverId: Long) = "$talker$RECORD_SEPARATOR$serverId"
+
+    private fun boundedRecallKeys(keys: Set<String>): Set<String> =
+        if (keys.size <= MAX_RECALL_RECORDS) {
+            keys
+        } else {
+            // `Set + element` yields an insertion-ordered LinkedHashSet (oldest first), so the
+            // trimmed list keeps the most recent records.
+            keys.toList().takeLast(MAX_RECALL_RECORDS).toSet()
+        }
+
+    /**
+     * Records a blocked recall, atomically and with a bounded persisted set.
+     *
+     * Called from two different threads (`onParse` worker + scene-end hook), so the whole
+     * read-modify-write-persist sequence runs under [recordLock]. The persisted set is capped so a
+     * long-lived install cannot grow `recall_records` without bound.
+     */
+    private fun recordRecall(key: String) {
+        synchronized(recordLock) {
+            recalledKeyCache = boundedRecallKeys(recalledKeyCache + key)
+            recalledRecords = recalledKeyCache
+        }
+    }
 
     // NetSceneRevokeMsg (scene 594, /cgi-bin/micromsg-bin/revokemsg): recalling a message sent from
     // this device never parses a revoke sysmsg — the scene rewrites the message row in place at
@@ -147,29 +177,34 @@ object AntiMessageRecall : ClickableFeature(), IResolveDex, WeXmlParserApi.IAfte
     }
 
     override fun onEnable() {
-        recalledKeyCache = recalledRecords
+        synchronized(recordLock) {
+            recalledKeyCache = recalledRecords
+        }
         WeXmlParserApi.addListener(this)
         WeChatMessageViewApi.addListener(this)
+        hookRevokeHandler()
 
         methodRevokeMsgSceneInit.hookBefore {
-            val captured = MessageInfo(args[0]!!)
-            pendingRecallMsgs[thisObject!!] = captured
+            val scene = thisObject ?: return@hookBefore
+            val target = args.getOrNull(0) ?: return@hookBefore
+            pendingRecallMsgs[scene] = MessageInfo(target)
         }
 
         methodRevokeMsgSceneEnd.hookBefore {
+            val scene = thisObject ?: return@hookBefore
             if (!recallOutgoing) {
                 WeLogger.i(TAG, "revoke scene end skipped: recall outgoing disabled")
                 return@hookBefore
             }
-            val msgInfo = pendingRecallMsgs.remove(thisObject!!)
+            val msgInfo = pendingRecallMsgs.remove(scene)
             if (msgInfo == null) {
                 WeLogger.i(TAG, "revoke scene end skipped: no captured message")
                 return@hookBefore
             }
             // Recall rejected (e.g. the 2-minute window expired): keep WeChat's own failure path,
             // the message row was never rewritten anyway.
-            val errType = args[1] as Int
-            val errCode = args[2] as Int
+            val errType = args.getOrNull(1) as? Int ?: return@hookBefore
+            val errCode = args.getOrNull(2) as? Int ?: return@hookBefore
             if (errType != 0 || errCode != 0) {
                 WeLogger.i(TAG, "revoke scene end skipped: scene failed")
                 return@hookBefore
@@ -181,31 +216,73 @@ object AntiMessageRecall : ClickableFeature(), IResolveDex, WeXmlParserApi.IAfte
 
             // Resolve the scene queue wrapper first: if that fails we bail out without recording,
             // so the original body keeps running and the recall just behaves unblocked.
-            val sceneEndField = thisObject!!.reflekt().firstField {
-                type { it.isInterface && it.declaredMethods.any { m -> m.name == "onSceneEnd" } }
+            val (sceneWrapper, sceneEnd) = runCatching {
+                val sceneEndField = scene.reflekt().firstField {
+                    type { it.isInterface && it.declaredMethods.any { m -> m.name == "onSceneEnd" } }
+                }
+                val wrapper = sceneEndField.get(scene) ?: error("scene wrapper is null")
+                @Suppress("UNCHECKED_CAST")
+                val sceneWrapperType = sceneEndField.self.type as Class<Any>
+                val method = sceneWrapperType.reflekt()
+                    .firstMethod { name = "onSceneEnd"; parameterCount = 4 }
+                wrapper to method
+            }.getOrElse { throwable ->
+                WeLogger.w(TAG, "revoke scene end skipped: cannot resolve scene end", throwable)
+                return@hookBefore
             }
-            val sceneWrapper = sceneEndField.get(thisObject!!)!!
-            @Suppress("UNCHECKED_CAST")
-            val sceneWrapperType = sceneEndField.self.type as Class<Any>
-            val sceneEnd = sceneWrapperType.reflekt()
-                .firstMethod { name = "onSceneEnd"; parameterCount = 4 }
 
             // Replicate the trailing queue completion of the skipped body so the NetScene queue and
             // the chat UI (progress dialog dismissal, refresh) finish the scene normally.
-            sceneEnd.invoke(sceneWrapper, errType, errCode, args[3], thisObject)
+            sceneEnd.invoke(sceneWrapper, errType, errCode, args[3], scene)
 
             val key = encodeKey(msgInfo.talker, msgInfo.serverId)
-            recalledKeyCache = recalledKeyCache + key
-            recalledRecords = recalledKeyCache
+            recordRecall(key)
             WeLogger.i(TAG, "kept recalled self message: $key")
             refreshBoundViews(msgInfo)
             result = null
         }
     }
 
+    /**
+     * 「消息保留」的硬保险：直接把宿主的撤回处理方法吞掉。
+     *
+     * [onParse] 走的是「把撤回 sysmsg 的解析结果置空」，属上游 WeKit 的语义，只有在
+     * 宿主仍处于「解析 sysmsg」阶段时才拦得住；一旦微信改版让撤回在别处落地，这条会
+     * 静默失效 —— 用户看到的就是「开关开着，消息照样被撤回」。
+     *
+     * 这里额外挂一条 DexKit 方法替换（`doRevokeMsg` 直接不执行），撤回指令根本落不了地，
+     * 保证最基本的「消息不被撤回」在任何一条通路失效时仍然成立。
+     *
+     * 两条通路互补而不是二选一：XML 通路负责在解析阶段就掐掉 sysmsg，本通路负责兜住
+     * 解析没拦住、已经走到撤回处理函数的那些撤回。
+     *
+     * DexKit 结果缺失（用户还没跑过「查找方法」）时只记日志，不影响 XML 通路。
+     */
+    private fun hookRevokeHandler() {
+        runCatching { WeChatDexKit.requireMethod(WeChatDexKit.ANTI_REVOKE_1) }
+            .onSuccess { method ->
+                runCatching {
+                    // 置 result 即跳过原实现（见 IHookBridge.IMemberHookParam 的语义），
+                    // void 方法返回 null，等效于「撤回函数什么都不做」。
+                    method.hookBefore { result = null }
+                    WeLogger.i(TAG, "已挂载撤回处理方法替换：${method.declaringClass.name}#${method.name}")
+                }.onFailure {
+                    WeLogger.w(TAG, "挂载撤回处理方法失败，仅依赖 XML 解析拦截", it)
+                }
+            }
+            .onFailure {
+                WeLogger.w(TAG, "未取到撤回处理方法，仅依赖 XML 解析拦截", it)
+            }
+    }
+
     override fun onDisable() {
         WeXmlParserApi.removeListener(this)
         WeChatMessageViewApi.removeListener(this)
+        // Styles already applied to on-screen rows would otherwise linger until each row happens to
+        // rebind (or the chat is reopened), so they are cleared here.
+        val rows = synchronized(dimmedContentViews) { dimmedContentViews.keys.toList() } +
+            synchronized(badges) { badges.keys.toList() }
+        rows.forEach { row -> row.post { clearRecallStyle(row) } }
     }
 
     override fun onParse(param: HookParam, result: MutableMap<String, Any?>) {
@@ -235,8 +312,7 @@ object AntiMessageRecall : ClickableFeature(), IResolveDex, WeXmlParserApi.IAfte
                     result[TYPE_KEY] = null
 
                     val key = encodeKey(msgInfo.talker, msgInfo.serverId)
-                    recalledKeyCache = recalledKeyCache + key
-                    recalledRecords = recalledKeyCache
+                    recordRecall(key)
 
                     WeLogger.i(TAG, "recorded message revoke: $key")
                     refreshBoundViews(msgInfo)
@@ -296,7 +372,7 @@ object AntiMessageRecall : ClickableFeature(), IResolveDex, WeXmlParserApi.IAfte
     // the whole row avoids depending on message-specific LinearLayout ordering while visibility
     // excludes hidden send-status views that can carry the same tag.
     private fun findMessageContent(view: View): View? {
-        val holder = view.tag!!
+        val holder = view.tag ?: return null
         val mainContainer = holder.reflekt()
             .firstMethod {
                 name = "getMainContainerView"
@@ -483,8 +559,10 @@ object AntiMessageRecall : ClickableFeature(), IResolveDex, WeXmlParserApi.IAfte
         }
 
         if (newKeys.isNotEmpty()) {
-            recalledKeyCache = recalledKeyCache + newKeys
-            recalledRecords = recalledKeyCache
+            synchronized(recordLock) {
+                recalledKeyCache = boundedRecallKeys(recalledKeyCache + newKeys)
+                recalledRecords = recalledKeyCache
+            }
         }
         return migrated to unmatched
     }
