@@ -34,29 +34,33 @@ object AutoAddNearbyFriends : ClickableFeature(), IResolveDex {
     }
 
     override fun onEnable() {
-        methodCreateMenu.hookBefore {
-            args[0]!!.reflekt().firstMethod {
-                parameters(int, CharSequence::class)
-            }.invoke(6, localizedContactsString(R.string.contacts_auto_add_nearby_menu))
+        installHook("AutoAddNearbyFriends#1") {
+            methodCreateMenu.hookBefore {
+                args[0]!!.reflekt().firstMethod {
+                    parameters(int, CharSequence::class)
+                }.invoke(6, localizedContactsString(R.string.contacts_auto_add_nearby_menu))
+            }
         }
 
-        methodMenuOnClick.hookBefore {
-            val menuItem = args[0] as MenuItem
-            val itemId = menuItem.itemId
-            if (itemId != 6) return@hookBefore
+        installHook("AutoAddNearbyFriends#2") {
+            methodMenuOnClick.hookBefore {
+                val menuItem = args[0] as MenuItem
+                val itemId = menuItem.itemId
+                if (itemId != 6) return@hookBefore
 
-            val controller = thisObject!!.reflekt().firstField().get()!!
-            val friends = controller.reflekt().firstField {
-                type = List::class
-            }.get()!! as LinkedList<*>
+                val controller = thisObject!!.reflekt().firstField().get()!!
+                val friends = controller.reflekt().firstField {
+                    type = List::class
+                }.get()!! as LinkedList<*>
 
-            val friendProtos = friends.map {
-                WeProto.decode<NearbyFriendProto>(
-                    it.reflekt().invokeMethod("toByteArray", superclass = true) as ByteArray
-                )
+                val friendProtos = friends.map {
+                    WeProto.decode<NearbyFriendProto>(
+                        it.reflekt().invokeMethod("toByteArray", superclass = true) as ByteArray
+                    )
+                }
+
+                result = null
             }
-
-            result = null
         }
     }
 

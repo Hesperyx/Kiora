@@ -63,9 +63,11 @@ object ModifySportsStepCount : ClickableFeature(), IResolveDex {
 
     override fun onEnable() {
         migrateLegacySettings()
-        methodGetSteps.hookAfter {
-            val original = result as Long
-            evaluatePassiveExpression(original)?.let { result = it }
+        installHook("ModifySportsStepCount#1") {
+            methodGetSteps.hookAfter {
+                val original = result as Long
+                evaluatePassiveExpression(original)?.let { result = it }
+            }
         }
     }
 

@@ -153,7 +153,7 @@ class StorageCleanActivity : BaseComposeActivity() {
             cleanPaths.keys.forEach { name ->
                 launch {
                     semaphore.withPermit {
-                        val path = getRealPath(cleanPaths[name]!!)
+                        val path = cleanPaths[name]?.let(::getRealPath) ?: return@withPermit
                         val size = withContext(Dispatchers.IO) {
                             runCatching { FileUtils.getDirSize(File(path)) }.getOrDefault(0L)
                         }
@@ -283,8 +283,7 @@ class StorageCleanActivity : BaseComposeActivity() {
             }
         }
 
-        if (confirmItem != null) {
-            val name = confirmItem!!
+        confirmItem?.let { name ->
             ConfirmDialog(
                 visible = true,
                 title = "确认清理",
@@ -294,8 +293,10 @@ class StorageCleanActivity : BaseComposeActivity() {
                 onDismiss = { confirmItem = null },
                 onConfirm = {
                     confirmItem = null
-                    ModuleScope.launch { 
-                        cleanItem(name, getRealPath(cleanPaths[name]!!)) 
+                    cleanPaths[name]?.let { template ->
+                        ModuleScope.launch {
+                            cleanItem(name, getRealPath(template))
+                        }
                     }
                 }
             )

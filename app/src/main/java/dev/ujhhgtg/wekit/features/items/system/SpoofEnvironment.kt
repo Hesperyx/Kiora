@@ -16,28 +16,34 @@ object SpoofEnvironment : SwitchFeature(), IResolveDex {
     override val descriptionRes = R.string.feature_spoof_environment_description
 
     override fun onEnable() {
-        Settings.Global::class.reflekt()
-            .firstMethod {
-                name = "getInt"
-                parameterCount = 3
-            }.hookBefore {
-                val name = args[1] as? String? ?: return@hookBefore
-                if (name == "adb_enabled")
-                    result = 0
-            }
+        installHook("SpoofEnvironment#1") {
+            Settings.Global::class.reflekt()
+                .firstMethod {
+                    name = "getInt"
+                    parameterCount = 3
+                }.hookBefore {
+                    val name = args[1] as? String? ?: return@hookBefore
+                    if (name == "adb_enabled")
+                        result = 0
+                }
+        }
 
-        Settings.Secure::class.reflekt()
-            .firstMethod {
-                name = "getInt"
-                parameterCount = 3
-            }.hookBefore {
-                val name = args[1] as? String? ?: return@hookBefore
-                if (name == "development_settings_enabled")
-                    result = 0
-            }
+        installHook("SpoofEnvironment#2") {
+            Settings.Secure::class.reflekt()
+                .firstMethod {
+                    name = "getInt"
+                    parameterCount = 3
+                }.hookBefore {
+                    val name = args[1] as? String? ?: return@hookBefore
+                    if (name == "development_settings_enabled")
+                        result = 0
+                }
+        }
 
-        methodIsVpnEnabled.hookBefore {
-            result = false
+        installHook("SpoofEnvironment#3") {
+            methodIsVpnEnabled.hookBefore {
+                result = false
+            }
         }
     }
 

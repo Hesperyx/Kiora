@@ -69,29 +69,33 @@ object ForceTabletMode : SwitchFeature(), IResolveDex {
     }
 
     override fun onEnable() {
-        methodIsTablet.hookAfter {
-            result = !Throwable().stackTraceToString().contains("com.tencent.mm.pluginsdk.ui.chat")
+        installHook("ForceTabletMode#1") {
+            methodIsTablet.hookAfter {
+                result = !Throwable().stackTraceToString().contains("com.tencent.mm.pluginsdk.ui.chat")
+            }
+
+    //        methodIsTablet2.hookBefore {
+    //            result = true
+    //        }
         }
 
-//        methodIsTablet2.hookBefore {
-//            result = true
-//        }
+        installHook("ForceTabletMode#2") {
+            methodOtherDeviceLoginButtonIsVisible.hookBefore {
+                val view = args[0] as? AndroidButton? ?: return@hookBefore
+                if (view.isGone) view.isVisible = true
+            }
 
-        methodOtherDeviceLoginButtonIsVisible.hookBefore {
-            val view = args[0] as? AndroidButton? ?: return@hookBefore
-            if (view.isGone) view.isVisible = true
+    //        "com.tencent.mm.plugin.account.ui.LoginHistoryUI".toClass().reflekt().firstMethod("initView").hookAfter {
+    //            val btn = thisObject!!.reflekt().firstField {
+    //                type = Button::class
+    //            }.get()!! as Button
+    //            btn.isVisible = true
+    //        }
+
+    //        methodCgiCheckLoginAsPad.hookBefore {
+    //            result = true
+    //        }
         }
-
-//        "com.tencent.mm.plugin.account.ui.LoginHistoryUI".toClass().reflekt().firstMethod("initView").hookAfter {
-//            val btn = thisObject!!.reflekt().firstField {
-//                type = Button::class
-//            }.get()!! as Button
-//            btn.isVisible = true
-//        }
-
-//        methodCgiCheckLoginAsPad.hookBefore {
-//            result = true
-//        }
     }
 
     override fun onBeforeToggle(newState: Boolean, context: Context): Boolean {

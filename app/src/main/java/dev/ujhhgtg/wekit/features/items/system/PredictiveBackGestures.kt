@@ -37,35 +37,41 @@ object PredictiveBackGestures : ApiFeature() {
             return
         }
 
-        ApplicationInfo::class.reflekt()
-            .firstConstructor {
-                parameters(ApplicationInfo::class.java)
-            }.hookAfter {
-                val info = args[0] as ApplicationInfo
-                val field = info.reflekt().firstField { name = "privateFlagsExt" }
-                var flags = field.get() as Int
-                flags = flags or PRIVATE_FLAG_EXT_ENABLE_ON_BACK_INVOKED_CALLBACK
-                field.set(flags)
-            }
+        installHook("PredictiveBackGestures#1") {
+            ApplicationInfo::class.reflekt()
+                .firstConstructor {
+                    parameters(ApplicationInfo::class.java)
+                }.hookAfter {
+                    val info = args[0] as ApplicationInfo
+                    val field = info.reflekt().firstField { name = "privateFlagsExt" }
+                    var flags = field.get() as Int
+                    flags = flags or PRIVATE_FLAG_EXT_ENABLE_ON_BACK_INVOKED_CALLBACK
+                    field.set(flags)
+                }
+        }
 
-        ActivityInfo::class.reflekt()
-            .firstConstructor()
-            .hookAfter {
-                val info = thisObject as ActivityInfo
-                if (!isModuleActivity(info)) return@hookAfter
-                applyFlag(info)
-            }
+        installHook("PredictiveBackGestures#2") {
+            ActivityInfo::class.reflekt()
+                .firstConstructor()
+                .hookAfter {
+                    val info = thisObject as ActivityInfo
+                    if (!isModuleActivity(info)) return@hookAfter
+                    applyFlag(info)
+                }
+        }
 
-        ActivityThread::class.reflekt()
-            .firstMethod { name = "handleLaunchActivity" }
-            .hookBefore {
-                val record = args[0]!!
-                val infoField = record.reflekt().firstField { name = "activityInfo" }
-                val info = infoField.get() as ActivityInfo
-                val intent = record.reflekt().firstField { name = "intent" }.get() as? Intent
-                if (!isModuleActivity(info, intent)) return@hookBefore
-                applyFlag(info)
-            }
+        installHook("PredictiveBackGestures#3") {
+            ActivityThread::class.reflekt()
+                .firstMethod { name = "handleLaunchActivity" }
+                .hookBefore {
+                    val record = args[0] ?: return@hookBefore
+                    val infoField = record.reflekt().firstField { name = "activityInfo" }
+                    val info = infoField.get() as ActivityInfo
+                    val intent = record.reflekt().firstField { name = "intent" }.get() as? Intent
+                    if (!isModuleActivity(info, intent)) return@hookBefore
+                    applyFlag(info)
+                }
+        }
     }
 
     private fun isModuleActivity(info: ActivityInfo, intent: Intent? = null): Boolean =

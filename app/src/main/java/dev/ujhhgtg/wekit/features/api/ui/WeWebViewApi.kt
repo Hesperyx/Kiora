@@ -84,13 +84,17 @@ object WeWebViewApi : ApiFeature(), IResolveDex {
     }
 
     override fun onEnable() {
-        xwebOnPageFinished.hookAfter {
-            WeLogger.i(TAG, "injecting into xwebOnPageFinished: ${args[0]}")
-            track(args[0])
+        installHook("WeWebViewApi#1") {
+            xwebOnPageFinished.hookAfter {
+                WeLogger.i(TAG, "injecting into xwebOnPageFinished: ${args[0]}")
+                track(args[0])
+            }
         }
-        androidOnPageFinished.hookAfter {
-            WeLogger.i(TAG, "injecting into androidOnPageFinished: ${args[0]}")
-            track(args[0])
+        installHook("WeWebViewApi#2") {
+            androidOnPageFinished.hookAfter {
+                WeLogger.i(TAG, "injecting into androidOnPageFinished: ${args[0]}")
+                track(args[0])
+            }
         }
     }
 

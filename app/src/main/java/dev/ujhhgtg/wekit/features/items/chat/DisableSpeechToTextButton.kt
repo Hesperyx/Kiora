@@ -14,7 +14,9 @@ object DisableSpeechToTextButton : SwitchFeature() {
     override val descriptionRes = R.string.feature_disable_speech_to_text_button_description
 
     override fun onEnable() {
-        ChatFooter::getV2TBtnLayout.fastJavaMethod!!.hookBefore {
+        // 方法解析失败时只跳过本钩子；用 `!!` 会在 onEnable 里抛 NPE，被 enable() 捕获后
+        // 整个功能会被静默置为关闭（表现为开关打开但功能不生效）。
+        ChatFooter::getV2TBtnLayout.fastJavaMethod?.hookBefore {
             result = null
         }
     }

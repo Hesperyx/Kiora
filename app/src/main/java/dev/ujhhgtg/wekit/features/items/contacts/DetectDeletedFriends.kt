@@ -9,6 +9,7 @@ import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableIntState
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -51,11 +52,10 @@ import dev.ujhhgtg.wekit.utils.android.copyToClipboard
 import dev.ujhhgtg.wekit.utils.android.showToast
 import dev.ujhhgtg.wekit.utils.android.showToastSuspend
 import dev.ujhhgtg.wekit.utils.formatEpoch
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.resume
 import kotlin.time.Duration.Companion.milliseconds
@@ -65,13 +65,15 @@ object DetectDeletedFriends : ClickableFeature() {
 
     override val technicalId = "检测单向删除好友"
     override val nameRes = R.string.feature_detect_deleted_friends_name
-    override val categoryIds = listOf(FeatureCategoryIds.CONTACTS_GROUPS)
+    override val categoryIds = listOf(FeatureCategoryIds.FRIEND_DETECT)
     override val descriptionRes = R.string.feature_detect_deleted_friends_description
 
     override val noSwitchWidget = true
 
     private const val TAG = "DetectDeletedFriends"
     private const val SUGGESTED_LABEL_CHOICE_KEY = "suggested_label"
+    private const val LAST_SCAN_TIME_KEY = "detect_deleted_friends_last_scan_time"
+    private const val LAST_SCAN_COUNT_KEY = "detect_deleted_friends_last_scan_count"
 
     private enum class DetectionMode(val labelRes: Int) {
         BEFORE_TRANSFER(R.string.contacts_detect_mode_before_transfer),
@@ -118,7 +120,10 @@ object DetectDeletedFriends : ClickableFeature() {
             val total: Int,
             val mode: DetectionMode,
             val requestDelayMillis: Long,
+            /** 本次要扫描的好友；整轮检测是它，单独"重测未确定"时是那批未确定的好友。 */
+            val targets: List<WeContact>,
             val abnormalFriends: MutableList<AbnormalFriend> = mutableListOf(),
+            val currentName: MutableState<String> = mutableStateOf(""),
         ) : DialogPhase()
 
         data class Done(val friends: List<AbnormalFriend>) : DialogPhase()
@@ -210,25 +215,67 @@ object DetectDeletedFriends : ClickableFeature() {
         }
     }
 
-    override fun onClick(context: ComponentActivity) {
-        val friends = WeDatabaseApi.getFriends().filter { c ->
+    private fun parseRequestDelayMillis(input: String): Long {
+        val seconds = input.toDoubleOrNull()
+            ?.takeIf { it.isFinite() && it > 0.0 }
+            ?: 2.0
+        return (seconds * 1_000.0).toLong().coerceAtLeast(1L)
+    }
+
+    /**
+     * 载入可检测的好友。
+     *
+     * 过滤掉服务号/企业号（2049/2051）、自己与文件传输助手。这一步是一次数据库查询，
+     * 必须在后台线程执行 —— 放在 [onClick] 主线程里会在好友量大时卡住设置页甚至 ANR。
+     */
+    private fun loadDetectableFriends(): List<WeContact> =
+        WeDatabaseApi.getFriends().filter { c ->
             c.type != 2051 && c.type != 2049 && c.wxId != WeApi.selfWxId && c.wxId != "filehelper"
         }
 
+    override fun onClick(context: ComponentActivity) {
         showComposeDialog(context) {
             var phase by remember { mutableStateOf<DialogPhase>(DialogPhase.Idle) }
             var availableLabels by remember { mutableStateOf<List<WeContactLabelApi.ContactLabel>?>(null) }
-            var selectedMode by remember { mutableStateOf(DetectionMode.valueOf(detectionModeName)) }
+            var selectedMode by remember {
+                mutableStateOf(
+                    runCatching { DetectionMode.valueOf(detectionModeName) }
+                        .getOrDefault(DetectionMode.BEFORE_TRANSFER),
+                )
+            }
             var requestDelayInput by remember { mutableStateOf(requestDelaySeconds) }
-            var unresolvedCount by remember { mutableIntStateOf(0) }
+            // 好友列表要异步载入，未加载完（null）时先显示进度，避免主线程查库。
+            var friends by remember { mutableStateOf<List<WeContact>?>(null) }
+            var loadFailed by remember { mutableStateOf(false) }
+            // 上一轮没判定出结果的好友，供"重测未确定"复用。
+            var unresolvedFriends by remember { mutableStateOf<List<WeContact>>(emptyList()) }
+            var lastScanTime by remember { mutableStateOf(0L) }
+            var lastScanCount by remember { mutableStateOf(0) }
+
+            LaunchedEffect(Unit) {
+                detectionModeName = selectedMode.name
+                lastScanTime = KvStore.getStringOrDef(LAST_SCAN_TIME_KEY, "").toLongOrNull() ?: 0L
+                lastScanCount = KvStore.getStringOrDef(LAST_SCAN_COUNT_KEY, "").toIntOrNull() ?: 0
+                runCatching { withContext(Dispatchers.IO) { loadDetectableFriends() } }
+                    .onSuccess { friends = it }
+                    .onFailure {
+                        WeLogger.e(TAG, "failed to load friends", it)
+                        loadFailed = true
+                        friends = emptyList()
+                    }
+            }
 
             LaunchedEffect(phase) {
                 if (phase is DialogPhase.Scanning) {
                     dialog.setCancelable(false)
                     val scanningPhase = phase as DialogPhase.Scanning
+                    val targets = scanningPhase.targets
                     var rateLimited = false
-                    for ((index, friend) in friends.withIndex()) {
+                    val unresolved = mutableListOf<WeContact>()
+                    for ((index, friend) in targets.withIndex()) {
                         if (phase !== scanningPhase) break
+
+                        scanningPhase.currentName.value = friend.displayName
 
                         val outcome = when (scanningPhase.mode) {
                             DetectionMode.BEFORE_TRANSFER -> detectWithBeforeTransfer(friend)
@@ -276,26 +323,35 @@ object DetectDeletedFriends : ClickableFeature() {
                             DetectionOutcome.Normal -> Unit
                             is DetectionOutcome.Abnormal ->
                                 scanningPhase.abnormalFriends += outcome.friend
-                            DetectionOutcome.Failed -> unresolvedCount++
+                            DetectionOutcome.Failed -> unresolved += friend
                             DetectionOutcome.RateLimited -> {
-                                unresolvedCount += friends.size - index
+                                // 当前这位及之后的好友都还没判定出结果，整批计入"未确定"
+                                unresolved += targets.drop(index)
                                 rateLimited = true
                             }
                         }
                         scanningPhase.completed.intValue++
 
                         if (rateLimited) break
-                        if (index != friends.lastIndex) {
+                        if (index != targets.lastIndex) {
                             delay(scanningPhase.requestDelayMillis.milliseconds)
                         }
                     }
 
                     if (phase === scanningPhase) {
+                        unresolvedFriends = unresolved.toList()
                         if (rateLimited) {
                             showToast(
                                 context,
                                 context.localizedContactsString(R.string.contacts_detect_rate_limited),
                             )
+                        }
+                        val now = System.currentTimeMillis()
+                        lastScanTime = now
+                        lastScanCount = scanningPhase.abnormalFriends.size
+                        runCatching {
+                            KvStore.putString(LAST_SCAN_TIME_KEY, now.toString())
+                            KvStore.putString(LAST_SCAN_COUNT_KEY, scanningPhase.abnormalFriends.size.toString())
                         }
                         phase = DialogPhase.Done(scanningPhase.abnormalFriends.toList())
                         dialog.setCancelable(true)
@@ -303,53 +359,54 @@ object DetectDeletedFriends : ClickableFeature() {
                 } else if (phase is DialogPhase.SelectLabel) {
                     dialog.setCancelable(true)
                     availableLabels = null
-                    CoroutineScope(Dispatchers.IO).launch {
-                        availableLabels = WeContactLabelApi.getAllLabels()
+                    availableLabels = withContext(Dispatchers.IO) {
+                        WeContactLabelApi.getAllLabels()
                     }
                 } else if (phase is DialogPhase.Marking) {
                     dialog.setCancelable(false)
-                    CoroutineScope(Dispatchers.IO).launch {
-                        val markingPhase = phase as DialogPhase.Marking
-                        // ensure the target label exists before tagging; createLabel is a no-op
-                        // when the label is already present, otherwise it dispatches the
-                        // addcontactlabel netscene and waits for the server-assigned id to land
-                        val labelId = WeContactLabelApi.createLabel(markingPhase.labelName)
-                        if (labelId == null) {
-                            if (phase is DialogPhase.Marking) {
-                                phase = DialogPhase.Done(markingPhase.friends)
-                                dialog.setCancelable(true)
-                                showToastSuspend(
-                                    context,
-                                    context.localizedContactsString(
-                                        R.string.contacts_detect_create_label_failed,
-                                        markingPhase.labelName,
-                                    ),
-                                )
-                            }
-                            return@launch
+                    val markingPhase = phase as DialogPhase.Marking
+                    // ensure the target label exists before tagging; createLabel is a no-op
+                    // when the label is already present, otherwise it dispatches the
+                    // addcontactlabel netscene and waits for the server-assigned id to land
+                    val labelId = withContext(Dispatchers.IO) {
+                        WeContactLabelApi.createLabel(markingPhase.labelName)
+                    }
+                    if (labelId == null) {
+                        if (phase === markingPhase) {
+                            phase = DialogPhase.Done(markingPhase.friends)
+                            dialog.setCancelable(true)
+                            showToastSuspend(
+                                context,
+                                context.localizedContactsString(
+                                    R.string.contacts_detect_create_label_failed,
+                                    markingPhase.labelName,
+                                ),
+                            )
                         }
-
+                    } else {
                         for (abnormalFriend in markingPhase.friends) {
                             // detect whether user quitted halfway
-                            if (phase !is DialogPhase.Marking) {
+                            if (phase !== markingPhase) {
                                 break
                             }
 
                             val friend = abnormalFriend.contact
                             // additive: keep existing labels and append the target one
-                            val existing = WeContactLabelApi.getLabelNamesForContact(friend.wxId)
-                            if (markingPhase.labelName !in existing) {
-                                WeContactLabelApi.modifyLabel(
-                                    friend.wxId,
-                                    existing + markingPhase.labelName
-                                )
+                            withContext(Dispatchers.IO) {
+                                val existing = WeContactLabelApi.getLabelNamesForContact(friend.wxId)
+                                if (markingPhase.labelName !in existing) {
+                                    WeContactLabelApi.modifyLabel(
+                                        friend.wxId,
+                                        existing + markingPhase.labelName
+                                    )
+                                }
                             }
                             markingPhase.completed.intValue++
                             // avoid hammering the netscene dispatcher
                             delay(1.seconds)
                         }
 
-                        if (phase is DialogPhase.Marking) {
+                        if (phase === markingPhase) {
                             phase = DialogPhase.Done(markingPhase.friends)
                             dialog.setCancelable(true)
                             showToastSuspend(
@@ -360,47 +417,46 @@ object DetectDeletedFriends : ClickableFeature() {
                     }
                 } else if (phase is DialogPhase.Deleting) {
                     dialog.setCancelable(false)
-                    CoroutineScope(Dispatchers.IO).launch {
-                        val deletingPhase = phase as DialogPhase.Deleting
-                        val deleted = mutableSetOf<String>()
-                        for (abnormalFriend in deletingPhase.targets) {
-                            // detect whether user quitted halfway
-                            if (phase !is DialogPhase.Deleting) {
-                                break
-                            }
-
-                            val friend = abnormalFriend.contact
-                            val ok = WeContactApi.deleteContact(friend.wxId)
-                            if (ok) {
-                                deleted += friend.wxId
-                            } else {
-                                synchronized(deletingPhase.failed) {
-                                    deletingPhase.failed += abnormalFriend
-                                }
-                            }
-                            deletingPhase.completed.intValue++
-                            // seems like WeChat's server rate limits requests
-                            delay(1.seconds)
+                    val deletingPhase = phase as DialogPhase.Deleting
+                    val deleted = mutableSetOf<String>()
+                    for (abnormalFriend in deletingPhase.targets) {
+                        // detect whether user quitted halfway
+                        if (phase !== deletingPhase) {
+                            break
                         }
 
-                        if (phase is DialogPhase.Deleting) {
-                            // drop successfully deleted friends from the result list
-                            val remaining = deletingPhase.allFriends.filter {
-                                it.contact.wxId !in deleted
-                            }
-                            val failedCount = synchronized(deletingPhase.failed) { deletingPhase.failed.size }
-                            phase = DialogPhase.Done(remaining)
-                            dialog.setCancelable(true)
-                            showToastSuspend(
-                                context,
-                                context.localizedContactsQuantity(
-                                    R.plurals.contacts_detect_delete_done,
-                                    deleted.size,
-                                    deleted.size,
-                                    failedCount,
-                                ),
+                        val friend = abnormalFriend.contact
+                        val ok = withContext(Dispatchers.IO) {
+                            withTimeoutOrNull(20.seconds) {
+                                WeContactApi.deleteContact(friend.wxId)
+                            } ?: false
+                        }
+                        if (ok) {
+                            deleted += friend.wxId
+                        } else {
+                            deletingPhase.failed += abnormalFriend
+                        }
+                        deletingPhase.completed.intValue++
+                        // seems like WeChat's server rate limits requests
+                        delay(1.seconds)
+                    }
+
+                    if (phase === deletingPhase) {
+                        // drop successfully deleted friends from the result list
+                        val remaining = deletingPhase.allFriends.filter {
+                            it.contact.wxId !in deleted
+                        }
+                        phase = DialogPhase.Done(remaining)
+                        dialog.setCancelable(true)
+                        showToastSuspend(
+                            context,
+                            context.localizedContactsQuantity(
+                                R.plurals.contacts_detect_delete_done,
+                                deleted.size,
+                                deleted.size,
+                                deletingPhase.failed.size,
                             )
-                        }
+                        )
                     }
                 }
             }
@@ -417,47 +473,87 @@ object DetectDeletedFriends : ClickableFeature() {
                 text = {
                     when (phase) {
                         is DialogPhase.Idle -> DefaultColumn {
-                            Text(text = stringResource(R.string.contacts_detect_warning_message))
-                            SegmentedColumn(contentPadding = PaddingValues(0.dp)) {
-                                item(key = "detection_mode") {
-                                    DropDownMenuWidget(
-                                        title = stringResource(R.string.contacts_detect_mode),
-                                        description = null,
-                                        value = selectedMode,
-                                        options = DetectionMode.entries.map { mode ->
-                                            DropdownOption(mode, stringResource(mode.labelRes))
-                                        },
-                                        onValueChange = { mode ->
-                                            selectedMode = mode
-                                            detectionModeName = mode.name
-                                        },
-                                    )
+                            if (lastScanTime > 0L) {
+                                Text(
+                                    stringResource(
+                                        R.string.contacts_detect_last_summary,
+                                        formatEpoch(lastScanTime, includeDate = true),
+                                        lastScanCount,
+                                    ),
+                                )
+                            }
+                            when (val loaded = friends) {
+                                null -> {
+                                    Text(text = stringResource(R.string.contacts_detect_loading_friends))
+                                    LinearWavyProgressIndicator()
                                 }
-                                item(key = "request_delay") {
-                                    TextFieldDialogWidget(
-                                        title = stringResource(R.string.contacts_detect_request_delay),
-                                        value = requestDelayInput,
-                                        onValueChange = { input ->
-                                            val value = input.toDoubleOrNull()
-                                            if (value != null && value > 0.0 && value.isFinite()) {
-                                                requestDelayInput = input
-                                                requestDelaySeconds = input
+
+                                else -> {
+                                    if (loadFailed) {
+                                        Text(text = stringResource(R.string.contacts_detect_load_failed))
+                                    } else if (loaded.isEmpty()) {
+                                        Text(text = stringResource(R.string.contacts_detect_no_friends))
+                                    } else {
+                                        Text(text = stringResource(R.string.contacts_detect_warning_message))
+                                        Text(
+                                            text = stringResource(
+                                                R.string.contacts_detect_friends_count,
+                                                loaded.size,
+                                            ),
+                                        )
+                                        SegmentedColumn(contentPadding = PaddingValues(0.dp)) {
+                                            item(key = "detection_mode") {
+                                                DropDownMenuWidget(
+                                                    title = stringResource(R.string.contacts_detect_mode),
+                                                    description = null,
+                                                    value = selectedMode,
+                                                    options = DetectionMode.entries.map { mode ->
+                                                        DropdownOption(mode, stringResource(mode.labelRes))
+                                                    },
+                                                    onValueChange = { mode ->
+                                                        selectedMode = mode
+                                                        detectionModeName = mode.name
+                                                    },
+                                                )
                                             }
-                                        },
-                                        dialogTitle = stringResource(R.string.contacts_detect_request_delay),
-                                        confirmLabel = stringResource(android.R.string.ok),
-                                        dismissLabel = stringResource(android.R.string.cancel),
-                                        keyboardType = KeyboardType.Decimal,
-                                        filter = ::filterPositiveDecimal,
-                                    )
+                                            item(key = "request_delay") {
+                                                TextFieldDialogWidget(
+                                                    title = stringResource(R.string.contacts_detect_request_delay),
+                                                    value = requestDelayInput,
+                                                    onValueChange = { input ->
+                                                        val value = input.toDoubleOrNull()
+                                                        if (value != null && value > 0.0 && value.isFinite()) {
+                                                            requestDelayInput = input
+                                                            requestDelaySeconds = input
+                                                        }
+                                                    },
+                                                    dialogTitle = stringResource(R.string.contacts_detect_request_delay),
+                                                    confirmLabel = stringResource(android.R.string.ok),
+                                                    dismissLabel = stringResource(android.R.string.cancel),
+                                                    keyboardType = KeyboardType.Decimal,
+                                                    filter = ::filterPositiveDecimal,
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
 
                         is DialogPhase.Scanning -> {
-                            val completed by (phase as DialogPhase.Scanning).completed
-                            val total = (phase as DialogPhase.Scanning).total
+                            val scanningPhase = phase as DialogPhase.Scanning
+                            val completed by scanningPhase.completed
+                            val total = scanningPhase.total
+                            val currentName = scanningPhase.currentName.value
                             DefaultColumn {
+                                if (currentName.isNotBlank()) {
+                                    Text(
+                                        text = stringResource(
+                                            R.string.contacts_detect_scanning_friend,
+                                            currentName,
+                                        ),
+                                    )
+                                }
                                 Text(
                                     pluralStringResource(
                                         R.plurals.contacts_detect_scanning,
@@ -466,7 +562,13 @@ object DetectDeletedFriends : ClickableFeature() {
                                         total,
                                     ),
                                 )
-                                LinearWavyProgressIndicator(progress = { completed.toFloat() / total })
+                                if (total > 0) {
+                                    LinearWavyProgressIndicator(
+                                        progress = { completed.toFloat() / total },
+                                    )
+                                } else {
+                                    LinearWavyProgressIndicator()
+                                }
                             }
                         }
 
@@ -480,14 +582,26 @@ object DetectDeletedFriends : ClickableFeature() {
                                         abnormalFriends.size,
                                     ),
                                 )
-                                if (unresolvedCount > 0) {
+                                if (unresolvedFriends.isNotEmpty()) {
                                     Text(
                                         pluralStringResource(
                                             R.plurals.contacts_detect_unresolved,
-                                            unresolvedCount,
-                                            unresolvedCount,
+                                            unresolvedFriends.size,
+                                            unresolvedFriends.size,
                                         )
                                     )
+                                    TextButton(onClick = {
+                                        val retryTargets = unresolvedFriends
+                                        unresolvedFriends = emptyList()
+                                        phase = DialogPhase.Scanning(
+                                            completed = mutableIntStateOf(0),
+                                            total = retryTargets.size,
+                                            mode = selectedMode,
+                                            requestDelayMillis = parseRequestDelayMillis(requestDelayInput),
+                                            targets = retryTargets,
+                                            abnormalFriends = abnormalFriends.toMutableList(),
+                                        )
+                                    }) { Text(stringResource(R.string.contacts_detect_retry_unresolved)) }
                                 }
                             }
                             LazyColumn {
@@ -635,9 +749,9 @@ object DetectDeletedFriends : ClickableFeature() {
                         {
                             TextButton(onClick = {
                                 val scanningPhase = phase as DialogPhase.Scanning
-                                // display current snapshot immediately
-                                unresolvedCount +=
-                                    scanningPhase.total - scanningPhase.completed.intValue
+                                // 还没扫到的好友记为"未确定"，让用户可以直接重测这批
+                                unresolvedFriends =
+                                    scanningPhase.targets.drop(scanningPhase.completed.intValue)
                                 val foundSoFar = scanningPhase.abnormalFriends.toList()
                                 phase = DialogPhase.Done(foundSoFar)
                                 dialog.setCancelable(true)
@@ -687,20 +801,20 @@ object DetectDeletedFriends : ClickableFeature() {
                 confirmButton = when (phase) {
                     is DialogPhase.Idle -> {
                         {
-                            Button(onClick = {
-                                unresolvedCount = 0
-                                val requestDelayMillis =
-                                    (requestDelayInput.toDouble() * 1_000.0)
-                                        .toLong()
-                                        .coerceAtLeast(1L)
-                                phase = DialogPhase.Scanning(
-                                    completed = mutableIntStateOf(0),
-                                    total = friends.size,
-                                    mode = selectedMode,
-                                    requestDelayMillis = requestDelayMillis,
-                                )
-                            })
-                            { Text(stringResource(R.string.dialog_confirm)) }
+                            val loadedFriends = friends.orEmpty()
+                            Button(
+                                onClick = {
+                                    unresolvedFriends = emptyList()
+                                    phase = DialogPhase.Scanning(
+                                        completed = mutableIntStateOf(0),
+                                        total = loadedFriends.size,
+                                        mode = selectedMode,
+                                        requestDelayMillis = parseRequestDelayMillis(requestDelayInput),
+                                        targets = loadedFriends,
+                                    )
+                                },
+                                enabled = loadedFriends.isNotEmpty(),
+                            ) { Text(stringResource(R.string.dialog_confirm)) }
                         }
                     }
 
@@ -724,25 +838,25 @@ object DetectDeletedFriends : ClickableFeature() {
                                         targets = abnormalFriends
                                     )
                                 }) { Text(stringResource(R.string.contacts_detect_delete_all)) }
-                            }
-                            Button(onClick = {
-                                val text = abnormalFriends.joinToString("\n\n") { abnormalFriend ->
-                                    val friend = abnormalFriend.contact
-                                    buildString {
-                                        appendLine(
-                                            context.localizedContactsString(
-                                                abnormalFriend.status.labelRes
+                                Button(onClick = {
+                                    val text = abnormalFriends.joinToString("\n\n") { abnormalFriend ->
+                                        val friend = abnormalFriend.contact
+                                        buildString {
+                                            appendLine(
+                                                context.localizedContactsString(
+                                                    abnormalFriend.status.labelRes
+                                                )
                                             )
-                                        )
-                                        appendLine(context.localizedContactsString(R.string.contacts_detect_nickname, friend.nickname))
-                                        appendLine(context.localizedContactsString(R.string.contacts_detect_remark, friend.remarkName))
-                                        appendLine(context.localizedContactsString(R.string.contacts_wechat_id_value, friend.wxId))
-                                        appendLine(context.localizedContactsString(R.string.contacts_detect_wechat_number, friend.customWxId))
+                                            appendLine(context.localizedContactsString(R.string.contacts_detect_nickname, friend.nickname))
+                                            appendLine(context.localizedContactsString(R.string.contacts_detect_remark, friend.remarkName))
+                                            appendLine(context.localizedContactsString(R.string.contacts_wechat_id_value, friend.wxId))
+                                            appendLine(context.localizedContactsString(R.string.contacts_detect_wechat_number, friend.customWxId))
+                                        }
                                     }
-                                }
-                                copyToClipboard(context, text)
-                                showToast(context, context.localizedContactsString(R.string.contacts_copied))
-                            }) { Text(stringResource(R.string.contacts_copy)) }
+                                    copyToClipboard(context, text)
+                                    showToast(context, context.localizedContactsString(R.string.contacts_copied))
+                                }) { Text(stringResource(R.string.contacts_copy)) }
+                            }
                         }
                     }
 

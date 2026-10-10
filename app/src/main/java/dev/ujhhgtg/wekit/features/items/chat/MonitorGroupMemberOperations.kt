@@ -32,17 +32,19 @@ object MonitorGroupMemberOperations : SwitchFeature(), IResolveDex, WeDatabaseLi
     override fun onEnable() {
         WeDatabaseListenerApi.addListener(this)
 
-        methodHandleSpanClick.hookBefore {
-            val url = args[1]!!.reflekt().firstField {
-                type = BString
-                modifiers(Modifiers.FINAL)
-            }.get()!! as String
-            if (!url.startsWith("weixin://weixinhongbao/wekit/chatroom_userinfo/")) return@hookBefore
+        installHook("MonitorGroupMemberOperations#1") {
+            methodHandleSpanClick.hookBefore {
+                val url = args[1]!!.reflekt().firstField {
+                    type = BString
+                    modifiers(Modifiers.FINAL)
+                }.get()!! as String
+                if (!url.startsWith("weixin://weixinhongbao/wekit/chatroom_userinfo/")) return@hookBefore
 
-            val wxId = url.substringAfterLast('/')
-            val context = (args[0] as View).context
+                val wxId = url.substringAfterLast('/')
+                val context = (args[0] as View).context
 
-            WeApi.openContact(context, wxId, WeApi.OpenContactDestination.HOMEPAGE)
+                WeApi.openContact(context, wxId, WeApi.OpenContactDestination.HOMEPAGE)
+            }
         }
     }
 

@@ -21,7 +21,18 @@ object KvStore {
 
     private val prefs get() = HostEnv.globalPreference
 
-    fun getBoolOrDef(key: String, def: Boolean): Boolean = prefs.getBoolean(key, def)
+    /**
+     * 类型不匹配时返回默认值。
+     *
+     * `SharedPreferences.getXxx` 在「键存在但类型不同」时抛 [ClassCastException]（不是返回默认值）。
+     * 只要某个键在升级前被别处用另一种类型写过一次，之后所有读取都会炸 —— 而设置页是在
+     * 主线程上逐项读开关的，一个键炸掉就会让整片列表渲染不出来。这里统一收敛成「读不到就用默认值」。
+     */
+    private fun <T> readOrDef(key: String, def: T, read: () -> T?): T =
+        runCatching { read() }.getOrNull() ?: def
+
+    fun getBoolOrDef(key: String, def: Boolean): Boolean =
+        readOrDef(key, def) { prefs.getBoolean(key, def) }
 
     fun getBoolOrFalse(key: String): Boolean = getBoolOrDef(key, false)
 
@@ -29,35 +40,40 @@ object KvStore {
         prefs.edit().putBoolean(key, value).apply()
     }
 
-    fun getLongOrDef(key: String, def: Long): Long = prefs.getLong(key, def)
+    fun getLongOrDef(key: String, def: Long): Long =
+        readOrDef(key, def) { prefs.getLong(key, def) }
 
     fun putLong(key: String, value: Long) {
         prefs.edit().putLong(key, value).apply()
     }
 
-    fun getIntOrDef(key: String, def: Int): Int = prefs.getInt(key, def)
+    fun getIntOrDef(key: String, def: Int): Int =
+        readOrDef(key, def) { prefs.getInt(key, def) }
 
     fun putInt(key: String, value: Int) {
         prefs.edit().putInt(key, value).apply()
     }
 
-    fun getStringOrDef(key: String, def: String): String = prefs.getString(key, def) ?: def
+    fun getStringOrDef(key: String, def: String): String =
+        readOrDef(key, def) { prefs.getString(key, def) }
 
     /**
      * 可空重载（WeKit 原版 `data\KvStore.kt:83`）。两者在 JVM 上擦除后签名相同，
      * 故用 `@JvmName` 区分 —— 调用方多为 `getStringOrDef(key, "literal")` 需要非空返回。
      */
     @JvmName("getStringOrDefNullable")
-    fun getStringOrDef(key: String, def: String?): String? = prefs.getString(key, def)
+    fun getStringOrDef(key: String, def: String?): String? =
+        runCatching { prefs.getString(key, def) }.getOrDefault(def)
 
     /** 无默认值版，返回 null 表示不存在。WeKit 原版 API 名。 */
-    fun getString(key: String): String? = prefs.getString(key, null)
+    fun getString(key: String): String? = runCatching { prefs.getString(key, null) }.getOrNull()
 
     fun putString(key: String, value: String?) {
         prefs.edit().putString(key, value).apply()
     }
 
-    fun getFloatOrDef(key: String, def: Float): Float = prefs.getFloat(key, def)
+    fun getFloatOrDef(key: String, def: Float): Float =
+        readOrDef(key, def) { prefs.getFloat(key, def) }
 
     fun putFloat(key: String, value: Float) {
         prefs.edit().putFloat(key, value).apply()
@@ -74,9 +90,9 @@ object KvStore {
 
     /** SharedPreferences 交出的 Set 由框架持有，拷贝后再返回，避免调用方原地修改污染缓存。 */
     fun getStringSet(key: String, def: Set<String>?): Set<String>? =
-        prefs.getStringSet(key, def)?.toSet()
+        runCatching { prefs.getStringSet(key, def)?.toSet() }.getOrNull() ?: def
 
-    fun getStringSetOrDef(key: String, def: Set<String>): Set<String> = getStringSet(key, def)!!
+    fun getStringSetOrDef(key: String, def: Set<String>): Set<String> = getStringSet(key, def) ?: def
 
     fun putStringSet(key: String, value: Set<String>) {
         prefs.edit().putStringSet(key, value.toSet()).apply()
@@ -168,7 +184,10 @@ object KvStore {
     fun prefOption(key: String, defValue: String?): ReadWriteProperty<Any?, String?> =
         object : ReadWriteProperty<Any?, String?> {
             override fun getValue(thisRef: Any?, property: KProperty<*>): String? =
-                if (prefs.contains(key)) prefs.getString(key, null) else defValue
+                // Type mismatch on a legacy value must not crash the caller (settings page reads
+                // these on the main thread); fall back to the default like the other getters.
+                runCatching { if (prefs.contains(key)) prefs.getString(key, null) else defValue }
+                    .getOrDefault(defValue)
 
             override fun setValue(thisRef: Any?, property: KProperty<*>, value: String?) {
                 putString(key, value)

@@ -33,17 +33,19 @@ object DisableHostHotUpdates : SwitchFeature() {
     override fun onEnable() {
         runCatching { Path("/data/data/${HostInfo.packageName}/tinker").deleteRecursively() }
 
-        ShareTinkerInternals::class.reflekt()
-            .methods {
-                name {
-                    it.startsWith("isTinkerEnabled")
+        installHook("DisableHostHotUpdates#1") {
+            ShareTinkerInternals::class.reflekt()
+                .methods {
+                    name {
+                        it.startsWith("isTinkerEnabled")
+                    }
                 }
-            }
-            .forEach {
-                it.hookBefore {
-                    result = false
+                .forEach {
+                    it.hookBefore {
+                        result = false
+                    }
                 }
-            }
+        }
 
         batchSetEnabled(false)
     }

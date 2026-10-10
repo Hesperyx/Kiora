@@ -706,9 +706,11 @@ object WeMomentsApi : ApiFeature(), IResolveDex {
 
     override fun onEnable() {
         WeStartActivityApi.addListener(albumRepostDescriptionInjector)
-        methodSnsUploadOnCreate.hookBefore {
-            val intent = (thisObject as? Activity)?.intent ?: return@hookBefore
-            injectPendingAlbumRepostText(intent, requireSnsUploadTarget = false)
+        installHook("WeMomentsApi#1") {
+            methodSnsUploadOnCreate.hookBefore {
+                val intent = (thisObject as? Activity)?.intent ?: return@hookBefore
+                injectPendingAlbumRepostText(intent, requireSnsUploadTarget = false)
+            }
         }
     }
 

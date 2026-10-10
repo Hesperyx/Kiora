@@ -46,17 +46,23 @@ object RoundAvatars : ClickableFeature(), IResolveDex {
         get() = KvStore.getFloatOrDef(KEY_ROUND_AVATAR, 0.5f).coerceIn(0.1f, 0.5f)
 
     override fun onEnable() {
-        CustomLocalFriendAvatars.methodConversationAvatar.hookBefore {
-            setFloatArg(2, radiusFactor)
+        installHook("RoundAvatars#1") {
+            CustomLocalFriendAvatars.methodConversationAvatar.hookBefore {
+                setFloatArg(2, radiusFactor)
+            }
         }
 
-        ctorAvatarCreate.hookBefore {
-            setFloatArg(2, radiusFactor)
+        installHook("RoundAvatars#2") {
+            ctorAvatarCreate.hookBefore {
+                setFloatArg(2, radiusFactor)
+            }
         }
 
-        if (!methodAvatarModify.isPlaceholder) {
-            methodAvatarModify.hookBefore {
-                setFloatArg(3, radiusFactor)
+        installHook("RoundAvatars#3") {
+            if (!methodAvatarModify.isPlaceholder) {
+                methodAvatarModify.hookBefore {
+                    setFloatArg(3, radiusFactor)
+                }
             }
         }
 

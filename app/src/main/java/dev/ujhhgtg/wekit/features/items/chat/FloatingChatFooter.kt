@@ -249,8 +249,10 @@ object FloatingChatFooter : ClickableFeature(), IResolveDex {
         val reflekt = ChatFooter::class.reflekt()
 
         // 绘制属性不依赖 LayoutParams, 构造完就能设
-        ChatFooter::class.constructor.hookAfter {
-            applyDrawingStyle(thisObject as ChatFooter)
+        installHook("chatFooter.constructor.applyDrawingStyle") {
+            ChatFooter::class.constructor.hookAfter {
+                applyDrawingStyle(thisObject as ChatFooter)
+            }
         }
 
         // 结构改造与边距必须等 LayoutParams 就位 —— 它由父容器 (ChattingScrollLayout)
@@ -258,115 +260,133 @@ object FloatingChatFooter : ClickableFeature(), IResolveDex {
         //
         // applyDrawingStyle 在这里再来一次 (幂等): 运行时才打开本特性的话, 当前会话的
         // ChatFooter 早已构造完毕, 构造函数 hook 会整个错过。
-        reflekt.firstMethod { name = "onAttachedToWindow" }.hookAfter {
-            val footer = thisObject as ChatFooter
-            applyNavigationBarEdgeToEdge(footer)
-            applyDrawingStyle(footer)
-            applySideMargins(footer)
-            if (movePanelAbove) {
-                reparentBottomPanel(footer)
-                applyBottomMargin(footer)
-            } else {
-                applyBottomGap(footer)
+        installHook("chatFooter.onAttachedToWindow") {
+            reflekt.firstMethod { name = "onAttachedToWindow" }.hookAfter {
+                val footer = thisObject as ChatFooter
+                applyNavigationBarEdgeToEdge(footer)
+                applyDrawingStyle(footer)
+                applySideMargins(footer)
+                if (movePanelAbove) {
+                    reparentBottomPanel(footer)
+                    applyBottomMargin(footer)
+                } else {
+                    applyBottomGap(footer)
+                }
+                trackNavBarInset(footer)
             }
-            trackNavBarInset(footer)
         }
 
         // 导航栏沉浸后，微信仍会把导航栏 inset 吃进 ChattingUILayout.paddingBottom，
         // 8.0.72+ 还会在底部画一条不透明色块。只处理底部，顶部由 FloatingChatHeader 负责。
-        ChattingUILayout::class.reflekt().firstMethodOrNull { name = "fitSystemWindows" }?.let { fit ->
-            fit.hookBefore {
-                val layout = thisObject as View
-                navBarInsetsBeforeFit[layout] = (args[0] as Rect).bottom
-            }
-            fit.hookAfter {
-                val layout = thisObject as View
-                val originalBottom = navBarInsetsBeforeFit.remove(layout) ?: 0
-                val keep = (layout.paddingBottom - originalBottom).coerceAtLeast(0)
-                if (layout.paddingBottom != keep) {
-                    layout.setPadding(layout.paddingLeft, layout.paddingTop, layout.paddingRight, keep)
+        installHook("chattingUILayout.fitSystemWindows") {
+            ChattingUILayout::class.reflekt().firstMethodOrNull { name = "fitSystemWindows" }?.let { fit ->
+                fit.hookBefore {
+                    val layout = thisObject as View
+                    navBarInsetsBeforeFit[layout] = (args[0] as Rect).bottom
                 }
-                suppressNavBarStrip(layout)
-                neutralizeNavigationBarWrapper(layout)
-            }
-        } ?: WeLogger.w(TAG, "ChattingUILayout.fitSystemWindows hook target not found")
+                fit.hookAfter {
+                    val layout = thisObject as View
+                    val originalBottom = navBarInsetsBeforeFit.remove(layout) ?: 0
+                    val keep = (layout.paddingBottom - originalBottom).coerceAtLeast(0)
+                    if (layout.paddingBottom != keep) {
+                        layout.setPadding(layout.paddingLeft, layout.paddingTop, layout.paddingRight, keep)
+                    }
+                    suppressNavBarStrip(layout)
+                    neutralizeNavigationBarWrapper(layout)
+                }
+            } ?: WeLogger.w(TAG, "ChattingUILayout.fitSystemWindows hook target not found")
+        }
 
         // AppPanel 的自然高度只有微信自己知道 (它把 f207332x2 喂给 setPortHeighPx),
         // 记下来给 applyPanelHeight 当基准。setPortHeighPx 是 View 子类的 set* 方法,
         // 被默认 proguard 规则保留, 按名字反射是安全的。
-        AppPanel::class.reflekt().firstMethod { name = "setPortHeighPx" }.hookBefore {
-            if (resizingAppPanel) return@hookBefore
-            val px = args[0] as? Int ?: return@hookBefore
-            if (px > 0) naturalPanelHeights[thisObject as View] = px
+        installHook("appPanel.setPortHeighPx") {
+            AppPanel::class.reflekt().firstMethod { name = "setPortHeighPx" }.hookBefore {
+                if (resizingAppPanel) return@hookBefore
+                val px = args[0] as? Int ?: return@hookBefore
+                if (px > 0) naturalPanelHeights[thisObject as View] = px
+            }
         }
 
         // 微信在这里写入 bottomMargin = -面板高, 我们在它之后覆盖掉;
         // 顺便重算面板高度 —— 这里同样会把容器高度改回微信那套值。
-        methodRefreshBottomHeight.hookAfter {
-            val footer = thisObject as ChatFooter
-            if (!movePanelAbove) {
-                applyBottomGap(footer)
-                return@hookAfter
+        installHook("chatFooter.refreshBottomHeight") {
+            methodRefreshBottomHeight.hookAfter {
+                val footer = thisObject as ChatFooter
+                if (!movePanelAbove) {
+                    applyBottomGap(footer)
+                    return@hookAfter
+                }
+                applyBottomMargin(footer)
+                // 面板收起时也要重算: 微信在这里把容器高度写回它那套值, 留着不管的话
+                // 下一次展开会先用一帧错误的高度。
+                footer.bottomPanel?.let { applyPanelHeight(footer, it) }
             }
-            applyBottomMargin(footer)
-            // 面板收起时也要重算: 微信在这里把容器高度写回它那套值, 留着不管的话
-            // 下一次展开会先用一帧错误的高度。
-            footer.bottomPanel?.let { applyPanelHeight(footer, it) }
         }
 
         // 表情面板顶部那个把手的拖拽机制是"先把面板撑到全高, 再用 translationY 把多出来的
         // 部分压到屏幕外, 拖动时收回 translation" —— 整套都建立在面板位于输入行下方的前提上。
         // 面板移到上方后, 一按住把手 footer 就会被撑爆。把可拖出的量强制为 0 让把手失效:
         // 传 parentHeight=0 会让 determineExtent 走 else 分支直接得到 0, 不用碰混淆字段。
-        methodDetermineExtent.hookBefore {
-            if (movePanelAbove) args[0] = 0
+        installHook("emojiPanelDragIndicator.determineExtent") {
+            methodDetermineExtent.hookBefore {
+                if (movePanelAbove) args[0] = 0
+            }
         }
 
         // 全屏编辑器拿 ChatFooterBottom 的屏幕坐标当下边界 —— 面板原本在输入行下方,
         // 那个位置≈屏幕底部, 所以编辑器能铺满全屏。面板搬到上方后锚点跟着上移, 编辑器
         // 就在输入行上边截断了。这里在它测算期间把面板临时挪回原位 (输入区底边),
         // 算完立刻还原。面板此刻是 GONE 不参与绘制, 且不跨帧, 不会闪。
-        methodUpdateFullScreenEditHeight.hookBefore {
-            if (!movePanelAbove) return@hookBefore
-            val footer = thisObject?.ownerChatFooter ?: return@hookBefore
-            val panel = footer.bottomPanel ?: return@hookBefore
-            val panelLoc = IntArray(2).also { panel.getLocationOnScreen(it) }
-            val footerLoc = IntArray(2).also { footer.getLocationOnScreen(it) }
-            val desiredY = footerLoc[1] + footerHeightExcludingPanel(panel)
-            savedPanelTranslations[panel] = panel.translationY
-            panel.translationY += (desiredY - panelLoc[1]).toFloat()
+        installHook("chatFooter.updateFullScreenEditHeight.before") {
+            methodUpdateFullScreenEditHeight.hookBefore {
+                if (!movePanelAbove) return@hookBefore
+                val footer = thisObject?.ownerChatFooter ?: return@hookBefore
+                val panel = footer.bottomPanel ?: return@hookBefore
+                val panelLoc = IntArray(2).also { panel.getLocationOnScreen(it) }
+                val footerLoc = IntArray(2).also { footer.getLocationOnScreen(it) }
+                val desiredY = footerLoc[1] + footerHeightExcludingPanel(panel)
+                savedPanelTranslations[panel] = panel.translationY
+                panel.translationY += (desiredY - panelLoc[1]).toFloat()
+            }
         }
 
-        methodUpdateFullScreenEditHeight.hookAfter {
-            if (!movePanelAbove) return@hookAfter
-            val panel = thisObject?.ownerChatFooter?.bottomPanel ?: return@hookAfter
-            savedPanelTranslations.remove(panel)?.let { panel.translationY = it }
+        installHook("chatFooter.updateFullScreenEditHeight.after") {
+            methodUpdateFullScreenEditHeight.hookAfter {
+                if (!movePanelAbove) return@hookAfter
+                val panel = thisObject?.ownerChatFooter?.bottomPanel ?: return@hookAfter
+                savedPanelTranslations.remove(panel)?.let { panel.translationY = it }
+            }
         }
 
         // 微信只在 state 2/3 显示面板, 从不隐藏它 —— 收起态由我们兜底设 GONE。
         // 必须是 before: 方法体里会调到 scrollContentTo, 那里要读这个可见性。
-        methodSwitchPanel.hookBefore {
-            if (!movePanelAbove) return@hookBefore
-            val state = args[0] as? Int ?: return@hookBefore
-            val footer = thisObject as ChatFooter
-            val panel = footer.bottomPanel ?: return@hookBefore
-            if (state != PANEL_STATE_SMILEY && state != PANEL_STATE_APP) {
-                panel.visibility = View.GONE
-                dragExtents.remove(panel)
-                return@hookBefore
+        installHook("chatFooter.switchPanel.before") {
+            methodSwitchPanel.hookBefore {
+                if (!movePanelAbove) return@hookBefore
+                val state = args[0] as? Int ?: return@hookBefore
+                val footer = thisObject as ChatFooter
+                val panel = footer.bottomPanel ?: return@hookBefore
+                if (state != PANEL_STATE_SMILEY && state != PANEL_STATE_APP) {
+                    panel.visibility = View.GONE
+                    dragExtents.remove(panel)
+                    return@hookBefore
+                }
+                applyPanelHeight(footer, panel)
             }
-            applyPanelHeight(footer, panel)
         }
 
         // 再来一次: switchPanel 的方法体里 (setVisibility / F1 / G1 以及它们触发的
         // refreshBottomHeight) 有机会把容器高度改回微信那套值, 收尾时覆盖掉。
-        methodSwitchPanel.hookAfter {
-            if (!movePanelAbove) return@hookAfter
-            val state = args[0] as? Int ?: return@hookAfter
-            if (state != PANEL_STATE_SMILEY && state != PANEL_STATE_APP) return@hookAfter
-            val footer = thisObject as ChatFooter
-            val panel = footer.bottomPanel ?: return@hookAfter
-            applyPanelHeight(footer, panel)
+        installHook("chatFooter.switchPanel.after") {
+            methodSwitchPanel.hookAfter {
+                if (!movePanelAbove) return@hookAfter
+                val state = args[0] as? Int ?: return@hookAfter
+                if (state != PANEL_STATE_SMILEY && state != PANEL_STATE_APP) return@hookAfter
+                val footer = thisObject as ChatFooter
+                val panel = footer.bottomPanel ?: return@hookAfter
+                applyPanelHeight(footer, panel)
+            }
         }
 
         // 面板可见 = 它已经作为布局的一部分向上撑开了 footer, 此时再做 translationY
@@ -376,20 +396,22 @@ object FloatingChatFooter : ClickableFeature(), IResolveDex {
         // 键盘同时开着时仍然需要位移, 把输入行抬到 IME 之上。但不能直接放行微信给的 y:
         // 表情面板用的是 max(推荐高, 键盘高), 比键盘态本身多出几十像素, 会让整个 footer
         // 轻微上移一下再弹回。改用键盘态实际用过的那个滚动量, 从构造上保证零位移。
-        methodScrollContentTo.hookBefore {
-            if (!movePanelAbove) return@hookBefore
-            val scrollLayout = thisObject as ChattingScrollLayout
-            val panel = scrollLayout.footerBottomPanel ?: return@hookBefore
-            if (panel.visibility != View.VISIBLE) {
-                // 面板收起时的滚动量就是键盘高度, 记下来给面板态复用
-                (args[0] as? Int)
-                    ?.takeIf { it > 0 && scrollLayout.isImeVisible }
-                    ?.let { keyboardScrolls[scrollLayout] = it }
-                return@hookBefore
+        installHook("chattingScrollLayout.scrollContentTo") {
+            methodScrollContentTo.hookBefore {
+                if (!movePanelAbove) return@hookBefore
+                val scrollLayout = thisObject as ChattingScrollLayout
+                val panel = scrollLayout.footerBottomPanel ?: return@hookBefore
+                if (panel.visibility != View.VISIBLE) {
+                    // 面板收起时的滚动量就是键盘高度, 记下来给面板态复用
+                    (args[0] as? Int)
+                        ?.takeIf { it > 0 && scrollLayout.isImeVisible }
+                        ?.let { keyboardScrolls[scrollLayout] = it }
+                    return@hookBefore
+                }
+                val imeHeight = scrollLayout.imeHeight
+                // IME inset 与微信自己那套键盘高度理论上一致, 但以微信实际用过的值优先, 保证零位移
+                args[0] = if (imeHeight > 0) keyboardScrolls[scrollLayout] ?: imeHeight else 0
             }
-            val imeHeight = scrollLayout.imeHeight
-            // IME inset 与微信自己那套键盘高度理论上一致, 但以微信实际用过的值优先, 保证零位移
-            args[0] = if (imeHeight > 0) keyboardScrolls[scrollLayout] ?: imeHeight else 0
         }
 
         // 面板原本在输入行下方, 所以微信开面板前必须先收键盘给它腾地方 (configPanel 里的
@@ -397,43 +419,49 @@ object FloatingChatFooter : ClickableFeature(), IResolveDex {
         // 输入行上方, 键盘不需要让位 —— 跳过整个 configPanel, 自己直接跑 switchPanel。
         // 只跳过这一步而不是单独屏蔽 hideVKB: 否则键盘不收, 回调不来, switchPanel 永远
         // 补不上, 面板根本不会出现。
-        methodConfigPanel.hookBefore {
-            if (!movePanelAbove) return@hookBefore
-            val state = args[0] as? Int ?: return@hookBefore
-            if (state != PANEL_STATE_SMILEY && state != PANEL_STATE_APP) return@hookBefore
-            val footer = thisObject as ChatFooter
-            if (!footer.isImeVisible) return@hookBefore
-            methodSwitchPanel.method.invoke(footer, state, args[1], args[2])
-            result = null
+        installHook("chatFooter.configPanel") {
+            methodConfigPanel.hookBefore {
+                if (!movePanelAbove) return@hookBefore
+                val state = args[0] as? Int ?: return@hookBefore
+                if (state != PANEL_STATE_SMILEY && state != PANEL_STATE_APP) return@hookBefore
+                val footer = thisObject as ChatFooter
+                if (!footer.isImeVisible) return@hookBefore
+                methodSwitchPanel.method.invoke(footer, state, args[1], args[2])
+                result = null
+            }
         }
 
         // 表情键/「+」键在面板已展开时都调 enterKeyboardState 来关面板, 顺带弹键盘 ——
         // 面板在下方时这是合理的 (面板腾出的位置正好给键盘), 现在则纯属多余。
         // 键盘当前已开的话保留原行为: 那时 configPanel 只是切状态, 不会重复弹键盘。
-        methodEnterKeyboardState.hookBefore {
-            if (!movePanelAbove) return@hookBefore
-            val footer = thisObject as ChatFooter
-            val panel = footer.bottomPanel ?: return@hookBefore
-            if (panel.visibility != View.VISIBLE) return@hookBefore
-            if (footer.isImeVisible) return@hookBefore
-            methodConfigPanel.method.invoke(footer, PANEL_STATE_NONE, true, -1)
-            result = null
+        installHook("chatFooter.enterKeyboardState") {
+            methodEnterKeyboardState.hookBefore {
+                if (!movePanelAbove) return@hookBefore
+                val footer = thisObject as ChatFooter
+                val panel = footer.bottomPanel ?: return@hookBefore
+                if (panel.visibility != View.VISIBLE) return@hookBefore
+                if (footer.isImeVisible) return@hookBefore
+                methodConfigPanel.method.invoke(footer, PANEL_STATE_NONE, true, -1)
+                result = null
+            }
         }
 
         // RecentImageBubble 通过 ChatFooter.getYFromBottom() 把 popup 放在输入行上方。
         // 原布局中面板在输入行下方且挤在屏幕外，footer 的总高度正好能代表这个偏移；面板
         // 重排到上方后，它也被算进总高度，导致 popup 被额外抬过整个面板。只在面板实际
         // 可见时扣除其当前高度，键盘压缩后的面板也会使用同一个真实高度。
-        ChatFooter::getYFromBottom.fastJavaMethod!!.hookAfter {
-            if (!movePanelAbove) return@hookAfter
-            val footer = thisObject as ChatFooter
-            val panel = footer.bottomPanel ?: return@hookAfter
-            if (panel.visibility != View.VISIBLE) return@hookAfter
-            val panelHeight = panel.height.takeIf { it > 0 }
-                ?: panel.layoutParams?.height?.takeIf { it > 0 }
-                ?: return@hookAfter
-            val yFromBottom = result as? Int ?: return@hookAfter
-            result = (yFromBottom - panelHeight).coerceAtLeast(0)
+        installHook("chatFooter.getYFromBottom") {
+            ChatFooter::getYFromBottom.fastJavaMethod?.hookAfter {
+                if (!movePanelAbove) return@hookAfter
+                val footer = thisObject as ChatFooter
+                val panel = footer.bottomPanel ?: return@hookAfter
+                if (panel.visibility != View.VISIBLE) return@hookAfter
+                val panelHeight = panel.height.takeIf { it > 0 }
+                    ?: panel.layoutParams?.height?.takeIf { it > 0 }
+                    ?: return@hookAfter
+                val yFromBottom = result as? Int ?: return@hookAfter
+                result = (yFromBottom - panelHeight).coerceAtLeast(0)
+            }
         }
     }
 

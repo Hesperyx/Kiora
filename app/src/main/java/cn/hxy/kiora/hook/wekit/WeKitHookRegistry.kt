@@ -10,6 +10,7 @@ object WeKitHookRegistry {
     private val CATEGORY_MAP = mapOf(
         FeatureCategoryIds.CHAT to HookCategory.CHAT,
         FeatureCategoryIds.CONTACTS_GROUPS to HookCategory.GROUP,
+        FeatureCategoryIds.FRIEND_DETECT to HookCategory.FRIEND_DETECT,
         FeatureCategoryIds.PAYMENT to HookCategory.RED_PACKET,
         FeatureCategoryIds.MOMENTS to HookCategory.SOCIAL,
         FeatureCategoryIds.SYSTEM_PRIVACY to HookCategory.PURIFY,
@@ -20,6 +21,8 @@ object WeKitHookRegistry {
         FeatureCategoryIds.MINIAPPS to HookCategory.MISC,
         FeatureCategoryIds.CHANNELS to HookCategory.SOCIAL,
         FeatureCategoryIds.PROFILE to HookCategory.MISC,
+        FeatureCategoryIds.CONTACT_DETAILS to HookCategory.GROUP,
+        FeatureCategoryIds.API to HookCategory.MISC,
         FeatureCategoryIds.DEBUG to HookCategory.DEBUG,
         FeatureCategoryIds.SCRIPTING_JAVA to HookCategory.MISC,
         FeatureCategoryIds.SCRIPTING_PYTHON to HookCategory.MISC,

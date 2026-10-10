@@ -236,15 +236,18 @@ object ConversationAggregation : ClickableFeature(),
 
         startRefreshThread()
 
-        hookMainUiRefresh()
-        hookOpenFolder()
-        hookConversationPages()
-        hookFolderContextMenu()
-        hookSelectConversationUi()
-        hookMvvmContactListItemClick()
-        hookSqliteWrapperQuery()
-        hookConversationStorageParentQuery()
-        hookConversationStorageUpdateUnread()
+        // 会话聚合有近十个彼此独立的 DexKit 锚点。任意一个在当前微信版本上未命中时，若异常
+        // 直接冒泡，整个功能会被 enable() 判为启用失败并 unhookAll()，表现为「聚合功能整体突然
+        // 失效」。逐项隔离后，只有缺失的那条子钩子不生效，其余仍工作。
+        installHook("hookMainUiRefresh") { hookMainUiRefresh() }
+        installHook("hookOpenFolder") { hookOpenFolder() }
+        installHook("hookConversationPages") { hookConversationPages() }
+        installHook("hookFolderContextMenu") { hookFolderContextMenu() }
+        installHook("hookSelectConversationUi") { hookSelectConversationUi() }
+        installHook("hookMvvmContactListItemClick") { hookMvvmContactListItemClick() }
+        installHook("hookSqliteWrapperQuery") { hookSqliteWrapperQuery() }
+        installHook("hookConversationStorageParentQuery") { hookConversationStorageParentQuery() }
+        installHook("hookConversationStorageUpdateUnread") { hookConversationStorageUpdateUnread() }
 
         CustomLocalFriendAvatars.fallbackUsernameProvider = { folderId ->
             if (isFolderId(folderId) && !CustomLocalFriendAvatars.hasCustomAvatar(folderId)) {
@@ -538,19 +541,19 @@ object ConversationAggregation : ClickableFeature(),
     }
 
     private fun hookMainUiRefresh() {
-        MainUI::onResume.fastJavaMethod!!.hookAfter {
+        MainUI::onResume.fastJavaMethod?.hookAfter {
             syncFoldersToDatabase()
         }
     }
 
     private fun hookOpenFolder() {
-        LauncherUI::startChatting.fastJavaMethod!!.hookBefore {
+        LauncherUI::startChatting.fastJavaMethod?.hookBefore {
             interceptFolderChatOpen(args.firstOrNull() as? String, thisObject) {
                 result = null
             }
         }
 
-        BaseConversationUI::startChatting.fastJavaMethod!!.hookBefore {
+        BaseConversationUI::startChatting.fastJavaMethod?.hookBefore {
             interceptFolderChatOpen(args.firstOrNull() as? String, thisObject) {
                 result = null
             }

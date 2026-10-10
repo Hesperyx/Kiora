@@ -89,9 +89,9 @@ object LinkExternalAppJump : SwitchFeature(),
                 containsKey("key_scan_qr_code_get_a8key_resp") ||
                         containsKey("key_scan_qr_code_get_a8key_req")
             } ?: false) {
-            LauncherUI.getInstance()!!
+            LauncherUI.getInstance() ?: (param.thisObject as? Context) ?: return
         } else {
-            param.thisObject as Context
+            param.thisObject as? Context ?: return
         }
 
         val component = intent.component ?: return

@@ -975,7 +975,7 @@ fun SingleContactSelector(
         confirmButtonText = stringResource(R.string.dialog_confirm),
         confirmButtonEnabled = selectedWxId != null,
         onDismiss = onDismiss,
-        onConfirm = { onConfirm(selectedWxId!!) },
+        onConfirm = { selectedWxId?.let(onConfirm) },
         selectionKey = selectedWxId ?: "",
         isSelected = { it.wxId == selectedWxId },
         leadingControl = { contact ->

@@ -83,37 +83,43 @@ object AlwaysShowInteractionEntry : SwitchFeature(), IResolveDex {
         get() = methodGetNotifyLayout.method.declaringClass
 
     override fun onEnable() {
-        methodHideNotifyBar.hookAfter {
-            noInteractionMessages = true
-            val headerUic = extractHeaderUic(thisObject ?: return@hookAfter) ?: return@hookAfter
-            notifyLayout(headerUic).isVisible = true
-            notifyContent(headerUic).text = localizedMomentsString(R.string.moments_interaction_idle)
-            // 一条互动消息都没有, 没有可展示的头像
-            notifyImg(headerUic).isVisible = false
+        installHook("AlwaysShowInteractionEntry#1") {
+            methodHideNotifyBar.hookAfter {
+                noInteractionMessages = true
+                val headerUic = extractHeaderUic(thisObject ?: return@hookAfter) ?: return@hookAfter
+                notifyLayout(headerUic).isVisible = true
+                notifyContent(headerUic).text = localizedMomentsString(R.string.moments_interaction_idle)
+                // 一条互动消息都没有, 没有可展示的头像
+                notifyImg(headerUic).isVisible = false
+            }
         }
 
-        methodShowNotifyBar.hookAfter {
-            noInteractionMessages = false
-            val headerUic = extractHeaderUic(thisObject ?: return@hookAfter) ?: return@hookAfter
-            // 恢复上面隐藏掉的头像
-            notifyImg(headerUic).isVisible = true
+        installHook("AlwaysShowInteractionEntry#2") {
+            methodShowNotifyBar.hookAfter {
+                noInteractionMessages = false
+                val headerUic = extractHeaderUic(thisObject ?: return@hookAfter) ?: return@hookAfter
+                // 恢复上面隐藏掉的头像
+                notifyImg(headerUic).isVisible = true
+            }
         }
 
         // 微信默认进「最近消息」(SnsMsgUIWithRelevance), 一条互动都没有时那页是空的。
         // 这种情况直接进它底部「全部互动消息」按钮打开的 SnsMsgUIWithAll。
-        methodGotoNotifyMsgUI.hookBefore {
-            if (!noInteractionMessages) return@hookBefore
-            val headerUic = thisObject ?: return@hookBefore
-            val activity = notifyLayout(headerUic).context.baseActivity ?: return@hookBefore
+        installHook("AlwaysShowInteractionEntry#3") {
+            methodGotoNotifyMsgUI.hookBefore {
+                if (!noInteractionMessages) return@hookBefore
+                val headerUic = thisObject ?: return@hookBefore
+                val activity = notifyLayout(headerUic).context.baseActivity ?: return@hookBefore
 
-            activity.startActivity(Intent {
-                setClassName(PackageNames.WECHAT, MSG_UI_WITH_ALL)
-                putExtra("sns_msg_force_show_all", true)
-                putExtra("sns_msg_comment_list_scene", 1)
-                putExtra("sns_msg_can_update_to_read", false)
-            })
-            // 跳过原方法, 它还会把入口气泡藏起来
-            result = null
+                activity.startActivity(Intent {
+                    setClassName(PackageNames.WECHAT, MSG_UI_WITH_ALL)
+                    putExtra("sns_msg_force_show_all", true)
+                    putExtra("sns_msg_comment_list_scene", 1)
+                    putExtra("sns_msg_can_update_to_read", false)
+                })
+                // 跳过原方法, 它还会把入口气泡藏起来
+                result = null
+            }
         }
     }
 

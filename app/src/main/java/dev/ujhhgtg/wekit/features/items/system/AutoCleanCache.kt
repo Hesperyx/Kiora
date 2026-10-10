@@ -36,30 +36,39 @@ object AutoCleanCache : ClickableFeature() {
     private var cleanJob: Job? = null
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    private val cleanPaths by lazy {
-        val paths = mutableListOf<Path>()
+    /**
+     * 待清理目录全表。
+     *
+     * `filesDir.parentFile` / `externalCacheDir` 在真实设备上**可能为 null**（外置存储未挂载、
+     * 被卸载，或部分 ROM 直接不返回 externalCacheDir）。旧实现用 `!!`，一旦为 null，
+     * [performClean] 在后台线程抛 NPE，随后被协程的默认异常处理器抛到进程级 → 微信闪退。
+     * 这里改为缺项就跳过对应目录，取不到根目录时整体退化为空表（功能静默不清理，但绝不崩）。
+     */
+    private val cleanPaths: List<Path> by lazy {
+        val dataDir = HostInfo.application.filesDir?.parentFile?.toPath()
+            ?: return@lazy emptyList<Path>()
+        val storageDataDir = HostInfo.application.externalCacheDir?.toPath()?.parent
 
-        val dataDir = HostInfo.application.filesDir.parentFile!!.toPath()
-        val storageDataDir = HostInfo.application.externalCacheDir!!.toPath().parent!!
-
-        paths.add(dataDir / "cache")
-        paths.add(dataDir / "MicroMsg" / "crash")
-        paths.add(dataDir / "appbrand")
-        paths.add(dataDir / "cache" / "appbrand")
-        paths.add(dataDir / "MicroMsg" / "appbrand")
-        paths.add(dataDir / "cache" / "liteapp")
-        paths.add(dataDir / "files" / "liteapp")
-        paths.add(dataDir / "tinker")
-        paths.add(dataDir / "tinker_server")
-        paths.add(dataDir / "tinker_temp")
-        paths.add(storageDataDir / "cache")
-        paths.add(storageDataDir / "files" / "xlog")
-        paths.add(storageDataDir / "files" / "onelog")
-        paths.add(storageDataDir / "files" / "tbslog")
-        paths.add(storageDataDir / "files" / "Tencent" / "tbs_common_log")
-        paths.add(storageDataDir / "files" / "Tencent" / "tbs_live_log")
-
-        paths
+        buildList {
+            add(dataDir / "cache")
+            add(dataDir / "MicroMsg" / "crash")
+            add(dataDir / "appbrand")
+            add(dataDir / "cache" / "appbrand")
+            add(dataDir / "MicroMsg" / "appbrand")
+            add(dataDir / "cache" / "liteapp")
+            add(dataDir / "files" / "liteapp")
+            add(dataDir / "tinker")
+            add(dataDir / "tinker_server")
+            add(dataDir / "tinker_temp")
+            if (storageDataDir != null) {
+                add(storageDataDir / "cache")
+                add(storageDataDir / "files" / "xlog")
+                add(storageDataDir / "files" / "onelog")
+                add(storageDataDir / "files" / "tbslog")
+                add(storageDataDir / "files" / "Tencent" / "tbs_common_log")
+                add(storageDataDir / "files" / "Tencent" / "tbs_live_log")
+            }
+        }
     }
 
     override fun onEnable() {
@@ -79,17 +88,20 @@ object AutoCleanCache : ClickableFeature() {
     @OptIn(ExperimentalPathApi::class)
     private fun performClean(): Long {
         var totalDeletedBytes = 0L
-        cleanPaths.forEach { path ->
-            try {
-                WeLogger.d(TAG, "deleting $path")
-                if (path.exists()) {
-                    totalDeletedBytes += calculateSize(path)
-                    path.deleteRecursively()
+        // 目录表本身也可能因宿主状态异常在构建时抛错，整体兜底，保证清理任务永不把宿主带崩。
+        runCatching {
+            cleanPaths.forEach { path ->
+                try {
+                    WeLogger.d(TAG, "deleting $path")
+                    if (path.exists()) {
+                        totalDeletedBytes += calculateSize(path)
+                        path.deleteRecursively()
+                    }
+                } catch (e: Exception) {
+                    WeLogger.w(TAG, "exception during cleaning: ${path.fileName}, ${e.message}")
                 }
-            } catch (e: Exception) {
-                WeLogger.w(TAG, "exception during cleaning: ${path.fileName}, ${e.message}")
             }
-        }
+        }.onFailure { WeLogger.w(TAG, "cache path resolution failed: ${it.message}") }
         return totalDeletedBytes
     }
 

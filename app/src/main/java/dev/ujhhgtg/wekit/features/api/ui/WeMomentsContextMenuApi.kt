@@ -123,12 +123,16 @@ object WeMomentsContextMenuApi : ApiFeature(), IResolveDex {
         }
     }
     override fun onEnable() {
-        methodOnCreateMenu.method.hookAfter {
-            handleCreateMenu(this)
+        installHook("WeMomentsContextMenuApi#1") {
+            methodOnCreateMenu.method.hookAfter {
+                handleCreateMenu(this)
+            }
         }
 
-        methodOnItemSelected.method.hookAfter {
-            handleSelectMenu(this)
+        installHook("WeMomentsContextMenuApi#2") {
+            methodOnItemSelected.method.hookAfter {
+                handleSelectMenu(this)
+            }
         }
 
         hookOptionalImproveSelect(methodImproveOnItemSelectedRegister2, "register2")

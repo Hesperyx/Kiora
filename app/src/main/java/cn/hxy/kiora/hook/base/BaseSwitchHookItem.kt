@@ -26,11 +26,21 @@ abstract class BaseSwitchHookItem(
      */
     private val enableKey: String get() = switchKey ?: name
 
+    /**
+     * 开关状态的容错读取。
+     *
+     * `SharedPreferences.getBoolean` 在键存在但类型不符时抛 [ClassCastException]；设置页会在
+     * 主线程上把每个功能项的 `isEnable` 都读一遍，只要有一个键被历史版本用别的类型写过，
+     * 异常就会从 Compose 组合期冒出来，整片功能列表都渲染不出来。这里统一退化为默认值。
+     */
+    private fun readEnable(): Boolean =
+        runCatching { prefs.getBoolean(enableKey, false) }.getOrDefault(false)
+
     override var isEnable: Boolean
-        get() = prefs.getBoolean(enableKey, false)
+        get() = readEnable()
         set(value) {
             // 幂等：值没变就不写盘、不回调，避免互斥组收敛等场景重复触发 onEnabledChange。
-            if (prefs.getBoolean(enableKey, false) == value) return
+            if (readEnable() == value) return
             prefs.edit { putBoolean(enableKey, value) }
             onEnabledChange(value)
         }

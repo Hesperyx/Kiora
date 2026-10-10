@@ -9,6 +9,7 @@ import dev.ujhhgtg.reflekt.utils.createInstance
 import dev.ujhhgtg.reflekt.utils.toClass
 import dev.ujhhgtg.wekit.loader.utils.ParcelableFixer
 import dev.ujhhgtg.wekit.utils.HookHandle
+import dev.ujhhgtg.wekit.utils.WeLogger
 import dev.ujhhgtg.wekit.utils.hookAfterDirectly
 import dev.ujhhgtg.wekit.utils.hookBeforeDirectly
 import dev.ujhhgtg.wekit.utils.reflection.buildClass
@@ -44,6 +45,8 @@ class WeChatSettingsManager(
     private val stringPool = ConcurrentHashMap<Int, () -> String>()
     private var dynamicResIdCounter = -2000
     private var itemIndexCounter = 0
+
+    private val TAG = "WeChatSettingsManager"
 
     private var contextGetStringUnhook: HookHandle? = null
     private var resourcesGetStringUnhook: HookHandle? = null
@@ -110,8 +113,12 @@ class WeChatSettingsManager(
                     if (spec.isSwitch) {
                         ProxyBuilder.callSuper(proxy, method, *args)
                     } else {
-                        val activity = args[0] as Activity
-                        spec.onClick?.invoke(activity) ?: ProxyBuilder.callSuper(proxy, method, *args)
+                        val activity = args[0] as? Activity
+                        if (activity != null) {
+                            spec.onClick?.invoke(activity) ?: ProxyBuilder.callSuper(proxy, method, *args)
+                        } else {
+                            ProxyBuilder.callSuper(proxy, method, *args)
+                        }
                     }
                 }
 
@@ -163,7 +170,7 @@ class WeChatSettingsManager(
 
     private fun createSwitchHandlerProxy(switchHandlerClass: Class<*>, spec: SettingItemSpec): Any {
         val switchClassHandler = InvocationHandler { _, _, args ->
-            spec.onSwitchChanged?.invoke(args[0] as Boolean)
+            spec.onSwitchChanged?.invoke(args[0] as? Boolean ?: false)
         }
 
         return Proxy.newProxyInstance(switchHandlerClass.classLoader, arrayOf(switchHandlerClass), switchClassHandler)
@@ -195,7 +202,7 @@ class WeChatSettingsManager(
         classBaseSettingPrefUI.reflekt()
             .firstMethod { name = "superImportUIComponents" }
             .hookAfterDirectly {
-                val currentUi = thisObject!!
+                val currentUi = thisObject ?: return@hookAfterDirectly
                 if (!isSupportedSettingsUi(currentUi)) return@hookAfterDirectly
 
                 @Suppress("UNCHECKED_CAST")
@@ -205,16 +212,20 @@ class WeChatSettingsManager(
                     layoutComponentSet.add(item.proxyClass)
                 }
 
-                onSettingsUiEntered(currentUi)
+                // This block runs outside BaseFeature's guard, so an exception here would
+                // propagate through the PASSTHROUGH hook and crash the host's settings page.
+                runCatching { onSettingsUiEntered(currentUi) }
+                    .onFailure { WeLogger.e(TAG, "failed to install settings getString hook", it) }
             }
 
         classBaseSettingUI.reflekt()
             .firstMethod { name = "onDestroy" }
             .hookAfterDirectly {
-                val currentUi = thisObject!!
+                val currentUi = thisObject ?: return@hookAfterDirectly
                 if (!isSupportedSettingsUi(currentUi)) return@hookAfterDirectly
 
-                onSettingsUiDestroyed(currentUi)
+                runCatching { onSettingsUiDestroyed(currentUi) }
+                    .onFailure { WeLogger.e(TAG, "failed to remove settings getString hook", it) }
             }
     }
 

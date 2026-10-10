@@ -17,9 +17,16 @@ fun restartHost() {
         LocaleResourceMode.InjectedHost,
     )
     showToast(context, context.getString(R.string.noncompose_restarting_host))
-    val instance = "com.tencent.mm.process.KillProcessHelperActivity".toClass()
-        .reflekt().firstField().getStatic()!!
-    instance.reflekt().firstMethod().invoke(HostInfo.application, true)
+    val instance = runCatching {
+        "com.tencent.mm.process.KillProcessHelperActivity".toClass()
+            .reflekt().firstField().getStatic()
+    }.getOrNull()
+    if (instance == null) {
+        WeLogger.e("KillHostUtils", "KillProcessHelperActivity instance not found; cannot restart host")
+        return
+    }
+    runCatching { instance.reflekt().firstMethod().invoke(HostInfo.application, true) }
+        .onFailure { WeLogger.e("KillHostUtils", "failed to invoke restart on KillProcessHelperActivity", it) }
 }
 
 fun killHost() {

@@ -119,63 +119,71 @@ object SkipRewardedAds : SwitchFeature(), IResolveDex {
 
     override fun onEnable() {
         // 1) webapi_getadvert 请求日志 (主进程): 奖励请求放行 + 发奖校验。
-        RemoveEmbeddedAds.ctorNetSceneJSOperateWxData.hookBefore {
-            val dataIndex = args.indexOfFirst { arg ->
-                arg is String && runCatching {
-                    JSONObject(arg).optString("api_name") == "webapi_getadvert"
-                }.getOrDefault(false)
+        installHook("skipRewardedAds.jsOperateWxData") {
+            RemoveEmbeddedAds.ctorNetSceneJSOperateWxData.hookBefore {
+                val dataIndex = args.indexOfFirst { arg ->
+                    arg is String && runCatching {
+                        JSONObject(arg).optString("api_name") == "webapi_getadvert"
+                    }.getOrDefault(false)
+                }
+                if (dataIndex < 0) return@hookBefore
+                val data = runCatching {
+                    JSONObject(args[dataIndex] as String).optJSONObject("data")?.toString()
+                }.getOrNull()
+                WeLogger.i(TAG, "webapi_getadvert data=${data?.take(800)}")
             }
-            if (dataIndex < 0) return@hookBefore
-            val data = runCatching {
-                JSONObject(args[dataIndex] as String).optJSONObject("data")?.toString()
-            }.getOrNull()
-            WeLogger.i(TAG, "webapi_getadvert data=${data?.take(800)}")
         }
 
         // 2) 强制字符串注入路径: 广告 SDK 文件不允许 FD 直读。
-        listOf(methodPkgReaderH0, methodAssetReaderH0)
-            .filter { !it.isPlaceholder }
-            .forEach { method ->
-                method.hookBefore {
-                    val path = args.getOrNull(0) as? String ?: return@hookBefore
-                    if (isSdkCandidate(path)) {
-                        WeLogger.i(TAG, "H0 blocked path=$path (force text inject)")
-                        result = null
+        installHook("skipRewardedAds.pkgAssetReader") {
+            listOf(methodPkgReaderH0, methodAssetReaderH0)
+                .filter { !it.isPlaceholder }
+                .forEach { method ->
+                    method.hookBefore {
+                        val path = args.getOrNull(0) as? String ?: return@hookBefore
+                        if (isSdkCandidate(path)) {
+                            WeLogger.i(TAG, "H0 blocked path=$path (force text inject)")
+                            result = null
+                        }
                     }
                 }
-            }
+        }
 
         // 3) 真正的补丁点: e3.h 里的 script 就是即将被编译执行的 SDK 文本。
-        methodInjectLibScript.hookBefore {
-            val path = args.getOrNull(2) as? String ?: return@hookBefore
-            if (!isSdkCandidate(path)) return@hookBefore
-            val script = args.getOrNull(6) as? String ?: return@hookBefore
-            dumpSdkFile(path, script)
-            val patched = patchMbSdk(path, script)
-            if (patched != script) {
-                args[6] = patched
-                WeLogger.i(
-                    TAG,
-                    "inject SDK path=$path size=${script.length} " +
-                        "delta=${patched.length - script.length}"
-                )
+        installHook("skipRewardedAds.injectLibScript") {
+            methodInjectLibScript.hookBefore {
+                val path = args.getOrNull(2) as? String ?: return@hookBefore
+                if (!isSdkCandidate(path)) return@hookBefore
+                val script = args.getOrNull(6) as? String ?: return@hookBefore
+                dumpSdkFile(path, script)
+                val patched = patchMbSdk(path, script)
+                if (patched != script) {
+                    args[6] = patched
+                    WeLogger.i(
+                        TAG,
+                        "inject SDK path=$path size=${script.length} " +
+                            "delta=${patched.length - script.length}"
+                    )
+                }
             }
         }
 
         // 4) bridge 事件日志: mbAd_* 全家 + 广告会话窗口, 观察完整 MB 流程。
-        val bindingClass = "com.tencent.mm.appbrand.commonjni.AppBrandJsBridgeBinding".toClass()
-        bindingClass.reflekt().firstMethod { name = "subscribeHandler" }.hookBefore {
-            val type = args.getOrNull(0) as? String ?: return@hookBefore
-            val data = (args.getOrNull(1) as? String).orEmpty()
-            val now = System.currentTimeMillis()
-            val looksAd = type.startsWith("mbAd_") ||
-                AD_EVENT_MARKERS.any { type.contains(it, ignoreCase = true) }
-            val inSession = now <= adEventSessionUntil.get()
-            if (looksAd) {
-                adEventSessionUntil.set(now + SESSION_WINDOW_MS)
-            }
-            if (looksAd || inSession) {
-                WeLogger.i(TAG, "bridge event type=$type data=${data.take(500)}")
+        installHook("skipRewardedAds.bridgeSubscribeHandler") {
+            val bindingClass = "com.tencent.mm.appbrand.commonjni.AppBrandJsBridgeBinding".toClass()
+            bindingClass.reflekt().firstMethod { name = "subscribeHandler" }.hookBefore {
+                val type = args.getOrNull(0) as? String ?: return@hookBefore
+                val data = (args.getOrNull(1) as? String).orEmpty()
+                val now = System.currentTimeMillis()
+                val looksAd = type.startsWith("mbAd_") ||
+                    AD_EVENT_MARKERS.any { type.contains(it, ignoreCase = true) }
+                val inSession = now <= adEventSessionUntil.get()
+                if (looksAd) {
+                    adEventSessionUntil.set(now + SESSION_WINDOW_MS)
+                }
+                if (looksAd || inSession) {
+                    WeLogger.i(TAG, "bridge event type=$type data=${data.take(500)}")
+                }
             }
         }
     }

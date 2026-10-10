@@ -99,59 +99,71 @@ object RemoveCustomStickersLimit : SwitchFeature(), IResolveDex {
     }
 
     override fun onEnable() {
-        methodGetCustomEmojiMaxSize.hookBefore {
-            result = Int.MAX_VALUE
-        }
-
-        methodCreateCgiBack.hookBefore {
-            if (args[1] as? Int == -434) {
-                args[0] = 0
-                args[1] = 0
-                args[2] = ""
+        installHook("removeCustomStickersLimit.getMaxSize") {
+            methodGetCustomEmojiMaxSize.hookBefore {
+                result = Int.MAX_VALUE
             }
         }
 
-        methodCreateCgiBack.hookAfter {
-            val res = result ?: return@hookAfter
-            @Suppress("UNCHECKED_CAST")
-            (classCgiBack.clazz as Class<Any>).reflekt().fields {
-                type = int
-            }.forEach {
-                if (it.get(res) == -434) {
-                    it.set(res, 0)
+        installHook("removeCustomStickersLimit.createCgiBackBefore") {
+            methodCreateCgiBack.hookBefore {
+                if (args[1] as? Int == -434) {
+                    args[0] = 0
+                    args[1] = 0
+                    args[2] = ""
                 }
             }
         }
 
-        methodAddEmojiOnSceneEnd.hookBefore {
-            val resp = args[0] ?: return@hookBefore
-            @Suppress("UNCHECKED_CAST")
-            (classCgiBack.clazz as Class<Any>).reflekt().fields {
-                type = int
-            }.forEach {
-                if (it.get(resp) == -434) {
-                    it.set(resp, 0)
+        installHook("removeCustomStickersLimit.createCgiBackAfter") {
+            methodCreateCgiBack.hookAfter {
+                val res = result ?: return@hookAfter
+                @Suppress("UNCHECKED_CAST")
+                (classCgiBack.clazz as Class<Any>).reflekt().fields {
+                    type = int
+                }.forEach {
+                    if (it.get(res) == -434) {
+                        it.set(res, 0)
+                    }
                 }
             }
         }
 
-        methodNetSceneBackupEmojiOperateOnGYNetEnd.hookBefore {
-            if (args[2] as? Int == -434) {
-                args[1] = 0
-                args[2] = 0
+        installHook("removeCustomStickersLimit.addEmojiOnSceneEnd") {
+            methodAddEmojiOnSceneEnd.hookBefore {
+                val resp = args[0] ?: return@hookBefore
+                @Suppress("UNCHECKED_CAST")
+                (classCgiBack.clazz as Class<Any>).reflekt().fields {
+                    type = int
+                }.forEach {
+                    if (it.get(resp) == -434) {
+                        it.set(resp, 0)
+                    }
+                }
             }
         }
 
-        listOf(
-            methodComputeEmojiStorageState,
-            methodChattingUiEmoji,
-            methodConditionallyShowDialog
-        ).forEach {
-            it.hookBefore {
-                putCustomFullFalseInMmkv()
+        installHook("removeCustomStickersLimit.backupEmojiOperate") {
+            methodNetSceneBackupEmojiOperateOnGYNetEnd.hookBefore {
+                if (args[2] as? Int == -434) {
+                    args[1] = 0
+                    args[2] = 0
+                }
             }
-            it.hookAfter {
-                putCustomFullFalseInMmkv()
+        }
+
+        installHook("removeCustomStickersLimit.computeEmojiStorageState") {
+            listOf(
+                methodComputeEmojiStorageState,
+                methodChattingUiEmoji,
+                methodConditionallyShowDialog
+            ).forEach {
+                it.hookBefore {
+                    putCustomFullFalseInMmkv()
+                }
+                it.hookAfter {
+                    putCustomFullFalseInMmkv()
+                }
             }
         }
     }

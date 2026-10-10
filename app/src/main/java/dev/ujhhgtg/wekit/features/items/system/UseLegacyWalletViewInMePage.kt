@@ -16,20 +16,28 @@ object UseLegacyWalletViewInMePage : SwitchFeature(), IResolveDex {
     override val descriptionRes = R.string.feature_use_legacy_wallet_view_in_me_page_description
 
     override fun onEnable() {
-        methodGetOrderAndCardEntranceInfo.hookAfter {
-            result!!.reflekt()
-                .firstField {
-                    type = Int::class.java
-                }.set(1)
+        installHook("UseLegacyWalletViewInMePage#1") {
+            methodGetOrderAndCardEntranceInfo.hookAfter {
+                // 被 hook 的方法在部分版本/账号形态下会返回 null；此时没有任何对象可改，
+                // 直接放行。旧写法 `result!!` 会在钩子内抛 NPE（被 executeHookAction 吞掉后
+                // 本功能静默失效），这里显式判空让「返回值确实存在」时才改。
+                val value = result ?: return@hookAfter
+                value.reflekt()
+                    .firstField {
+                        type = Int::class.java
+                    }.set(1)
+            }
         }
 
-        methodMoreTabUIHandlePrefOnClick.hookBefore {
-            val field = Preference::class.reflekt()
-                .firstField { type = String::class }
+        installHook("UseLegacyWalletViewInMePage#2") {
+            methodMoreTabUIHandlePrefOnClick.hookBefore {
+                val field = Preference::class.reflekt()
+                    .firstField { type = String::class }
 
-            val pref = args[1] as Preference
-            if (field.get(pref) as? String? == "settings_mm_cardpackage_new") {
-                field.set(pref, "settings_mm_cardpackage")
+                val pref = args[1] as Preference
+                if (field.get(pref) as? String? == "settings_mm_cardpackage_new") {
+                    field.set(pref, "settings_mm_cardpackage")
+                }
             }
         }
     }

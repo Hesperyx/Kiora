@@ -242,26 +242,28 @@ object MentionMembers : SwitchFeature(), IResolveDex {
     }
 
     override fun onEnable() {
-        WeMessageApi.methodMsgInfoHandleApiInsertMessage.hookBefore {
-            val msgInfo = MessageInfo(args[0]!!)
+        installHook("MentionMembers#1") {
+            WeMessageApi.methodMsgInfoHandleApiInsertMessage.hookBefore {
+                val msgInfo = MessageInfo(args[0]!!)
 
-            // 只处理自己发送的文本消息 (isSend=1, type=1)
-            if (msgInfo.isSend != 1 || msgInfo.typeCode != 1) return@hookBefore
+                // 只处理自己发送的文本消息 (isSend=1, type=1)
+                if (msgInfo.isSend != 1 || msgInfo.typeCode != 1) return@hookBefore
 
-            val pending = pendingStealthAt ?: return@hookBefore
+                val pending = pendingStealthAt ?: return@hookBefore
 
-            // 消费标记; talker 不匹配 (发送失败残留、用户先在别的会话发言) 时丢弃,
-            // 避免把 atuserlist 误注入无关消息
-            pendingStealthAt = null
-            if (msgInfo.talker != pending.first) return@hookBefore
+                // 消费标记; talker 不匹配 (发送失败残留、用户先在别的会话发言) 时丢弃,
+                // 避免把 atuserlist 误注入无关消息
+                pendingStealthAt = null
+                if (msgInfo.talker != pending.first) return@hookBefore
 
-            // z=false: 只改内存 msgsource, 随入库方法写入
-            methodMergeMsgSourceNode.method.invoke(
-                null,
-                args[0],
-                "<atuserlist><![CDATA[${pending.second}]]></atuserlist>",
-                false,
-            )
+                // z=false: 只改内存 msgsource, 随入库方法写入
+                methodMergeMsgSourceNode.method.invoke(
+                    null,
+                    args[0],
+                    "<atuserlist><![CDATA[${pending.second}]]></atuserlist>",
+                    false,
+                )
+            }
         }
 
         WeChatInputBarMenuApi.addProvider(provider)

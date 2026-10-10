@@ -42,32 +42,36 @@ object AutoApproveDeviceLogin : ClickableFeature() {
     override fun onEnable() {
         val targetClass = ExtDeviceWXLoginUI::class.java
 
-        targetClass.hookBeforeOnCreate {
-            val activity = thisObject as Activity
-            var functionControl = 0
-            if (syncMessages) functionControl = functionControl or AUTO_SYNC_MESSAGES
-            if (autoLoginDevice) {
-                functionControl = functionControl or SHOW_LOGIN_DEVICE
-                functionControl = functionControl or AUTO_LOGIN_DEVICE
+        installHook("AutoApproveDeviceLogin#1") {
+            targetClass.hookBeforeOnCreate {
+                val activity = thisObject as Activity
+                var functionControl = 0
+                if (syncMessages) functionControl = functionControl or AUTO_SYNC_MESSAGES
+                if (autoLoginDevice) {
+                    functionControl = functionControl or SHOW_LOGIN_DEVICE
+                    functionControl = functionControl or AUTO_LOGIN_DEVICE
+                }
+                activity.intent.putExtra("intent.key.function.control", functionControl)
+                activity.intent.putExtra("intent.key.need.show.privacy.agreement", false)
             }
-            activity.intent.putExtra("intent.key.function.control", functionControl)
-            activity.intent.putExtra("intent.key.need.show.privacy.agreement", false)
         }
 
-        targetClass.reflekt().firstMethod { name = "initView" }.hookAfter {
-            val instance = thisObject!!.reflekt()
+        installHook("AutoApproveDeviceLogin#2") {
+            targetClass.reflekt().firstMethod { name = "initView" }.hookAfter {
+                val instance = thisObject?.reflekt() ?: return@hookAfter
 
-            if (syncMessages) {
-                instance.fields { type = CheckBox::class }
-                    .mapNotNull { it.get() as CheckBox? }
-                    .filter { it.isEffectivelyVisible() }
-                    .forEach { it.isChecked = true }
+                if (syncMessages) {
+                    instance.fields { type = CheckBox::class }
+                        .mapNotNull { it.get() as CheckBox? }
+                        .filter { it.isEffectivelyVisible() }
+                        .forEach { it.isChecked = true }
+                }
+
+                val button = instance.firstField {
+                    type = Button::class
+                }.get() as? Button ?: return@hookAfter
+                button.performClick()
             }
-
-            val button = instance.firstField {
-                type = Button::class
-            }.get()!! as Button
-            button.performClick()
         }
     }
 

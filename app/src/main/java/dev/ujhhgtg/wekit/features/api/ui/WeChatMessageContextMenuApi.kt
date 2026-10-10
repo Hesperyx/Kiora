@@ -296,113 +296,123 @@ object WeChatMessageContextMenuApi : ApiFeature(), IResolveDex {
     }
 
     override fun onEnable() {
-        methodCreateMenu.hookBefore {
-            val menu = args[0]!!
+        installHook("weChatMessageContextMenu.createMenu") {
+            methodCreateMenu.hookBefore {
+                val menu = args[0]!!
 
-            val curView = args[1] as View
-            val tag = curView.tag
-            currentViewRef = WeakReference(curView)
+                val curView = args[1] as View
+                val tag = curView.tag
+                currentViewRef = WeakReference(curView)
 
-            val msgInfo = WeMessageApi.getMsgInfoFromTag(tag)
-            val msgInfoWrapper = MessageInfo(msgInfo)
+                val msgInfo = WeMessageApi.getMsgInfoFromTag(tag)
+                val msgInfoWrapper = MessageInfo(msgInfo)
 
-            try {
-                val addMenuItem = menu.reflekt()
-                    .firstMethod {
-                        parameters(Int::class, CharSequence::class, Drawable::class)
-                        returnType = android.view.MenuItem::class
+                try {
+                    val addMenuItem = menu.reflekt()
+                        .firstMethod {
+                            parameters(Int::class, CharSequence::class, Drawable::class)
+                            returnType = android.view.MenuItem::class
+                        }
+
+                    val applicableItems = currentMenuItems()
+                        .filter { it.isSupported(msgInfoWrapper) }
+
+                    if (MergeChatMessageContextMenuItems.isEnabled) {
+                        // collapse everything into a single "WeKit" entry backed by a Compose dialog
+                        if (applicableItems.isNotEmpty()) {
+                            addMenuItem.invoke(MERGED_MENU_ITEM_ID, "WeKit", ExtensionIcon)
+                        }
+                    } else {
+                        for (item in applicableItems) {
+                            addMenuItem.invoke(item.id, "${item.text} [K]", item.drawable)
+                        }
                     }
-
-                val applicableItems = currentMenuItems()
-                    .filter { it.isSupported(msgInfoWrapper) }
-
-                if (MergeChatMessageContextMenuItems.isEnabled) {
-                    // collapse everything into a single "WeKit" entry backed by a Compose dialog
-                    if (applicableItems.isNotEmpty()) {
-                        addMenuItem.invoke(MERGED_MENU_ITEM_ID, "WeKit", ExtensionIcon)
-                    }
-                } else {
-                    for (item in applicableItems) {
-                        addMenuItem.invoke(item.id, "${item.text} [K]", item.drawable)
-                    }
+                } catch (ex: Throwable) {
+                    WeLogger.e(
+                        TAG,
+                        "exception occurred threw while providing menu items",
+                        ex
+                    )
                 }
-            } catch (ex: Throwable) {
-                WeLogger.e(
-                    TAG,
-                    "exception occurred threw while providing menu items",
-                    ex
-                )
-            }
 
-            // 放在最后，即使解析失败也不会影响菜单项注入
-            try {
-                hookMenuDismissOnce(thisObject!!)
-            } catch (ex: Throwable) {
-                WeLogger.e(TAG, "failed to hook context menu dismiss", ex)
+                // 放在最后，即使解析失败也不会影响菜单项注入
+                try {
+                    hookMenuDismissOnce(thisObject!!)
+                } catch (ex: Throwable) {
+                    WeLogger.e(TAG, "failed to hook context menu dismiss", ex)
+                }
             }
         }
 
-        methodSelectMenuItem.hookBefore {
-            // 没有配对的建菜单回调(或 View 已被回收)时直接放行，交回微信自己处理
-            val curView = currentViewRef?.get()
-            currentViewRef = null
-            if (curView == null) {
-                WeLogger.w(TAG, "menu item selected without a recorded chat item view, ignoring")
-                return@hookBefore
-            }
-            val tag = curView.tag
-            val msgInfo = WeMessageApi.getMsgInfoFromTag(tag)
-
-            val menuItem = args[0] as android.view.MenuItem
-            val msgInfoWrapper = MessageInfo(msgInfo)
-            val longClickListener = getLongClickListenerFromOnSelectHandler(thisObject!!)
-            val context = getChattingContextFromLongClickListener(longClickListener)
-            try {
-                if (menuItem.itemId == MERGED_MENU_ITEM_ID) {
-                    val applicableItems = currentMenuItems()
-                        .filter { it.isSupported(msgInfoWrapper) }
-                    showMergedMenuDialog(curView, context, msgInfoWrapper, applicableItems)
-                    finishMenuSelection(longClickListener)
-                    result = null
+        installHook("weChatMessageContextMenu.selectMenuItem") {
+            methodSelectMenuItem.hookBefore {
+                // 没有配对的建菜单回调(或 View 已被回收)时直接放行，交回微信自己处理
+                val curView = currentViewRef?.get()
+                currentViewRef = null
+                if (curView == null) {
+                    WeLogger.w(TAG, "menu item selected without a recorded chat item view, ignoring")
                     return@hookBefore
                 }
+                val tag = curView.tag
+                val msgInfo = WeMessageApi.getMsgInfoFromTag(tag)
 
-                for (item in currentMenuItems()) {
-                    if (item.id == menuItem.itemId) {
-                        item.onClick(curView, context, msgInfoWrapper)
+                val menuItem = args[0] as android.view.MenuItem
+                val msgInfoWrapper = MessageInfo(msgInfo)
+                val longClickListener = getLongClickListenerFromOnSelectHandler(thisObject!!)
+                val context = getChattingContextFromLongClickListener(longClickListener)
+                try {
+                    if (menuItem.itemId == MERGED_MENU_ITEM_ID) {
+                        val applicableItems = currentMenuItems()
+                            .filter { it.isSupported(msgInfoWrapper) }
+                        showMergedMenuDialog(curView, context, msgInfoWrapper, applicableItems)
                         finishMenuSelection(longClickListener)
                         result = null
                         return@hookBefore
                     }
+
+                    for (item in currentMenuItems()) {
+                        if (item.id == menuItem.itemId) {
+                            item.onClick(curView, context, msgInfoWrapper)
+                            finishMenuSelection(longClickListener)
+                            result = null
+                            return@hookBefore
+                        }
+                    }
+                } catch (ex: Throwable) {
+                    WeLogger.e(
+                        TAG,
+                        "exception occurred while handling click event",
+                        ex
+                    )
                 }
-            } catch (ex: Throwable) {
-                WeLogger.e(
-                    TAG,
-                    "exception occurred while handling click event",
-                    ex
-                )
             }
         }
 
-        methodMultiSetButtonListener.hookAfter {
-            // Host index 0 is forwarding; inserting a child does not change this semantic index.
-            if (args[0] as Int == 0) {
-                bindMultiSelectButton(thisObject as LinearLayout, args[1] as View.OnClickListener)
+        installHook("weChatMessageContextMenu.multiSetButtonListener") {
+            methodMultiSetButtonListener.hookAfter {
+                // Host index 0 is forwarding; inserting a child does not change this semantic index.
+                if (args[0] as Int == 0) {
+                    bindMultiSelectButton(thisObject as LinearLayout, args[1] as View.OnClickListener)
+                }
             }
         }
-        methodMultiRebuildButtons.hookAfter {
-            val bar = thisObject as LinearLayout
-            // The constructor rebuilds before listeners are bound; later rebuilds reuse our button.
-            val button = bar.getTag(R.id.wekit_multi_select_button) as? ImageView? ?: return@hookAfter
-            attachMultiSelectButton(bar, button)
+        installHook("weChatMessageContextMenu.multiRebuildButtons") {
+            methodMultiRebuildButtons.hookAfter {
+                val bar = thisObject as LinearLayout
+                // The constructor rebuilds before listeners are bound; later rebuilds reuse our button.
+                val button = bar.getTag(R.id.wekit_multi_select_button) as? ImageView? ?: return@hookAfter
+                attachMultiSelectButton(bar, button)
+            }
         }
-        methodMultiUpdateSelection.hookAfter {
-            val bar = thisObject as LinearLayout
-            val button = bar.getTag(R.id.wekit_multi_select_button) as? ImageView? ?: return@hookAfter
-            val hasSelection = args[0] as Int > 0
-            button.isEnabled = hasSelection
-            button.isClickable = hasSelection
-            button.alpha = if (hasSelection) 1f else 0.15f
+        installHook("weChatMessageContextMenu.multiUpdateSelection") {
+            methodMultiUpdateSelection.hookAfter {
+                val bar = thisObject as LinearLayout
+                val button = bar.getTag(R.id.wekit_multi_select_button) as? ImageView? ?: return@hookAfter
+                val hasSelection = args[0] as Int > 0
+                button.isEnabled = hasSelection
+                button.isClickable = hasSelection
+                button.alpha = if (hasSelection) 1f else 0.15f
+            }
         }
     }
 

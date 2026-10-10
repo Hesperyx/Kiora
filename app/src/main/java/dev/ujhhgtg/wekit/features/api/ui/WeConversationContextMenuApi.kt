@@ -77,12 +77,16 @@ object WeConversationContextMenuApi : ApiFeature(), IResolveDex {
     }
 
     override fun onEnable() {
-        methodOnCreateMenu.method.hookAfter {
-            handleCreateMenu(this)
+        installHook("WeConversationContextMenuApi#1") {
+            methodOnCreateMenu.method.hookAfter {
+                handleCreateMenu(this)
+            }
         }
 
-        methodOnItemSelected.method.hookAfter {
-            handleSelectMenu(this)
+        installHook("WeConversationContextMenuApi#2") {
+            methodOnItemSelected.method.hookAfter {
+                handleSelectMenu(this)
+            }
         }
     }
 

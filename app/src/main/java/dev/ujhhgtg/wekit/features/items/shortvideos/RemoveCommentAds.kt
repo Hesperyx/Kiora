@@ -69,26 +69,30 @@ object RemoveCommentAds : SwitchFeature(), IResolveDex {
     }
 
     override fun onEnable() {
-        if (!methodBindAdComment.isPlaceholder) {
-            methodBindAdComment.hookAfter {
-                hideItem(args.getOrNull(0))
+        installHook("RemoveCommentAds#1") {
+            if (!methodBindAdComment.isPlaceholder) {
+                methodBindAdComment.hookAfter {
+                    hideItem(args.getOrNull(0))
+                }
             }
         }
-        if (!methodBindOldComment.isPlaceholder) {
-            methodBindOldComment.hookAfter {
-                val itemView = holderItemView(args.getOrNull(0))
-                if (itemView == null) {
-                    WeLogger.d(
-                        "RemoveCommentAds",
-                        "old convert: cannot get itemView from ${args.getOrNull(0)?.javaClass?.name}"
-                    )
-                    return@hookAfter
-                }
-                if (hasVisibleAdTag(itemView)) {
-                    hideItemView(itemView)
-                    WeLogger.d("RemoveCommentAds", "hidden old-convert comment ad")
-                } else if (hiddenItemViews.remove(itemView)) {
-                    restoreItemView(itemView)
+        installHook("RemoveCommentAds#2") {
+            if (!methodBindOldComment.isPlaceholder) {
+                methodBindOldComment.hookAfter {
+                    val itemView = holderItemView(args.getOrNull(0))
+                    if (itemView == null) {
+                        WeLogger.d(
+                            "RemoveCommentAds",
+                            "old convert: cannot get itemView from ${args.getOrNull(0)?.javaClass?.name}"
+                        )
+                        return@hookAfter
+                    }
+                    if (hasVisibleAdTag(itemView)) {
+                        hideItemView(itemView)
+                        WeLogger.d("RemoveCommentAds", "hidden old-convert comment ad")
+                    } else if (hiddenItemViews.remove(itemView)) {
+                        restoreItemView(itemView)
+                    }
                 }
             }
         }

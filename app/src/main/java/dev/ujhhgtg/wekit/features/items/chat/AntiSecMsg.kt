@@ -58,12 +58,16 @@ object AntiSecMsg : SwitchFeature(), IResolveDex {
     }
 
     override fun onEnable() {
-        methodFullSecCheck.hookBefore {
-            result = false
+        installHook("AntiSecMsg#1") {
+            methodFullSecCheck.hookBefore {
+                result = false
+            }
         }
 
-        methodRawSfnCheck.hookBefore {
-            result = false
+        installHook("AntiSecMsg#2") {
+            methodRawSfnCheck.hookBefore {
+                result = false
+            }
         }
     }
 }

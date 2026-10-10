@@ -39,15 +39,16 @@ object PreventModuleDataDeletion : SwitchFeature(), IResolveDex {
 
     override fun onEnable() {
         methodNativeFileSystemEntryDelete.hookBefore {
-            val relPath = args[0] as String
+            val target = thisObject ?: return@hookBefore
+            val relPath = args[0] as? String ?: return@hookBefore
             if (!::basePathField.isInitialized) {
-                basePathField = thisObject!!.reflekt()
+                basePathField = target.reflekt()
                     .firstField {
                         type = String::class
                         modifiers(Modifiers.FINAL)
                     }.self
             }
-            val basePath = basePathField.get(thisObject) as String
+            val basePath = basePathField.get(target) as? String ?: return@hookBefore
 
             val path = "$basePath/$relPath"
             if (path.startsWith(KnownPaths.moduleRoot.toFile().absolutePath) ||

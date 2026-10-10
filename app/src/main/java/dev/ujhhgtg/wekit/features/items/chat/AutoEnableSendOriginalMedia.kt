@@ -27,44 +27,50 @@ object AutoEnableSendOriginalMedia : SwitchFeature() {
     private const val MEDIA_TAB_ALBUM_UI = "com.tencent.mm.plugin.gallery.ui.MediaTabAlbumUI"
 
     override fun onEnable() {
-        listOf(
-            "com.tencent.mm.plugin.gallery.ui.AlbumPreviewUI",
-            "com.tencent.mm.plugin.gallery.ui.ImagePreviewUI"
-        ).forEach {
-            it.toClass().hookBeforeOnCreate {
-                val activity = thisObject as Activity
-                activity.intent.putExtra("send_raw_img", true)
+        installHook("AutoEnableSendOriginalMedia#1") {
+            listOf(
+                "com.tencent.mm.plugin.gallery.ui.AlbumPreviewUI",
+                "com.tencent.mm.plugin.gallery.ui.ImagePreviewUI"
+            ).forEach {
+                it.toClass().hookBeforeOnCreate {
+                    val activity = thisObject as Activity
+                    activity.intent.putExtra("send_raw_img", true)
+                }
             }
         }
 
-        LOCAL_PICKER_ARGUMENTS.toClassOrNull()
-            ?.reflekt()
-            ?.firstConstructorOrNull {
-                parameters(
-                    String::class.java,
-                    String::class.java,
-                    bool,
-                    bool,
-                    String::class.java,
-                    String::class.java,
-                    Long::class.javaPrimitiveType!!,
-                )
-            }
-            ?.hookBefore {
-                // initialSendOriginal is the fourth constructor argument.
-                args[3] = true
-            }
+        installHook("AutoEnableSendOriginalMedia#2") {
+            LOCAL_PICKER_ARGUMENTS.toClassOrNull()
+                ?.reflekt()
+                ?.firstConstructorOrNull {
+                    parameters(
+                        String::class.java,
+                        String::class.java,
+                        bool,
+                        bool,
+                        String::class.java,
+                        String::class.java,
+                        Long::class.javaPrimitiveType!!,
+                    )
+                }
+                ?.hookBefore {
+                    // initialSendOriginal is the fourth constructor argument.
+                    args[3] = true
+                }
+        }
 
         // MediaTabPickerUI embeds MediaTabAlbumUI as a VAS fragment, so its
         // Activity onCreate hook is not reached. Its inherited initView still
         // reads the same extras before constructing the picker state.
-        MEDIA_TAB_ALBUM_UI.toClassOrNull()
-            ?.reflekt()
-            ?.firstMethodOrNull { name = "initView" }
-            ?.hookBefore {
-                val activity = thisObject as Activity
-                activity.intent.putExtra("send_raw_img", true)
-                activity.intent.putExtra("key_send_raw_image", true)
-            }
+        installHook("AutoEnableSendOriginalMedia#3") {
+            MEDIA_TAB_ALBUM_UI.toClassOrNull()
+                ?.reflekt()
+                ?.firstMethodOrNull { name = "initView" }
+                ?.hookBefore {
+                    val activity = thisObject as Activity
+                    activity.intent.putExtra("send_raw_img", true)
+                    activity.intent.putExtra("key_send_raw_image", true)
+                }
+        }
     }
 }

@@ -93,24 +93,31 @@ object JavaScriptingHook : ClickableFeature(), IResolveDex, WeDatabaseListenerAp
         }
         WeDatabaseListenerApi.addListener(this)
 
-        WeMessageApi.methodMsgInfoHandleApiInsertMessage.hookAfter {
-            val msgObj = args[0] ?: return@hookAfter
-            val msgBean = MsgInfoBean(msgObj)
-            JavaEngine.executeAllOnHandleMsg(scripts, msgBean)
+        installHook("javaScriptingHook.insertMessage") {
+            WeMessageApi.methodMsgInfoHandleApiInsertMessage.hookAfter {
+                val msgObj = args[0] ?: return@hookAfter
+                val msgBean = MsgInfoBean(msgObj)
+                JavaEngine.executeAllOnHandleMsg(scripts, msgBean)
+            }
         }
 
-        WeChatInputBarMenuApi.methodSendMessage.hookBefore {
-            val chatFooter = thisObject!!.reflekt().firstField {
-                type = ChatFooter::class
-            }.get()!! as ChatFooter
-            val text = chatFooter.lastText
-            JavaEngine.executeAllOnClickSendBtn(scripts, this, text)
+        installHook("javaScriptingHook.sendMessage") {
+            WeChatInputBarMenuApi.methodSendMessage.hookBefore {
+                val owner = thisObject ?: return@hookBefore
+                val chatFooter = owner.reflekt().firstField {
+                    type = ChatFooter::class
+                }.get() as? ChatFooter ?: return@hookBefore
+                val text = chatFooter.lastText
+                JavaEngine.executeAllOnClickSendBtn(scripts, this, text)
+            }
         }
 
-        methodPayMsg.hookBefore {
-            val g2Var = args[0] ?: return@hookBefore
-            val payMsgBean = PayMsgBean(g2Var)
-            JavaEngine.executeAllOnRecvPayMsg(scripts, payMsgBean)
+        installHook("javaScriptingHook.payMsg") {
+            methodPayMsg.hookBefore {
+                val g2Var = args[0] ?: return@hookBefore
+                val payMsgBean = PayMsgBean(g2Var)
+                JavaEngine.executeAllOnRecvPayMsg(scripts, payMsgBean)
+            }
         }
 
         loadJob = CoroutineScope(Dispatchers.IO).launch {

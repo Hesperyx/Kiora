@@ -28,32 +28,37 @@ object ChatFooterHooks : ApiFeature(), IResolveDex {
 
     override fun onEnable() {
         methodInitSmileyBtn.hookAfter {
-            val chatFooter = thisObject as ChatFooter
-            val searchedView = chatFooter.findViewByChildIndexes(0)!!
+            val chatFooter = thisObject as? ChatFooter ?: return@hookAfter
+            val searchedView = chatFooter.findViewByChildIndexes(0) ?: return@hookAfter
             val imgButtons = searchedView.findViewsWhich { view ->
                 view.javaClass.simpleName == "WeImageButton"
-            }.map { it as ImageButton }.toList()
+            }.filterIsInstance<ImageButton>().toList()
+
+            // The footer button set is host-layout dependent (voice/emoji/plus); bail out instead
+            // of throwing on an empty list, otherwise the whole long-press menu silently never
+            // attaches.
+            if (imgButtons.isEmpty()) return@hookAfter
 
             if (VoicePanel.isEnabled) {
-                val voiceBtn = imgButtons.first()
-                voiceBtn.setOnLongClickListener { view ->
+                imgButtons.first().setOnLongClickListener { view ->
                     VoicePanel.openPanel(view)
                     true
                 }
             }
 
             if (StickerPanel.isEnabled) {
-                val emojiBtn = imgButtons[1]
-                emojiBtn.setOnLongClickListener { v ->
+                // The emoji button is the second one on current hosts; tolerate layouts that only
+                // expose the first when the emoji slot is missing.
+                imgButtons.getOrNull(1)?.setOnLongClickListener { v ->
                     StickerPanel.openPanel(v)
                     true
                 }
             }
 
             val menuBtn = imgButtons.last()
-            val sendBtn = WeChatInputBarMenuApi.findSendButton(chatFooter)
+            val sendBtn = runCatching { WeChatInputBarMenuApi.findSendButton(chatFooter) }.getOrNull()
 
-            listOf(menuBtn, sendBtn).forEach {
+            listOfNotNull(menuBtn, sendBtn).forEach {
                 it.setOnLongClickListener { view ->
                     WeChatInputBarMenuApi.showMenu(view.context, chatFooter)
                     true

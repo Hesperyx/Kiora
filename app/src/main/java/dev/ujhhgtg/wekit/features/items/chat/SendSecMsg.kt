@@ -115,39 +115,43 @@ object SendSecMsg : ClickableFeature(), IResolveDex {
     }
 
     override fun onEnable() {
-        WeMessageApi.methodMsgInfoHandleApiInsertMessage.hookBefore {
-            val msgInfo = MessageInfo(args[0]!!)
+        installHook("SendSecMsg#1") {
+            WeMessageApi.methodMsgInfoHandleApiInsertMessage.hookBefore {
+                val msgInfo = MessageInfo(args[0]!!)
 
-            // 只处理自己发送的文本消息 (isSend=1, type=1)
-            if (msgInfo.isSend != 1 || msgInfo.typeCode != 1) return@hookBefore
+                // 只处理自己发送的文本消息 (isSend=1, type=1)
+                if (msgInfo.isSend != 1 || msgInfo.typeCode != 1) return@hookBefore
 
-            val shouldInject = mode == MODE_PASSIVE || pendingSecSend
+                val shouldInject = mode == MODE_PASSIVE || pendingSecSend
 
-            // 消费标记, 避免发送失败后残留污染下一条消息
-            pendingSecSend = false
+                // 消费标记, 避免发送失败后残留污染下一条消息
+                pendingSecSend = false
 
-            if (!shouldInject) return@hookBefore
+                if (!shouldInject) return@hookBefore
 
-            // z=false: 只改内存 msgsource, 随入库方法写入
-            methodMergeSecNode.method.invoke(null, args[0], SEC_XML, false)
+                // z=false: 只改内存 msgsource, 随入库方法写入
+                methodMergeSecNode.method.invoke(null, args[0], SEC_XML, false)
+            }
         }
 
-        WeChatInputBarMenuApi.methodSendMessage.hookBefore {
-            if (mode != MODE_ACTIVE_PREFIX) return@hookBefore
+        installHook("SendSecMsg#2") {
+            WeChatInputBarMenuApi.methodSendMessage.hookBefore {
+                if (mode != MODE_ACTIVE_PREFIX) return@hookBefore
 
-            val chatFooter = thisObject!!.reflekt().firstField {
-                type = ChatFooter::class
-            }.get()!! as ChatFooter
+                val chatFooter = thisObject!!.reflekt().firstField {
+                    type = ChatFooter::class
+                }.get()!! as ChatFooter
 
-            val text = chatFooter.lastText
+                val text = chatFooter.lastText
 
-            // 上一次置位可能未被消费 (发送失败), 先清除
-            pendingSecSend = false
-            if (text.isEmpty() || !text.startsWith(triggerPrefix)) return@hookBefore
+                // 上一次置位可能未被消费 (发送失败), 先清除
+                pendingSecSend = false
+                if (text.isEmpty() || !text.startsWith(triggerPrefix)) return@hookBefore
 
-            // 剥掉前缀, 原生发送剩余内容; 消息入库发生在该流程内, 同步消费标记
-            chatFooter.lastText = text.removePrefix(triggerPrefix)
-            pendingSecSend = true
+                // 剥掉前缀, 原生发送剩余内容; 消息入库发生在该流程内, 同步消费标记
+                chatFooter.lastText = text.removePrefix(triggerPrefix)
+                pendingSecSend = true
+            }
         }
 
         WeChatInputBarMenuApi.addProvider(provider)

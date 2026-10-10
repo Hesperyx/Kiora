@@ -135,7 +135,8 @@ class SettingViewModel : ViewModel() {
                         hookItem.isAvailable,
                         isClickable,
                         if (isClickable) hookItem.name else null,
-                        lockedBy = lockedByOf(hookItem)
+                        lockedBy = lockedByOf(hookItem),
+                        showSwitch = (hookItem as? WeKitFeatureHookItem)?.showSwitch ?: true
                     )
                 })
             }

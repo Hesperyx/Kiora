@@ -29,30 +29,34 @@ object EnableWebViewFeatures : SwitchFeature(), IResolveDex {
     }
 
     override fun onEnable() {
-        WebViewUI::class.reflekt().apply {
-            firstMethod {
-                name = "showOptionMenu"
-                parameters(bool)
-            }.hookBefore {
-                args[0] = true
-                val activity = thisObject as Activity
-                activity.intent.putExtra("hide_option_menu", false)
-            }
+        installHook("EnableWebViewFeatures#1") {
+            WebViewUI::class.reflekt().apply {
+                firstMethod {
+                    name = "showOptionMenu"
+                    parameters(bool)
+                }.hookBefore {
+                    args[0] = true
+                    val activity = thisObject as Activity
+                    activity.intent.putExtra("hide_option_menu", false)
+                }
 
-            firstMethod {
-                name = "showOptionMenu"
-                parameters(int, bool)
-            }.hookBefore {
-                args[1] = true
-                val activity = thisObject as Activity
-                activity.intent.putExtra("hide_option_menu", false)
+                firstMethod {
+                    name = "showOptionMenu"
+                    parameters(int, bool)
+                }.hookBefore {
+                    args[1] = true
+                    val activity = thisObject as Activity
+                    activity.intent.putExtra("hide_option_menu", false)
+                }
             }
         }
 
-        methodInitWebViewFeatures.hookBefore {
-            (thisObject as WebViewUI).intent.apply {
-                putExtra("hide_option_menu", false)
-                putExtra("KRightBtn", false)
+        installHook("EnableWebViewFeatures#2") {
+            methodInitWebViewFeatures.hookBefore {
+                (thisObject as WebViewUI).intent.apply {
+                    putExtra("hide_option_menu", false)
+                    putExtra("KRightBtn", false)
+                }
             }
         }
     }

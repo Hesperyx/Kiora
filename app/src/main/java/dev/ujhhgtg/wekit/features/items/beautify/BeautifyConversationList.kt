@@ -103,34 +103,38 @@ object BeautifyConversationList : ClickableFeature() {
     }
 
     override fun onEnable() {
-        LinearLayout::class.reflekt().firstMethod {
-            name = "onMeasure"
-            parameters(Int::class, Int::class)
-        }.hookBefore {
-            val state = rows[thisObject as View] ?: return@hookBefore
-            val gap = state.gapTop
-            if (gap == 0) return@hookBefore
-            val heightSpec = args[1] as Int
-            val height = View.MeasureSpec.getSize(heightSpec)
-            if (height > 0 && View.MeasureSpec.getMode(heightSpec) == View.MeasureSpec.EXACTLY) {
-                // ConversationFolderItemView replaces its incoming height with the holder's
-                // fixed height before calling this superclass. Add the gap here so the native
-                // children still receive their full height after subtracting our extra padding.
-                args[1] = View.MeasureSpec.makeMeasureSpec(
-                    height + gap, View.MeasureSpec.EXACTLY,
-                )
+        installHook("BeautifyConversationList#1") {
+            LinearLayout::class.reflekt().firstMethod {
+                name = "onMeasure"
+                parameters(Int::class, Int::class)
+            }.hookBefore {
+                val state = rows[thisObject as View] ?: return@hookBefore
+                val gap = state.gapTop
+                if (gap == 0) return@hookBefore
+                val heightSpec = args[1] as Int
+                val height = View.MeasureSpec.getSize(heightSpec)
+                if (height > 0 && View.MeasureSpec.getMode(heightSpec) == View.MeasureSpec.EXACTLY) {
+                    // ConversationFolderItemView replaces its incoming height with the holder's
+                    // fixed height before calling this superclass. Add the gap here so the native
+                    // children still receive their full height after subtracting our extra padding.
+                    args[1] = View.MeasureSpec.makeMeasureSpec(
+                        height + gap, View.MeasureSpec.EXACTLY,
+                    )
+                }
             }
         }
         // WeChat also replaces row backgrounds after its click animation, outside adapter binding.
         // Keep our surface installed while remembering the host's latest background for restoration.
-        View::class.reflekt().firstMethod {
-            name = "setBackgroundDrawable"
-            parameters(Drawable::class)
-        }.hookBefore {
-            val state = backgrounds[thisObject as View] ?: return@hookBefore
-            if (args[0] !== state.applied) {
-                state.original = args[0] as Drawable?
-                args[0] = state.applied
+        installHook("BeautifyConversationList#2") {
+            View::class.reflekt().firstMethod {
+                name = "setBackgroundDrawable"
+                parameters(Drawable::class)
+            }.hookBefore {
+                val state = backgrounds[thisObject as View] ?: return@hookBefore
+                if (args[0] !== state.applied) {
+                    state.original = args[0] as Drawable?
+                    args[0] = state.applied
+                }
             }
         }
         WeConversationListViewApi.addListener(bindListener)

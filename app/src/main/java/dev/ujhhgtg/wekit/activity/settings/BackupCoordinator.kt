@@ -23,6 +23,8 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -335,31 +337,39 @@ object BackupCoordinator {
 
     private fun parseManifest(raw: String): Manifest {
         val json = Json.parseToJsonElement(raw).jsonObject
-        val files = json["files"]!!.jsonArray.map { item ->
+        val files = requiredArray(json, "files").map { item ->
             val obj = item.jsonObject
             ManifestFile(
-                obj["path"]!!.jsonPrimitive.content,
-                obj["size"]!!.jsonPrimitive.content.toLong(),
-                obj["sha256"]!!.jsonPrimitive.content,
+                requiredString(obj, "path"),
+                requiredString(obj, "size").toLong(),
+                requiredString(obj, "sha256"),
             )
         }
         return Manifest(
-            json["formatVersion"]!!.jsonPrimitive.content.toInt(),
-            json["packageName"]!!.jsonPrimitive.content,
-            json["moduleVersion"]!!.jsonPrimitive.content,
-            json["schemaVersion"]!!.jsonPrimitive.content.toInt(),
-            json["abis"]!!.jsonArray.map { it.jsonPrimitive.content },
-            json["extensions"]!!.jsonArray.map { item ->
+            requiredString(json, "formatVersion").toInt(),
+            requiredString(json, "packageName"),
+            requiredString(json, "moduleVersion"),
+            requiredString(json, "schemaVersion").toInt(),
+            requiredArray(json, "abis").map { it.jsonPrimitive.content },
+            requiredArray(json, "extensions").map { item ->
                 val obj = item.jsonObject
                 ExtensionRequirement(
-                    obj["id"]!!.jsonPrimitive.content,
-                    obj["version"]!!.jsonPrimitive.content,
-                    obj["sha256"]!!.jsonPrimitive.content,
+                    requiredString(obj, "id"),
+                    requiredString(obj, "version"),
+                    requiredString(obj, "sha256"),
                 )
             },
             files,
         )
     }
+
+    private fun requiredString(obj: JsonObject, key: String): String =
+        obj[key]?.jsonPrimitive?.content
+            ?: throw IllegalArgumentException("备份清单缺少字段: $key")
+
+    private fun requiredArray(obj: JsonObject, key: String): JsonArray =
+        obj[key]?.jsonArray
+            ?: throw IllegalArgumentException("备份清单缺少数组字段: $key")
 
     private fun installedExtensions(): List<ExtensionRequirement> =
         ExtensionPacks.packs.mapNotNull { pack ->

@@ -3,6 +3,7 @@ package dev.ujhhgtg.wekit.features.core
 object FeatureCategoryIds {
     const val CHAT = "chat"
     const val CONTACTS_GROUPS = "contacts_groups"
+    const val FRIEND_DETECT = "friend_detect"
     const val PAYMENT = "payment"
     const val MOMENTS = "moments"
     const val SYSTEM_PRIVACY = "system_privacy"
@@ -25,6 +26,7 @@ object FeatureCategoryIds {
     val ALL: Set<String> = setOf(
         CHAT,
         CONTACTS_GROUPS,
+        FRIEND_DETECT,
         PAYMENT,
         MOMENTS,
         SYSTEM_PRIVACY,

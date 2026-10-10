@@ -186,28 +186,34 @@ object BlockAtAllNotificationsRuntime : ApiFeature(), IResolveDex {
     override val targetProcesses = setOf(TargetProcess.MAIN, TargetProcess.PUSH)
 
     override fun onEnable() {
-        WeMessageApi.methodMsgInfoStorageInsertMessage.hookAfter {
-            val message = MessageInfo(args[0]!!)
-            if (message.isSelfSender || !message.isInGroupChat || !message.isNotifyAll) return@hookAfter
-            recordPending(message.talker, message.content)
+        installHook("BlockAtAllNotifications#1") {
+            WeMessageApi.methodMsgInfoStorageInsertMessage.hookAfter {
+                val message = MessageInfo(args[0]!!)
+                if (message.isSelfSender || !message.isInGroupChat || !message.isNotifyAll) return@hookAfter
+                recordPending(message.talker, message.content)
+            }
         }
 
-        methodDealNotify.hookBefore(100) {
-            val talker = args[1] as String
-            val rawContent = args[2] as String
-            if (!consumePending(talker, rawContent)) return@hookBefore
-            if (!BlockAtAllNotifications.shouldSuppress(talker)) return@hookBefore
-            WeLogger.i(TAG, "suppressing @all notification from $talker")
-            result = null
+        installHook("BlockAtAllNotifications#2") {
+            methodDealNotify.hookBefore(100) {
+                val talker = args[1] as String
+                val rawContent = args[2] as String
+                if (!consumePending(talker, rawContent)) return@hookBefore
+                if (!BlockAtAllNotifications.shouldSuppress(talker)) return@hookBefore
+                WeLogger.i(TAG, "suppressing @all notification from $talker")
+                result = null
+            }
         }
 
-        methodNotifyForLightPush.hookBefore(100) {
-            val talker = args[1] as String
-            if (!BlockAtAllNotifications.shouldSuppress(talker)) return@hookBefore
-            val msgSource = args[5] as Map<*, *>?
-            if (!msgSource.containsAtAllMention()) return@hookBefore
-            WeLogger.i(TAG, "suppressing LightPush @all notification from $talker")
-            result = null
+        installHook("BlockAtAllNotifications#3") {
+            methodNotifyForLightPush.hookBefore(100) {
+                val talker = args[1] as String
+                if (!BlockAtAllNotifications.shouldSuppress(talker)) return@hookBefore
+                val msgSource = args[5] as Map<*, *>?
+                if (!msgSource.containsAtAllMention()) return@hookBefore
+                WeLogger.i(TAG, "suppressing LightPush @all notification from $talker")
+                result = null
+            }
         }
     }
 

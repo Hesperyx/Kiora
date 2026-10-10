@@ -52,46 +52,50 @@ object DisplayRedPacketDetails : SwitchFeature(), IResolveDex {
     }
 
     override fun onEnable() {
-        methodOnBindListView.hookAfter {
-            val holder = args[0] ?: return@hookAfter
-            val record = args[1] ?: return@hookAfter
+        installHook("DisplayRedPacketDetails#1") {
+            methodOnBindListView.hookAfter {
+                val holder = args[0] ?: return@hookAfter
+                val record = args[1] ?: return@hookAfter
 
-            runCatching {
-                val textView = getTextViewFromHolder(holder) ?: return@runCatching
-                val timestamp = getTimestampFromRecord(record) ?: return@runCatching
+                runCatching {
+                    val textView = getTextViewFromHolder(holder) ?: return@runCatching
+                    val timestamp = getTimestampFromRecord(record) ?: return@runCatching
 
-                val instant = Instant.ofEpochMilli(timestamp)
-                val localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
-                val localDate = localDateTime.toLocalDate()
-                val today = LocalDate.now()
-                val pattern = when {
-                    localDate == today -> localizedPaymentString(R.string.payment_red_packet_date_today)
-                    localDate.year == today.year ->
-                        localizedPaymentString(R.string.payment_red_packet_date_same_year)
-                    else -> localizedPaymentString(R.string.payment_red_packet_date_other_year)
+                    val instant = Instant.ofEpochMilli(timestamp)
+                    val localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
+                    val localDate = localDateTime.toLocalDate()
+                    val today = LocalDate.now()
+                    val pattern = when {
+                        localDate == today -> localizedPaymentString(R.string.payment_red_packet_date_today)
+                        localDate.year == today.year ->
+                            localizedPaymentString(R.string.payment_red_packet_date_same_year)
+                        else -> localizedPaymentString(R.string.payment_red_packet_date_other_year)
+                    }
+                    val formatter = DateTimeFormatter.ofPattern(
+                        pattern,
+                        Locale.forLanguageTag(WeKitLocaleController.resolvedLocale.androidTag),
+                    )
+                    textView.text = localDateTime.format(formatter)
+                }.onFailure {
+                    WeLogger.e(TAG, "error binding red packet list item time", it)
                 }
-                val formatter = DateTimeFormatter.ofPattern(
-                    pattern,
-                    Locale.forLanguageTag(WeKitLocaleController.resolvedLocale.androidTag),
-                )
-                textView.text = localDateTime.format(formatter)
-            }.onFailure {
-                WeLogger.e(TAG, "error binding red packet list item time", it)
             }
         }
 
-        listOf(WePaymentApi.classOpenLuckyMoney, classNetSceneLuckyMoneyDetail).forEach { dexClass ->
-            val method = dexClass.reflekt().firstMethod {
-                name = "onGYNetEnd"
-                parameters(int, BString, JSONObject::class.java)
-            }
+        installHook("DisplayRedPacketDetails#2") {
+            listOf(WePaymentApi.classOpenLuckyMoney, classNetSceneLuckyMoneyDetail).forEach { dexClass ->
+                val method = dexClass.reflekt().firstMethod {
+                    name = "onGYNetEnd"
+                    parameters(int, BString, JSONObject::class.java)
+                }
 
-            method.hookBefore {
-                val jsonObject = args[2] as? JSONObject ?: return@hookBefore
-                runCatching {
-                    processRedPacketJson(jsonObject)
-                }.onFailure {
-                    WeLogger.e(TAG, "error processing red packet json response", it)
+                method.hookBefore {
+                    val jsonObject = args[2] as? JSONObject ?: return@hookBefore
+                    runCatching {
+                        processRedPacketJson(jsonObject)
+                    }.onFailure {
+                        WeLogger.e(TAG, "error processing red packet json response", it)
+                    }
                 }
             }
         }

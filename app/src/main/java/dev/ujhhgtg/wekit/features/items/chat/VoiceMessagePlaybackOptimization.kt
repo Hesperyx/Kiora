@@ -123,25 +123,29 @@ object VoiceMessagePlaybackOptimization : ClickableFeature(), IResolveDex {
 
     override fun onEnable() {
         // 完全禁用: 传感器事件直接丢弃, AutoPlay 不会进入任何切换逻辑。
-        methodSensorCallback.hookBefore {
-            if (playbackMode == MODE_DISABLE) result = null
+        installHook("VoiceMessagePlaybackOptimization#1") {
+            methodSensorCallback.hookBefore {
+                if (playbackMode == MODE_DISABLE) result = null
+            }
         }
 
         // 切换任务: 禁用模式下兜底丢弃; 继承进度模式下替换为「仅切换 + 保留进度」。
-        methodSwitchTask.hookBefore {
-            when (playbackMode) {
-                MODE_DISABLE -> result = false
-                MODE_INHERIT_PROGRESS -> {
-                    val task = thisObject!!
-                    val autoPlay = task.reflekt()
-                        .firstField { type = classAutoPlay.clazz }
-                        .get()
-                    val switchingToEarpiece = task.reflekt()
-                        .firstField { type = bool }
-                        .get() as Boolean
-                    methodSetSpeakerOn.method.invoke(autoPlay, switchingToEarpiece)
-                    methodSwitchSpeaker.method.invoke(autoPlay)
-                    result = false
+        installHook("VoiceMessagePlaybackOptimization#2") {
+            methodSwitchTask.hookBefore {
+                when (playbackMode) {
+                    MODE_DISABLE -> result = false
+                    MODE_INHERIT_PROGRESS -> {
+                        val task = thisObject!!
+                        val autoPlay = task.reflekt()
+                            .firstField { type = classAutoPlay.clazz }
+                            .get()
+                        val switchingToEarpiece = task.reflekt()
+                            .firstField { type = bool }
+                            .get() as Boolean
+                        methodSetSpeakerOn.method.invoke(autoPlay, switchingToEarpiece)
+                        methodSwitchSpeaker.method.invoke(autoPlay)
+                        result = false
+                    }
                 }
             }
         }

@@ -42,26 +42,30 @@ object RainbowText : SwitchFeature() {
     )
 
     override fun onEnable() {
-        TextView::class.reflekt().firstMethod { name = "onDraw" }.hookBefore {
-            val textView = thisObject as TextView
-            applyRainbowEffect(textView, textView.text, textView.paint)
+        installHook("RainbowText#1") {
+            TextView::class.reflekt().firstMethod { name = "onDraw" }.hookBefore {
+                val textView = thisObject as TextView
+                applyRainbowEffect(textView, textView.text, textView.paint)
+            }
         }
 
-        NoMeasuredTextView::class.reflekt()
-            .firstMethod { name = "onDraw" }.hookBefore {
-                val view = thisObject as View
+        installHook("RainbowText#2") {
+            NoMeasuredTextView::class.reflekt()
+                .firstMethod { name = "onDraw" }.hookBefore {
+                    val view = thisObject as View
 
-                if (!::noMeasuredTvTextProp.isInitialized) {
-                    noMeasuredTvTextProp = view.reflekt().firstField { name = "mText" }.self.makeAccessible()
-                    noMeasuredTvPaintProp = view.reflekt().firstField { type = TextPaint::class }.self.makeAccessible()
+                    if (!::noMeasuredTvTextProp.isInitialized) {
+                        noMeasuredTvTextProp = view.reflekt().firstField { name = "mText" }.self.makeAccessible()
+                        noMeasuredTvPaintProp = view.reflekt().firstField { type = TextPaint::class }.self.makeAccessible()
+                    }
+
+                    applyRainbowEffect(
+                        view,
+                        noMeasuredTvTextProp.get(view) as CharSequence,
+                        noMeasuredTvPaintProp.get(view) as TextPaint,
+                    )
                 }
-
-                applyRainbowEffect(
-                    view,
-                    noMeasuredTvTextProp.get(view) as CharSequence,
-                    noMeasuredTvPaintProp.get(view) as TextPaint,
-                )
-            }
+        }
     }
 
     override fun onDisable() {

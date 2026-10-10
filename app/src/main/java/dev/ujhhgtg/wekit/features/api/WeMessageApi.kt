@@ -863,7 +863,7 @@ object WeMessageApi : ApiFeature(), IResolveDex {
         ?: error("failed to resolve talker for msgSvrId=$msgSvrId")
         return methodGetMsgInfoByTalkerAndSvrId.method.invoke(
             WeServiceApi.msgInfoStorage, resolvedTalker, msgSvrId
-        )!!
+        ) ?: error("msgInfoStorage.getMsgInfoByTalkerAndSvrId returned null for msgSvrId=$msgSvrId")
     }
 
     fun convertMsgInfoInstanceFromCursor(cursor: Cursor): Any {
@@ -1434,7 +1434,7 @@ object WeMessageApi : ApiFeature(), IResolveDex {
             ?: error("Kernel.getStorage() failed (returned null)")
 
         if (storageAccPathMethod != null) {
-            return storageAccPathMethod!!.invoke(storageObj) as String
+            return storageAccPathMethod?.invoke(storageObj) as String
         }
 
         WeLogger.i(TAG, "resolving AccPath method... StorageClass=${storageObj.javaClass.name}")
@@ -1671,7 +1671,8 @@ object WeMessageApi : ApiFeature(), IResolveDex {
                 .firstMethod {
                     returnType = methodStartRecvAndSend.method.declaringClass
                     modifiers(Modifiers.STATIC)
-                }.invokeStatic()!!
+                }.invokeStatic()
+                ?: error("SceneVoiceService.getInstance() returned null")
 
             val runMethod = runCatching {
                 if (methodRunVoiceService.isPlaceholder) return@runCatching null
@@ -2018,13 +2019,15 @@ object WeMessageApi : ApiFeature(), IResolveDex {
             }
 
         return if (mGetMsgInfo != null) {
-            mGetMsgInfo.invoke()!!
+            mGetMsgInfo.invoke()
+                ?: error("msgInfo getter (${mGetMsgInfo.name}) returned null")
         } else {
-            tag.reflekt()
+            val fieldValue = tag.reflekt()
                 .firstField {
                     type = classMsgInfo.clazz
                     superclass()
-                }.get()!!
+                }.get()
+            fieldValue ?: error("msgInfo field on ${tag.javaClass.name} is null")
         }
     }
 
@@ -2156,9 +2159,11 @@ object WeMessageApi : ApiFeature(), IResolveDex {
     }
 
     private val imageThumbnailType by lazy {
-        imageThumbnailPathMethod.parameterTypes[1].enumConstants!!.single {
+        val constants = imageThumbnailPathMethod.parameterTypes[1].enumConstants
+            ?: error("image thumbnail type parameter is not an enum")
+        constants.singleOrNull {
             (it as Enum<*>).name == "THUMB_IMAGE"
-        }
+        } ?: error("THUMB_IMAGE constant not found in image thumbnail enum")
     }
 
     data class NotificationMediaFile(val path: Path, val mimeType: String)
@@ -2522,7 +2527,8 @@ object WeMessageApi : ApiFeature(), IResolveDex {
                     modifiers(Modifiers.STATIC)
                     parameterCount = 0
                 }
-                .invokeStatic()!!
+                .invokeStatic()
+                ?: error("EmojiFileEncryptMgr.getInstance() returned null")
             val encryptedBytes = emojiFileEncryptMgr.reflekt()
                 .firstMethod {
                     parameters(IEmojiInfo::class)
@@ -2563,7 +2569,8 @@ object WeMessageApi : ApiFeature(), IResolveDex {
         wait: Boolean,
     ): NotificationMediaFile? {
         decodeStickerToFile(md5, destination, logFailure = false)?.let {
-            return NotificationMediaFile(it, detectImageMime(it)!!)
+            val mime = detectImageMime(it) ?: return null
+            return NotificationMediaFile(it, mime)
         }
         if (!wait) return null
 
@@ -2575,7 +2582,8 @@ object WeMessageApi : ApiFeature(), IResolveDex {
             }
             decodeStickerToFile(md5, destination, logFailure = false)?.let {
                 if (SystemClock.elapsedRealtime() >= deadlineElapsedRealtime) return null
-                return NotificationMediaFile(it, detectImageMime(it)!!)
+                val mime = detectImageMime(it) ?: return null
+                return NotificationMediaFile(it, mime)
             }
             sleepForPoll(deadlineElapsedRealtime, 50L)
         } while (true)
@@ -2601,7 +2609,8 @@ object WeMessageApi : ApiFeature(), IResolveDex {
             loadMethod.declaringClass.reflekt().firstField {
                 modifiers(Modifiers.STATIC)
                 type = loadMethod.declaringClass
-            }.getStatic()!!
+            }.getStatic()
+                ?: error("static instance for ${loadMethod.declaringClass.name} is null")
         }
         loadMethod.invoke(
             receiver,

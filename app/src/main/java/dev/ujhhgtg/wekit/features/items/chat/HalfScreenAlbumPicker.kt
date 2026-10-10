@@ -156,37 +156,44 @@ object HalfScreenAlbumPicker : ClickableFeature() {
         // com.tencent.mm.plugin.recordvideo.activity.MMRecordUI, started with
         // startActivityForResult (request code 4372) — so simply never hooking it is all it
         // takes to keep the editor full-screen.
-        SHEET_ACTIVITIES.forEach { className ->
-            val activityClass = className.toClass()
+        // 三个候选 sheet Activity 是「哪一个存在就挂哪一个」的关系，必须逐个隔离：只要其中
+        // 任意一个类在该宿主版本缺失，`toClass()` 抛出的异常就会让整个半屏相册功能被 enable()
+        // 判为启用失败，连存在的那些 sheet 也一并失效。
+        installHook("HalfScreenAlbumPicker#1") {
+            SHEET_ACTIVITIES.forEach { className ->
+                installHook("sheetActivity:$className") {
+                    val activityClass = className.toClass()
 
-            // AlbumPreviewUI and ImagePreviewUI each declare their own onCreate, so these hooks
-            // stay scoped to those two rather than landing on the inherited MMActivity.onCreate
-            // and firing for every screen in WeChat.
-            activityClass.hookBeforeOnCreate {
-                val activity = thisObject as? Activity ?: return@hookBeforeOnCreate
-                if (!isChatSheet(activity)) return@hookBeforeOnCreate
-                if (activity.javaClass.name == ALBUM_PREVIEW_UI) {
-                    installTransitionCapture(activity)
-                }
-                suppressStatusBarPadding(activity)
-            }
+                    // AlbumPreviewUI and ImagePreviewUI each declare their own onCreate, so these hooks
+                    // stay scoped to those two rather than landing on the inherited MMActivity.onCreate
+                    // and firing for every screen in WeChat.
+                    activityClass.hookBeforeOnCreate {
+                        val activity = thisObject as? Activity ?: return@hookBeforeOnCreate
+                        if (!isChatSheet(activity)) return@hookBeforeOnCreate
+                        if (activity.javaClass.name == ALBUM_PREVIEW_UI) {
+                            installTransitionCapture(activity)
+                        }
+                        suppressStatusBarPadding(activity)
+                    }
 
-            activityClass.hookAfterOnCreate {
-                val activity = thisObject as? Activity ?: return@hookAfterOnCreate
-                if (!isChatSheet(activity)) return@hookAfterOnCreate
-                removeTransitionCapture()
-                applySheetWindow(activity)
-                makeWindowTranslucent(activity)
-                if (activity.javaClass.name in PUSHED_SHEETS) {
-                    applySlideInTransition(activity)
-                    applySlideOutTransition(activity)
+                    activityClass.hookAfterOnCreate {
+                        val activity = thisObject as? Activity ?: return@hookAfterOnCreate
+                        if (!isChatSheet(activity)) return@hookAfterOnCreate
+                        removeTransitionCapture()
+                        applySheetWindow(activity)
+                        makeWindowTranslucent(activity)
+                        if (activity.javaClass.name in PUSHED_SHEETS) {
+                            applySlideInTransition(activity)
+                            applySlideOutTransition(activity)
+                        }
+                    }
                 }
             }
         }
 
-        hookOrientationRequests()
-        hookCloseTransitionCapture()
-        hookTrampolineRedirectAfterFirstFrame()
+        installHook("hookOrientationRequests") { hookOrientationRequests() }
+        installHook("hookCloseTransitionCapture") { hookCloseTransitionCapture() }
+        installHook("hookTrampolineRedirectAfterFirstFrame") { hookTrampolineRedirectAfterFirstFrame() }
     }
 
     /**

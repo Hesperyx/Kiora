@@ -192,10 +192,12 @@ object FeatureFlagManager : ClickableFeature(), IResolveDex {
 
     override fun onEnable() {
         loadOverrides()
-        methodRepairerConfigApiGet.hookBefore {
-            val key = args[0] as? String ?: return@hookBefore
-            val override = overrides[key] ?: return@hookBefore
-            result = override.value
+        installHook("FeatureFlagManager#1") {
+            methodRepairerConfigApiGet.hookBefore {
+                val key = args[0] as? String ?: return@hookBefore
+                val override = overrides[key] ?: return@hookBefore
+                result = override.value
+            }
         }
     }
 

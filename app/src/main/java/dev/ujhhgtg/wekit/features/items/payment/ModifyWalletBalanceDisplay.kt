@@ -131,124 +131,133 @@ object ModifyWalletBalanceDisplay : ClickableFeature(), IResolveDex {
     override fun onEnable() {
         migrateLegacySettings()
 
-        val wcClazz = "com.tencent.mm.plugin.wallet_core.ui.view.WcPayMoneyLoadingView".toClass()
-        wcClazz.reflekt().methods {
-            parameters { params ->
-                params.isNotEmpty() && params[0] == BString
+        installHook("modifyWalletBalanceDisplay.wcPayMoneyLoading") {
+            val wcClazz = "com.tencent.mm.plugin.wallet_core.ui.view.WcPayMoneyLoadingView".toClass()
+            wcClazz.reflekt().methods {
+                parameters { params ->
+                    params.isNotEmpty() && params[0] == BString
+                }
+            }.filter { method ->
+                val params = method.parameterTypes
+                params[0] == BString &&
+                    (method.name in setOf("setMoney", "setFirstMoney", "setNewMoney") && params.size == 1 ||
+                        (params.size == 2 || params.size == 4) && params.drop(1).all { it == bool })
+            }.forEach { method ->
+                method.hookBefore {
+                    if (!beginOverride(thisObject as View, args[0] as String)) {
+                        val view = thisObject as View
+                        val target = targetFor(view) ?: Target.BALANCE
+                        val tickerReady = !isLqtOrBusiness(target) ||
+                            findTickerView(view)?.let { tickerState[it] == true } == true
+                        if (tickerReady && isEnabled(target)) {
+                            val original = args[0] as String
+                            evaluateAmount(target, original)?.let { replacement ->
+                                setOverride(target, original)
+                                args[0] = formatAmount(original, replacement)
+                            }
+                        }
+                    }
+                }
+                method.hookAfter { endOverride() }
             }
-        }.filter { method ->
-            val params = method.parameterTypes
-            params[0] == BString &&
-                (method.name in setOf("setMoney", "setFirstMoney", "setNewMoney") && params.size == 1 ||
-                    (params.size == 2 || params.size == 4) && params.drop(1).all { it == bool })
-        }.forEach { method ->
-            method.hookBefore {
-                if (!beginOverride(thisObject as View, args[0] as String)) {
+        }
+
+        installHook("modifyWalletBalanceDisplay.wxCrossServices") {
+            val crossClazz = "com.tencent.kinda.framework.WxCrossServices".toClass()
+            crossClazz.reflekt().methods {
+                name = "startLqtDetailUseCaseWithBalanceInMMProcess"
+                parameters { params ->
+                    params.size == 2 && params[0] isSubclassOf Context::class &&
+                        params[1] == long
+                }
+                returnType(bool)
+            }.forEach { method ->
+                method.hookBefore {
+                    if (!beginOverride(null, null) && isEnabled(Target.LQT)) {
+                        val original = BigDecimal.valueOf(args[1] as Long, 2).toPlainString()
+                        evaluateAmount(Target.LQT, original)?.let { replacement ->
+                            runCatching {
+                                replacement.toBigDecimal().movePointRight(2)
+                                    .setScale(0, RoundingMode.HALF_UP).longValueExact()
+                            }.onFailure { error ->
+                                logExpressionError(Target.LQT, original, error)
+                            }.getOrNull()?.let { rendered ->
+                                setOverride(Target.LQT, original)
+                                args[1] = rendered
+                            }
+                        }
+                    }
+                }
+                method.hookAfter { endOverride() }
+            }
+        }
+
+        installHook("modifyWalletBalanceDisplay.mallWalletSection") {
+            val mallClazz = "com.tencent.mm.plugin.mall.ui.MallWalletSectionCellView".toClass()
+            mallClazz.reflekt().methods {
+                returnType(void)
+                parameters { params ->
+                    params.size == 7 && params[1].name == "org.json.JSONObject" &&
+                        params[2] == bool && params[3] == BString && params[4] == bool
+                }
+            }.forEach { method ->
+                method.hookBefore {
+                    val original = args[3] as String
+                    if (!beginOverride(thisObject as? View, original)) {
+                        val cellOwner = args[0] ?: return@hookBefore
+                        val cell = cellOwner.reflekt().firstField { name = "i" }.get(cellOwner)
+                        val target = when (cell) {
+                            "balance_cell" -> Target.BALANCE
+                            "lqt_cell" -> Target.LQT
+                            else -> null
+                        } ?: return@hookBefore
+                        if (isEnabled(target)) {
+                            val base = stableOriginal(thisObject as? View, target, original)
+                            evaluateAmount(target, base)?.let { replacement ->
+                                val rendered = formatAmount(base, replacement)
+                                rememberText(thisObject as? View, target, base, rendered)
+                                setOverride(target, base)
+                                args[3] = rendered
+                            }
+                        }
+                    }
+                }
+                method.hookAfter { endOverride() }
+            }
+        }
+
+        installHook("modifyWalletBalanceDisplay.tickerView") {
+            val tickerClazz = "com.robinhood.ticker.TickerView".toClass()
+            tickerSetText = tickerClazz.reflekt().firstMethod {
+                name = "setText"
+                parameters(BString)
+                returnType(void)
+            }.self
+            installTickerMethod(tickerSetText)
+            installTickerMethod(tickerSetTextAnimated.method)
+            tickerClazz.reflekt().firstMethod {
+                name = "setTextSize"
+                parameters(float)
+                returnType(void)
+            }.apply {
+                hookBefore {
                     val view = thisObject as View
                     val target = targetFor(view) ?: Target.BALANCE
-                    val tickerReady = !isLqtOrBusiness(target) ||
-                        findTickerView(view)?.let { tickerState[it] == true } == true
-                    if (tickerReady && isEnabled(target)) {
-                        val original = args[0] as String
-                        evaluateAmount(target, original)?.let { replacement ->
-                            setOverride(target, original)
-                            args[0] = formatAmount(original, replacement)
-                        }
-                    }
-                }
-            }
-            method.hookAfter { endOverride() }
-        }
-
-        val crossClazz = "com.tencent.kinda.framework.WxCrossServices".toClass()
-        crossClazz.reflekt().methods {
-            name = "startLqtDetailUseCaseWithBalanceInMMProcess"
-            parameters { params ->
-                params.size == 2 && params[0] isSubclassOf Context::class &&
-                    params[1] == long
-            }
-            returnType(bool)
-        }.forEach { method ->
-            method.hookBefore {
-                if (!beginOverride(null, null) && isEnabled(Target.LQT)) {
-                    val original = BigDecimal.valueOf(args[1] as Long, 2).toPlainString()
-                    evaluateAmount(Target.LQT, original)?.let { replacement ->
-                        runCatching {
-                            replacement.toBigDecimal().movePointRight(2)
-                                .setScale(0, RoundingMode.HALF_UP).longValueExact()
-                        }.onFailure { error ->
-                            logExpressionError(Target.LQT, original, error)
-                        }.getOrNull()?.let { rendered ->
-                            setOverride(Target.LQT, original)
-                            args[1] = rendered
-                        }
-                    }
-                }
-            }
-            method.hookAfter { endOverride() }
-        }
-
-        val mallClazz = "com.tencent.mm.plugin.mall.ui.MallWalletSectionCellView".toClass()
-        mallClazz.reflekt().methods {
-            returnType(void)
-            parameters { params ->
-                params.size == 7 && params[1].name == "org.json.JSONObject" &&
-                    params[2] == bool && params[3] == BString && params[4] == bool
-            }
-        }.forEach { method ->
-            method.hookBefore {
-                val original = args[3] as String
-                if (!beginOverride(thisObject as? View, original)) {
-                    val cell = args[0]!!.reflekt().firstField { name = "i" }.get(args[0]!!)
-                    val target = when (cell) {
-                        "balance_cell" -> Target.BALANCE
-                        "lqt_cell" -> Target.LQT
-                        else -> null
-                    } ?: return@hookBefore
                     if (isEnabled(target)) {
-                        val base = stableOriginal(thisObject as? View, target, original)
-                        evaluateAmount(target, base)?.let { replacement ->
-                            val rendered = formatAmount(base, replacement)
-                            rememberText(thisObject as? View, target, base, rendered)
-                            setOverride(target, base)
-                            args[3] = rendered
-                        }
+                        animator(view)?.takeIf(ValueAnimator::isStarted)?.end()
+                        if (view.parent != null && isLqtOrBusiness(target)) tickerState[view] = true
                     }
                 }
-            }
-            method.hookAfter { endOverride() }
-        }
-
-        val tickerClazz = "com.robinhood.ticker.TickerView".toClass()
-        tickerSetText = tickerClazz.reflekt().firstMethod {
-            name = "setText"
-            parameters(BString)
-            returnType(void)
-        }.self
-        installTickerMethod(tickerSetText)
-        installTickerMethod(tickerSetTextAnimated.method)
-        tickerClazz.reflekt().firstMethod {
-            name = "setTextSize"
-            parameters(float)
-            returnType(void)
-        }.apply {
-            hookBefore {
-                val view = thisObject as View
-                val target = targetFor(view) ?: Target.BALANCE
-                if (isEnabled(target)) {
-                    animator(view)?.takeIf(ValueAnimator::isStarted)?.end()
-                    if (view.parent != null && isLqtOrBusiness(target)) tickerState[view] = true
-                }
-            }
-            hookAfter {
-                val view = thisObject as View
-                val target = targetFor(view) ?: Target.BALANCE
-                if (isEnabled(target)) {
-                    animator(view)?.setCurrentFraction(1.0f)
-                    if (isLqtOrBusiness(target) && tickerState[view] == true) {
-                        val original = synchronized(amountState) { amountState[view]?.original }
-                            ?: view.reflekt().firstMethod { name = "getText" }.invoke() as String
-                        if (original.any(Char::isDigit)) tickerSetText.invoke(view, original)
+                hookAfter {
+                    val view = thisObject as View
+                    val target = targetFor(view) ?: Target.BALANCE
+                    if (isEnabled(target)) {
+                        animator(view)?.setCurrentFraction(1.0f)
+                        if (isLqtOrBusiness(target) && tickerState[view] == true) {
+                            val original = synchronized(amountState) { amountState[view]?.original }
+                                ?: view.reflekt().firstMethod { name = "getText" }.invoke() as String
+                            if (original.any(Char::isDigit)) tickerSetText.invoke(view, original)
+                        }
                     }
                 }
             }

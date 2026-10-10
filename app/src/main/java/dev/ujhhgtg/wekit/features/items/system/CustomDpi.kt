@@ -57,9 +57,11 @@ object CustomDpi : ClickableFeature(), IResolveDex {
     private var customDpi by prefOption("custom_dpi", 360)
 
     override fun onEnable() {
-        methodGetDisplayMetrics.hookAfter {
-            val metrics = result as? DisplayMetrics ?: return@hookAfter
-            applyCustomDpi(metrics)
+        installHook("CustomDpi#1") {
+            methodGetDisplayMetrics.hookAfter {
+                val metrics = result as? DisplayMetrics ?: return@hookAfter
+                applyCustomDpi(metrics)
+            }
         }
 
         hookTabIconScale()

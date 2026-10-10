@@ -94,6 +94,9 @@ object WxFeatureLoader {
             if (toRescan.isEmpty() && !resolveMain) {
                 // 缓存全部命中，直接启动（主框架 hook 已由 Startup 挂载）
                 WeLogger.i(TAG, "DexKit 缓存全部命中，跳过扫描")
+                // Startup 已在解析就绪时调用过；这里再调一次是幂等的（MainHook 内部有 hookLoaded 闸门），
+                // 只用来兜底「Startup 因异常没走到 loadHook」的极端情况。
+                MainHook.loadHook()
                 startFeatures(activeFeatures)
             } else if (!TargetProcesses.isInMain) {
                 // 非主进程：缓存缺失时不能直接 startFeatures。APPBRAND 等进程里 DexKit
@@ -181,11 +184,10 @@ object WxFeatureLoader {
                     neutralText = "暂不查找",
                     activity = retry,
                     onChoice = { cloud -> runResolve(features, toRescan, resolveMain, cloud, retry) },
-                    onNeutral = {
-                        WeLogger.i(TAG, "用户选择暂不查找，本次跳过 DexKit 解析")
-                    },
+                    onNeutral = { proceedWithoutScan(features, resolveMain) },
                     onNoActivity = {
-                        WeLogger.w(TAG, "选择框无法弹出（Activity 销毁），本次跳过 DexKit 解析")
+                        WeLogger.w(TAG, "选择框无法弹出（Activity 销毁），直接启动已就绪的功能")
+                        proceedWithoutScan(features, resolveMain)
                     },
                 )
                 return@Thread
@@ -202,11 +204,10 @@ object WxFeatureLoader {
                 neutralText = "暂不查找",
                 activity = activity,
                 onChoice = { cloud -> runResolve(features, toRescan, resolveMain, cloud, activity) },
-                onNeutral = {
-                    WeLogger.i(TAG, "用户选择暂不查找，本次跳过 DexKit 解析")
-                },
+                onNeutral = { proceedWithoutScan(features, resolveMain) },
                 onNoActivity = {
-                    WeLogger.w(TAG, "选择框无法弹出（Activity 销毁），本次跳过 DexKit 解析")
+                    WeLogger.w(TAG, "选择框无法弹出（Activity 销毁），直接启动已就绪的功能")
+                    proceedWithoutScan(features, resolveMain)
                 },
             )
         }.apply {
@@ -214,6 +215,24 @@ object WxFeatureLoader {
             isDaemon = true
             start()
         }
+    }
+
+    /**
+     * 用户选择「暂不查找」时仍然把**已经缓存好**的功能跑起来。
+     *
+     * 「暂不查找」只应表示「现在不扫描」，不能等同于「把整个微信端功能层关掉」——
+     * 旧实现直接 return，于是只要主框架还有一条锚点没解析（例如升级后多出一项），
+     * 用户点了「暂不查找」就整场会话都没有任何功能可用，表现就是「很多功能突然失效」。
+     *
+     * 这里改为挂载主框架并启动功能：每条 hook 在各自 onInit() 里判断锚点是否取到，
+     * 取不到的那一项自己置为「当前环境不可用」，已经解析好的项照常工作。
+     */
+    private fun proceedWithoutScan(features: List<BaseFeature>, resolveMain: Boolean) {
+        WeLogger.i(TAG, "用户选择暂不查找：跳过 DexKit 扫描，直接启动已就绪的功能")
+        runCatching {
+            if (resolveMain) MainHook.loadHook()
+            startFeatures(features)
+        }.onFailure { WeLogger.e(TAG, "暂不查找后启动功能失败", it) }
     }
 
     /** 用户选择后，切后台线程执行解析（含网络 + DexKit 扫描，不能阻塞主线程）。 */
@@ -288,7 +307,11 @@ object WxFeatureLoader {
                 progress.update("DexKit 解析完成")
             }
             progress.dismiss()
-            if (resolveMain && mainResolved) MainHook.loadHook()
+            // 只要尝试过解析就挂载主框架：每个 hook 项在各自的 onInit() 里判断锚点是否取到，
+            // 单条锚点解析失败时那项自己会置为「当前环境不可用」，不会连累其余功能。
+            // 旧逻辑用 all-or-nothing 闸门（任一键没解析就整层跳过 loadHook），
+            // 会导致一条失效锚点把整个原生功能层一起拖死。
+            if (resolveMain) MainHook.loadHook()
             startFeatures(features)
             return
         }
@@ -347,10 +370,14 @@ object WxFeatureLoader {
             progress.update("本地解析完成，报告已导出：\n$exported")
         }
         progress.dismiss()
-        if (resolveMain && mainResolved) {
+        if (resolveMain) {
+            if (!mainResolved) {
+                WeLogger.w(
+                    TAG,
+                    "主框架 DexKit 未完全解析，仍挂载可用项：未解析的键将由对应 hook 的 onInit() 置为不可用",
+                )
+            }
             MainHook.loadHook()
-        } else if (resolveMain) {
-            WeLogger.e(TAG, "主框架 DexKit 未完全解析，跳过 MainHook.loadHook")
         }
         startFeatures(features)
     }

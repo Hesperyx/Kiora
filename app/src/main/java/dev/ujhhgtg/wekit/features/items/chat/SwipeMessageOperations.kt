@@ -148,38 +148,40 @@ object SwipeMessageOperations : ClickableFeature(), IResolveDex,
         // clickable child already owns; an OnTouchListener can't intercept. Once we return true here,
         // the tail (MOVE/UP/CANCEL) is delivered to the container itself and handled by the
         // OnTouchListener attached in onCreateView.
-        classChattingItemContainer.reflekt()
-            .firstMethod { name = "onInterceptTouchEvent" }
-            .hookAfter {
-                val v = thisObject as? ViewGroup ?: return@hookAfter
-                val s = states[v] ?: return@hookAfter
-                val event = args[0] as MotionEvent
-                when (event.actionMasked) {
-                    MotionEvent.ACTION_DOWN -> {
-                        s.startX = event.rawX
-                        s.startY = event.rawY
-                        s.dragDirection = null
-                        s.triggered = false
-                        s.actionOverlay?.dismiss(animated = false)
-                        s.actionOverlay = null
-                    }
-
-                    MotionEvent.ACTION_MOVE -> {
-                        val dx = event.rawX - s.startX
-                        val dy = event.rawY - s.startY
-                        if (s.dragDirection == null) {
-                            detectDragDirection(dx, dy, s)?.let {
-                                s.dragDirection = it
-                                v.parent?.requestDisallowInterceptTouchEvent(true)
-                            }
+        installHook("SwipeMessageOperations#1") {
+            classChattingItemContainer.reflekt()
+                .firstMethod { name = "onInterceptTouchEvent" }
+                .hookAfter {
+                    val v = thisObject as? ViewGroup ?: return@hookAfter
+                    val s = states[v] ?: return@hookAfter
+                    val event = args[0] as MotionEvent
+                    when (event.actionMasked) {
+                        MotionEvent.ACTION_DOWN -> {
+                            s.startX = event.rawX
+                            s.startY = event.rawY
+                            s.dragDirection = null
+                            s.triggered = false
+                            s.actionOverlay?.dismiss(animated = false)
+                            s.actionOverlay = null
                         }
-                        if (s.dragDirection != null) {
-                            v.parent?.requestDisallowInterceptTouchEvent(true)
-                            result = true
+
+                        MotionEvent.ACTION_MOVE -> {
+                            val dx = event.rawX - s.startX
+                            val dy = event.rawY - s.startY
+                            if (s.dragDirection == null) {
+                                detectDragDirection(dx, dy, s)?.let {
+                                    s.dragDirection = it
+                                    v.parent?.requestDisallowInterceptTouchEvent(true)
+                                }
+                            }
+                            if (s.dragDirection != null) {
+                                v.parent?.requestDisallowInterceptTouchEvent(true)
+                                result = true
+                            }
                         }
                     }
                 }
-            }
+        }
     }
 
     override fun onDisable() {

@@ -134,66 +134,70 @@ object ApplyGlobalBackground : ClickableFeature(), IResolveDex {
     override fun onEnable() {
         migrateLegacyBackgroundUri()
 
-        Activity::class.reflekt().apply {
-            firstMethod {
-                name = "onCreate"
-                parameters(Bundle::class)
-            }.hookAfter {
-                val activity = thisObject as Activity
-                applyTransparentStatusBarIfEnabled(activity)
-            }
+        installHook("applyGlobalBackground.activityViews") {
+            Activity::class.reflekt().apply {
+                firstMethod {
+                    name = "onCreate"
+                    parameters(Bundle::class)
+                }.hookAfter {
+                    val activity = thisObject as Activity
+                    applyTransparentStatusBarIfEnabled(activity)
+                }
 
-            firstMethod {
-                name = "onStart"
-                parameterCount = 0
-            }.hookAfter {
-                val activity = thisObject as Activity
-                applyTransparentStatusBarIfEnabled(activity)
-            }
+                firstMethod {
+                    name = "onStart"
+                    parameterCount = 0
+                }.hookAfter {
+                    val activity = thisObject as Activity
+                    applyTransparentStatusBarIfEnabled(activity)
+                }
 
-            firstMethod {
-                name = "onResume"
-                parameterCount = 0
-            }.hookAfter {
-                val activity = thisObject as Activity
-                applyTransparentStatusBarIfEnabled(activity)
-                applyBackground(activity)
-            }
+                firstMethod {
+                    name = "onResume"
+                    parameterCount = 0
+                }.hookAfter {
+                    val activity = thisObject as Activity
+                    applyTransparentStatusBarIfEnabled(activity)
+                    applyBackground(activity)
+                }
 
-            firstMethod {
-                name = "onWindowFocusChanged"
-                parameters(Boolean::class)
-            }.hookAfter {
-                val activity = thisObject as Activity
-                applyTransparentStatusBarIfEnabled(activity)
+                firstMethod {
+                    name = "onWindowFocusChanged"
+                    parameters(Boolean::class)
+                }.hookAfter {
+                    val activity = thisObject as Activity
+                    applyTransparentStatusBarIfEnabled(activity)
+                }
             }
         }
 
-        methodInitImageView.hookBefore {
-            val view = thisObject as ImageView
-            view.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
-                override fun onViewAttachedToWindow(v: View) {
-                    val activity = activityOf(v.context) ?: return
-                    synchronized(activityAttachedViews) {
-                        activityAttachedViews.getOrPut(activity) { mutableSetOf() }.add(v)
+        installHook("applyGlobalBackground.initImageView") {
+            methodInitImageView.hookBefore {
+                val view = thisObject as ImageView
+                view.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+                    override fun onViewAttachedToWindow(v: View) {
+                        val activity = activityOf(v.context) ?: return
+                        synchronized(activityAttachedViews) {
+                            activityAttachedViews.getOrPut(activity) { mutableSetOf() }.add(v)
+                        }
+                        WeLogger.d(TAG, "view attached to ${activity.javaClass.simpleName}")
+                        overlayFromActivity(activity)?.isVisible = false
                     }
-                    WeLogger.d(TAG, "view attached to ${activity.javaClass.simpleName}")
-                    overlayFromActivity(activity)?.isVisible = false
-                }
 
-                override fun onViewDetachedFromWindow(v: View) {
-                    val activity = activityOf(v.context) ?: return
-                    val empty = synchronized(activityAttachedViews) {
-                        val set = activityAttachedViews[activity] ?: return
-                        set.remove(v)
-                        set.isEmpty()
+                    override fun onViewDetachedFromWindow(v: View) {
+                        val activity = activityOf(v.context) ?: return
+                        val empty = synchronized(activityAttachedViews) {
+                            val set = activityAttachedViews[activity] ?: return
+                            set.remove(v)
+                            set.isEmpty()
+                        }
+                        if (empty) {
+                            WeLogger.d(TAG, "all views detached from ${activity.javaClass.simpleName}")
+                            overlayFromActivity(activity)?.isVisible = true
+                        }
                     }
-                    if (empty) {
-                        WeLogger.d(TAG, "all views detached from ${activity.javaClass.simpleName}")
-                        overlayFromActivity(activity)?.isVisible = true
-                    }
-                }
-            })
+                })
+            }
         }
     }
 

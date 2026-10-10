@@ -20,38 +20,42 @@ object HideHomeScreenSwipeDownPage : SwitchFeature() {
     override val descriptionRes = R.string.feature_hide_home_screen_swipe_down_page_description
 
     override fun onEnable() {
-        ListView::class.reflekt()
-            .firstMethod {
-                name = "addHeaderView"
-                parameterCount = 3
-            }
-            .hookBefore {
-                if (thisObject!!.javaClass.simpleName != "ConversationListView") return@hookBefore
-                val view = args[0] as View
-                val className = view.javaClass.simpleName
-                if (className == "TaskBarContainer") {
-                    val heightDp = if (!ConversationGrouping.isEnabled) 48 else 94
-                    val heightPx = (heightDp * view.resources.displayMetrics.density).toInt()
-                    val spacer = View(view.context).apply {
-                        layoutParams = AbsListView.LayoutParams(AbsListView.LayoutParams.MATCH_PARENT, heightPx)
-                    }
-                    invokeOriginalMethod(args = arrayOf(spacer, null, true))
-                    result = null
+        installHook("HideHomeScreenSwipeDownPage#1") {
+            ListView::class.reflekt()
+                .firstMethod {
+                    name = "addHeaderView"
+                    parameterCount = 3
                 }
-            }
+                .hookBefore {
+                    if (thisObject!!.javaClass.simpleName != "ConversationListView") return@hookBefore
+                    val view = args[0] as View
+                    val className = view.javaClass.simpleName
+                    if (className == "TaskBarContainer") {
+                        val heightDp = if (!ConversationGrouping.isEnabled) 48 else 94
+                        val heightPx = (heightDp * view.resources.displayMetrics.density).toInt()
+                        val spacer = View(view.context).apply {
+                            layoutParams = AbsListView.LayoutParams(AbsListView.LayoutParams.MATCH_PARENT, heightPx)
+                        }
+                        invokeOriginalMethod(args = arrayOf(spacer, null, true))
+                        result = null
+                    }
+                }
+        }
 
         val recyclerAddHeader = WeConversationListViewApi.methodRecyclerAddHeaderView
-        if (!recyclerAddHeader.isPlaceholder) {
-            recyclerAddHeader.hookBefore {
-                val view = args[0] as View
-                if (view.javaClass.simpleName != "TaskBarContainer") return@hookBefore
-                val heightDp = if (!ConversationGrouping.isEnabled) 48 else 94
-                val heightPx = (heightDp * view.resources.displayMetrics.density).toInt()
-                args[0] = View(view.context).apply {
-                    layoutParams = ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        heightPx,
-                    )
+        installHook("HideHomeScreenSwipeDownPage#2") {
+            if (!recyclerAddHeader.isPlaceholder) {
+                recyclerAddHeader.hookBefore {
+                    val view = args[0] as View
+                    if (view.javaClass.simpleName != "TaskBarContainer") return@hookBefore
+                    val heightDp = if (!ConversationGrouping.isEnabled) 48 else 94
+                    val heightPx = (heightDp * view.resources.displayMetrics.density).toInt()
+                    args[0] = View(view.context).apply {
+                        layoutParams = ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            heightPx,
+                        )
+                    }
                 }
             }
         }

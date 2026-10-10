@@ -27,12 +27,13 @@ import org.luckypray.dexkit.query.matchers.ClassMatcher
  * 否则 [cn.hxy.kiora.utils.dexkit.DexKitFinder] 里的 `singleOrNull()` 会拿到 null
  * 并记一条「没有匹配结果」的警告。新增条目务必同样验证唯一性。
  *
- * ## 版本分支
+ * ## 只登记「当前仍在用」的锚点
  *
- * `setImageHdImgBtnVisibility` 是 8.0.54 之前的旧串，8.0.54 起被
- * `setHdImageActionDownloadable` 取代（已确认旧串在 8.0.78 的字符串池里
- * 完全不存在）。本表只登记当前基线用的那条，不保留死串，以免平白多出
- * 必然失败的查询。
+ * 主框架是否允许 `MainHook.loadHook()`，看的是本表所有键能否全部解析成功
+ * （见 [cn.hxy.kiora.utils.dexkit.DexKitFinder.unresolvedKeys]）。只要留下一条
+ * **没有任何 hook 再用**、又在新版微信里匹配不到的死锚点，整条 `loadHook()`
+ * 就会被永久挡下 —— 表现是「所有原生功能一起失效」。所以原生 `Wx*.kt` hook
+ * 一旦删除，它独占的锚点也必须同步从这里删掉，绝不保留「以后可能用到」的死串。
  */
 object WeChatDexKit : DexKitTask {
 
@@ -42,17 +43,9 @@ object WeChatDexKit : DexKitTask {
     const val ANTI_REVOKE_1 = "AntiRevoke1.MethodDoRevokeMsg"
 
     /** 自动查看原图（高清图开关）：`Lcom/tencent/mm/ui/chatting/gallery/ImageGalleryUI;->y9()V`。 */
-    const val AUTO_VIEW_ORIGINAL_HD = "AutoViewOriginalPhoto.MethodSetHdImageActionDownloadable"
-
     /** 自动查看原视频：`ImageGalleryUI;->M9()V`。 */
-    const val AUTO_VIEW_ORIGINAL_VIDEO = "AutoViewOriginalPhoto.MethodCheckNeedShowOriginVideoBtn"
-
     /** 屏蔽提示音：`Lx44/u;->dj(Lx44/i;Landroid/os/Bundle;)Z`。 */
-    const val DISABLE_RINGTONE = "DisableRingtonePlay.MethodPlaySound"
-
     /** 禁用发送状态：`com.tencent.mm.ui.chatting.component.cn;->u0(I)V`。 */
-    const val DISABLE_SEND_STATUS = "DisableSendStatus.MethodDirectSend"
-
     /**
      * 发送文本格式化：**类**级锚点，`com.tencent.mm.ui.chatting.component.pm`。
      *
@@ -82,68 +75,14 @@ object WeChatDexKit : DexKitTask {
 
     // ---- 辅助 ----
 
-    /**
-     * 表情游戏：`Lvr/p;->a(Landroid/view/View;Landroid/content/Context;ILsr/u0;)V`。
-     *
-     * **查询本身没问题，WA 的 hook 体才是有问题的那一半**（8.0.78 实证）：
-     *
-     * 8.0.78 把「点击信息」拆成了两个类，`args(3)` 的**声明类型是基类**、**运行期是子类**：
-     *
-     * ```
-     * Lsr/u0;  public abstract            — 字段 a:I（public final）← 判别位在这里
-     * Lsr/g;   public final extends sr/u0 — 字段 b:Lcom/tencent/mm/api/IEmojiInfo;（+ c:I, d:String, e:I）
-     * ```
-     *
-     * 于是 WA 的两步都错：
-     * 1. `firstField { FINAL; Int }` 在运行期类 `sr/g` 上有 **3 个候选**（继承的 `a`、
-     *    自身的 `c` 与 `e`），拿不到判别位 `a` → 闸门 `infoType == 0` 不稳定。
-     *    正解：从**声明类型**（`method.parameterTypes[3]` = `sr/u0`）取那个 int 字段。
-     * 2. `IEmojiInfo` 在**子类** `sr/g.b` 上，需沿运行期类的继承链按**类型**找
-     *    （`type.name == "com.tencent.mm.api.IEmojiInfo"`），不能按字段名。
-     *
-     * 闸门值 `0` 本身是对的：`vr/p.a` @0x7ea 的 `a == 0` 分支才走
-     * `Lq72/m;->m(IEmojiInfo)Z`（是否随机表情）→ 发送表情，猜拳/骰子在这里；
-     * `a == 6` 是打日志 + 资料弹窗。`sr/g.<init>` 由 `IEmojiInfo.p1()` 映射出 `a`（0 或 6）。
-     *
-     * 详见 `docs/Kiora多宿主改造设计.md` §17.4。
-     */
-    const val EMOJI_GAME_CLICK = "EmojiGame.MethodEmojiPanelClick"
-
-    /**
-     * 表情游戏的「随机数」方法：`Lcom/tencent/mm/sdk/platformtools/y8;->Q(II)I`。
-     *
-     * 猜拳/骰子的随机结果由它产出（入参是表情类型，`2` = 猜拳、`5` = 骰子），
-     * 改返回值就是「预设随机结果」。**它和 [EMOJI_GAME_CLICK] 是配套的两条锚点**：
-     * 前者决定「点了什么」，后者决定「出什么」。
-     *
-     * 查询**只用结构约束、不带字符串**（WA 原查询另外要求方法体内 invoke
-     * `currentTimeMillis` 与 `nextInt`；本表省掉这层，因为规则串越多越脆）。
-     * 代价是必须自己确认唯一性 —— 已用 `recon/check_random.py` 复算：
-     * 包 `com.tencent.mm.sdk.platformtools` 下 `(II)I` 方法**恰好 1 个**，
-     * 且体内同时引用 `currentTimeMillis` 与 `nextInt`，与 WA 的约束完全吻合。
-     */
-    const val EMOJI_GAME_RANDOM = "EmojiGame.MethodRandom"
-
     /** 定位（国测局坐标）：`Lh51/t;->onLocationChanged(...)V`。 */
-    const val LOCATION_LISTENER = "Location.MethodSLocationListener"
-
     /** 定位（WGS84）：`Lh51/u;->onLocationChanged(...)V`。 */
-    const val LOCATION_LISTENER_WGS84 = "Location.MethodSLocationListenerWgs84"
-
     /** 定位 SDK 默认管理器：`Lmf/c;->onLocationChanged(...)V`。 */
-    const val LOCATION_DEFAULT_MANAGER = "Location.MethodDefaultTencentLocationManager"
-
     /** 选点地图点击：`com.tencent.mm.plugin.location.ui.impl.l1;->onClick(Landroid/view/View;)V`。 */
-    const val LOCATION_SELECT_POI_MAP = "Location.MethodSelectPoiMapOnClick"
-
     /** 语音时长：`Lv61/m1;->K1(Ljava/lang/String;Lv61/c1;)Z`。 */
-    const val VOICE_LENGTH = "VoiceLength.MethodVoiceStorage"
-
     // ---- 高危 ----
 
     /** 微信运动步数：`com.tencent.mm.plugin.sport.model.d;->a()J`。 */
-    const val SPORT_STEP = "SportStep.MethodDeviceStep"
-
     // ---- 杂项 ----
 
     /**
@@ -157,11 +96,7 @@ object WeChatDexKit : DexKitTask {
     const val MOCK_SCAN = "MockScan.MethodQBarHandler"
 
     /** 多开 WebView：`Lhc5/l;->j(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Landroid/content/Intent;Landroid/os/Bundle;)V`。 */
-    const val MULTI_WEBVIEW = "MultiWebView.MethodPluginHelper"
-
     /** 跳过分享校验：`com.tencent.mm.pluginsdk.model.app.i1;->b(...)Z`。 */
-    const val SHARE_CHECK = "ShareCheck.MethodCheckAppSignature"
-
     // ---- 设置入口 ----
 
     /**
@@ -328,44 +263,12 @@ object WeChatDexKit : DexKitTask {
     const val ACCOUNT_CURRENT = "Account.CurrentUsername"
 
     private const val PKG_CHATTING = "com.tencent.mm.ui.chatting.component"
-    private const val PKG_LOCATION = "com.tencent.mm.plugin.location.ui.impl"
-    private const val PKG_SPORT = "com.tencent.mm.plugin.sport.model"
-    private const val PKG_PLATFORMTOOLS = "com.tencent.mm.sdk.platformtools"
 
     override fun getQueryMap(): Map<String, BaseMatcher> = mapOf(
 
         ANTI_REVOKE_1 to FindMethod().apply {
             matcher {
                 usingEqStrings("doRevokeMsg xmlSrvMsgId=%d talker=%s isGet=%s")
-            }
-        },
-
-        AUTO_VIEW_ORIGINAL_HD to FindMethod().apply {
-            matcher {
-                usingEqStrings("setHdImageActionDownloadable")
-            }
-        },
-
-        AUTO_VIEW_ORIGINAL_VIDEO to FindMethod().apply {
-            matcher {
-                usingEqStrings("checkNeedShowOriginVideoBtn")
-            }
-        },
-
-        DISABLE_RINGTONE to FindMethod().apply {
-            matcher {
-                // 「MicroMsg.BaseSceneSetting」单独用会命中别的类，必须配日志串收窄。
-                usingEqStrings("MicroMsg.BaseSceneSetting", "playSound Failed Throwable t = ")
-            }
-        },
-
-        DISABLE_SEND_STATUS to FindMethod().apply {
-            searchPackages(PKG_CHATTING)
-            matcher {
-                usingEqStrings(
-                    "MicroMsg.SignallingComponent",
-                    "[doDirectSend] mChattingContext is null!"
-                )
             }
         },
 
@@ -376,80 +279,9 @@ object WeChatDexKit : DexKitTask {
             }
         },
 
-        EMOJI_GAME_CLICK to FindMethod().apply {
-            matcher {
-                usingEqStrings(
-                    "MicroMsg.EmojiPanelClickListener",
-                    "penn send capture emoji click emoji: %s status: %d."
-                )
-            }
-        },
-
-        EMOJI_GAME_RANDOM to FindMethod().apply {
-            searchPackages(PKG_PLATFORMTOOLS)
-            matcher {
-                returnType(Int::class.java)
-                paramTypes(Int::class.java, Int::class.java)
-            }
-        },
-
-        LOCATION_LISTENER to FindMethod().apply {
-            matcher {
-                // 两个 Listener 的 `onLocationChanged` 签名一模一样，靠 tag 串区分。
-                name = "onLocationChanged"
-                usingEqStrings("MicroMsg.SLocationListener")
-            }
-        },
-
-        LOCATION_LISTENER_WGS84 to FindMethod().apply {
-            matcher {
-                name = "onLocationChanged"
-                usingEqStrings("MicroMsg.SLocationListenerWgs84")
-            }
-        },
-
-        LOCATION_DEFAULT_MANAGER to FindMethod().apply {
-            matcher {
-                name = "onLocationChanged"
-                usingEqStrings("MicroMsg.DefaultTencentLocationManager", "[mlocationListener]error:%d, reason:%s")
-            }
-        },
-
-        LOCATION_SELECT_POI_MAP to FindMethod().apply {
-            searchPackages(PKG_LOCATION)
-            matcher {
-                usingEqStrings("MicroMsg.MMPoiMapUI", "invalid lat lng")
-            }
-        },
-
-        VOICE_LENGTH to FindMethod().apply {
-            matcher {
-                usingEqStrings("MicroMsg.VoiceStorage", "update failed, no values set")
-            }
-        },
-
-        SPORT_STEP to FindMethod().apply {
-            searchPackages(PKG_SPORT)
-            matcher {
-                usingEqStrings("MicroMsg.Sport.DeviceStepManager", "get today step from %s todayStep %d")
-            }
-        },
-
         MOCK_SCAN to FindMethod().apply {
             matcher {
                 usingEqStrings("MicroMsg.QBarStringHandler", "key_offline_scan_show_tips")
-            }
-        },
-
-        MULTI_WEBVIEW to FindMethod().apply {
-            matcher {
-                usingEqStrings("MicroMsg.PluginHelper", "start multi webview!!!!!!!!!")
-            }
-        },
-
-        SHARE_CHECK to FindMethod().apply {
-            matcher {
-                usingEqStrings("checkAppSignature get local signature failed")
             }
         },
 

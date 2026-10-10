@@ -30,12 +30,16 @@ object DisableWebViewSafetyWarnings : SwitchFeature(), IResolveDex {
     }
 
     override fun onEnable() {
-        methodGetIsInterceptEnabled.hookBefore {
-            result = false
+        installHook("DisableWebViewSafetyWarnings#1") {
+            methodGetIsInterceptEnabled.hookBefore {
+                result = false
+            }
         }
 
-        methodGetIsUrlSafe.hookBefore {
-            result = true
+        installHook("DisableWebViewSafetyWarnings#2") {
+            methodGetIsUrlSafe.hookBefore {
+                result = true
+            }
         }
     }
 }

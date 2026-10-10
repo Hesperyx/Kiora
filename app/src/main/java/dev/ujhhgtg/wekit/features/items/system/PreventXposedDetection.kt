@@ -41,8 +41,10 @@ object PreventXposedDetection : SwitchFeature(), IResolveDex {
 
         if (methodCheckStackTraceElements.isPlaceholder) return
 
-        methodCheckStackTraceElements.hookBefore {
-            result = false
+        installHook("PreventXposedDetection#1") {
+            methodCheckStackTraceElements.hookBefore {
+                result = false
+            }
         }
     }
 

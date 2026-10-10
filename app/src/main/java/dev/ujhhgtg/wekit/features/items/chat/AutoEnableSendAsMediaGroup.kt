@@ -84,65 +84,75 @@ object AutoEnableSendAsMediaGroup : SwitchFeature(), IResolveDex {
         }
 
         // AlbumPreviewUI 直发时依据该字段决定是否合并展示，必须同步勾选状态字段与勾选框
-        methodInitSendAsMediaGroupingViews.hookAfter {
-            val activity = thisObject as Activity
-            sendAsMediaGroupField.field.set(activity, true)
-            (sendAsMediaGroupCheckBoxField.field.get(activity) as CheckBox).setChecked(true)
-        }
-
-        // 选择数量达到 3 张及以上时（合并展示仅对 3 张及以上生效）保持勾选
-        methodUpdateSendAsMediaGroupViews.hookAfter {
-            if (args[0] as Int >= 3) {
+        installHook("autoEnableSendAsMediaGroup.initGroupingViews") {
+            methodInitSendAsMediaGroupingViews.hookAfter {
                 val activity = thisObject as Activity
                 sendAsMediaGroupField.field.set(activity, true)
                 (sendAsMediaGroupCheckBoxField.field.get(activity) as CheckBox).setChecked(true)
+            }
+        }
+
+        // 选择数量达到 3 张及以上时（合并展示仅对 3 张及以上生效）保持勾选
+        installHook("autoEnableSendAsMediaGroup.updateGroupViews") {
+            methodUpdateSendAsMediaGroupViews.hookAfter {
+                if (args[0] as Int >= 3) {
+                    val activity = thisObject as Activity
+                    sendAsMediaGroupField.field.set(activity, true)
+                    (sendAsMediaGroupCheckBoxField.field.get(activity) as CheckBox).setChecked(true)
+                }
             }
         }
 
         // MediaTabPickerUI hosts MediaTabAlbumUI as an embedded VAS activity;
         // initialize the same state after that activity's view is inflated.
-        MEDIA_TAB_ALBUM_UI.toClassOrNull()
-            ?.reflekt()
-            ?.firstMethodOrNull { name = "initView" }
-            ?.hookAfter {
-                val activity = thisObject as Activity
-                sendAsMediaGroupField.field.set(activity, true)
-                (sendAsMediaGroupCheckBoxField.field.get(activity) as CheckBox).setChecked(true)
-            }
+        installHook("AutoEnableSendAsMediaGroup#1") {
+            MEDIA_TAB_ALBUM_UI.toClassOrNull()
+                ?.reflekt()
+                ?.firstMethodOrNull { name = "initView" }
+                ?.hookAfter {
+                    val activity = thisObject as Activity
+                    sendAsMediaGroupField.field.set(activity, true)
+                    (sendAsMediaGroupCheckBoxField.field.get(activity) as CheckBox).setChecked(true)
+                }
+        }
 
         // ImagePreviewUI 在 initView 中读取该 extra 初始化勾选框
-        IMAGE_PREVIEW_UI.toClass().hookBeforeOnCreate {
-            val activity = thisObject as Activity
-            activity.intent.putExtra(KEY_SEND_AS_MEDIA_GROUP, true)
+        installHook("autoEnableSendAsMediaGroup.imagePreview") {
+            IMAGE_PREVIEW_UI.toClass().hookBeforeOnCreate {
+                val activity = thisObject as Activity
+                activity.intent.putExtra(KEY_SEND_AS_MEDIA_GROUP, true)
+            }
         }
 
         // The 8.0.78 local chat picker stores this option in its StateCenter;
         // it has no AlbumPreviewUI field or CheckBox for the old hook to touch.
         // Trigger the native click callback so the reducer and send plan stay
         // in sync with the visible control.
-        LOCAL_PICKER_MEDIA_GROUP_BAR.toClassOrNull()
-            ?.reflekt()
-            ?.firstMethodOrNull {
-                name = "setMediaGroupChecked"
-                parameters(bool)
-            }
-            ?.hookAfter {
-                if (args[0] as Boolean) return@hookAfter
-                val view = thisObject as View
-                view.post {
-                    if (view.visibility != View.VISIBLE) return@post
-                    val callback = view.reflekt()
-                        .firstMethodOrNull {
-                            name = "getOnMediaGroupClicked"
-                            parameters()
-                        }
-                        ?.invoke()
-                        ?: return@post
-                    callback.reflekt().firstMethod {
-                        name = "invoke"
-                        parameters()
-                    }.invoke()
+        installHook("AutoEnableSendAsMediaGroup#2") {
+            LOCAL_PICKER_MEDIA_GROUP_BAR.toClassOrNull()
+                ?.reflekt()
+                ?.firstMethodOrNull {
+                    name = "setMediaGroupChecked"
+                    parameters(bool)
                 }
-            }
+                ?.hookAfter {
+                    if (args[0] as Boolean) return@hookAfter
+                    val view = thisObject as View
+                    view.post {
+                        if (view.visibility != View.VISIBLE) return@post
+                        val callback = view.reflekt()
+                            .firstMethodOrNull {
+                                name = "getOnMediaGroupClicked"
+                                parameters()
+                            }
+                            ?.invoke()
+                            ?: return@post
+                        callback.reflekt().firstMethod {
+                            name = "invoke"
+                            parameters()
+                        }.invoke()
+                    }
+                }
+        }
     }
 }

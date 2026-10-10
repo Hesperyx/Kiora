@@ -18,20 +18,24 @@ object SpoofHostVersion : SwitchFeature(), IResolveDex {
     override val targetProcesses = setOf(TargetProcess.MAIN, TargetProcess.APPBRAND)
 
     override fun onEnable() {
-        ctorCgiLaunchWxaAppFunc1122.hookBefore {
-            args[6] = 9999
+        installHook("SpoofHostVersion#1") {
+            ctorCgiLaunchWxaAppFunc1122.hookBefore {
+                args[6] = 9999
+            }
         }
 
-        methodPrivateOpenUrl.hookBefore {
-            val data = args[1] as JSONObject
-            val url = data.optString("url")
-            if (UPGRADE_URLS.any {
-                    url == it || url.startsWith("$it/") ||
-                        url.startsWith("$it?") || url.startsWith("$it#")
-                }) {
-                // An empty URL takes the host's normal "fail" callback path. Skipping the
-                // entire method would leave the Mini App's JS callback unresolved.
-                data.put("url", "")
+        installHook("SpoofHostVersion#2") {
+            methodPrivateOpenUrl.hookBefore {
+                val data = args[1] as JSONObject
+                val url = data.optString("url")
+                if (UPGRADE_URLS.any {
+                        url == it || url.startsWith("$it/") ||
+                            url.startsWith("$it?") || url.startsWith("$it#")
+                    }) {
+                    // An empty URL takes the host's normal "fail" callback path. Skipping the
+                    // entire method would leave the Mini App's JS callback unresolved.
+                    data.put("url", "")
+                }
             }
         }
     }

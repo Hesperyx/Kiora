@@ -42,28 +42,34 @@ object RedirectDownloadPath : ClickableFeature(), IResolveDex {
     private var saveDir by prefOption("redirect_download_path_save_dir", "")
 
     override fun onEnable() {
-        methodDownloadFile.hookBefore {
-            val type = args[0] as? String? ?: return@hookBefore
-            if (type != "attachment") return@hookBefore
-            result = ensureSaveDir()
-        }
-
-        methodInitDownloadAttach.hookBefore {
-            val msgXml = args.getOrNull(2) as? String ?: return@hookBefore
-            val currentPath = args.getOrNull(3) as? String
-            val redirectedPath = buildRedirectedFilePath(msgXml, currentPath)
-            if (redirectedPath != null) {
-                args[3] = redirectedPath
-                WeLogger.d(TAG, "redirect app attach download path: $redirectedPath")
+        installHook("RedirectDownloadPath#1") {
+            methodDownloadFile.hookBefore {
+                val type = args[0] as? String? ?: return@hookBefore
+                if (type != "attachment") return@hookBefore
+                result = ensureSaveDir()
             }
         }
 
-        methodInsertDownloadAttach.hookBefore {
-            val currentPath = args.getOrNull(0) as? String ?: return@hookBefore
-            val redirectedPath = redirectExistingFilePath(currentPath)
-            if (redirectedPath != null) {
-                args[0] = redirectedPath
-                WeLogger.d(TAG, "redirect app attach record path: $redirectedPath")
+        installHook("RedirectDownloadPath#2") {
+            methodInitDownloadAttach.hookBefore {
+                val msgXml = args.getOrNull(2) as? String ?: return@hookBefore
+                val currentPath = args.getOrNull(3) as? String
+                val redirectedPath = buildRedirectedFilePath(msgXml, currentPath)
+                if (redirectedPath != null) {
+                    args[3] = redirectedPath
+                    WeLogger.d(TAG, "redirect app attach download path: $redirectedPath")
+                }
+            }
+        }
+
+        installHook("RedirectDownloadPath#3") {
+            methodInsertDownloadAttach.hookBefore {
+                val currentPath = args.getOrNull(0) as? String ?: return@hookBefore
+                val redirectedPath = redirectExistingFilePath(currentPath)
+                if (redirectedPath != null) {
+                    args[0] = redirectedPath
+                    WeLogger.d(TAG, "redirect app attach record path: $redirectedPath")
+                }
             }
         }
     }

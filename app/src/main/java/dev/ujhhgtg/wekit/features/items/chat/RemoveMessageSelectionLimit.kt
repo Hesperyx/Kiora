@@ -87,18 +87,22 @@ object RemoveMessageSelectionLimit : SwitchFeature(), IResolveDex {
     private val selectedMessageCountOverride = ThreadLocal<Int>()
 
     override fun onEnable() {
-        listOf(
-            methodSetQuickSelectViewEnabled1,
-            methodSetQuickSelectViewEnabled2
-        ).forEach {
-            it.hookBefore {
-                args[0] = true
+        installHook("RemoveMessageSelectionLimit#1") {
+            listOf(
+                methodSetQuickSelectViewEnabled1,
+                methodSetQuickSelectViewEnabled2
+            ).forEach {
+                it.hookBefore {
+                    args[0] = true
+                }
             }
         }
 
-        methodGetSelectedMessageCount.hookBefore {
-            selectedMessageCountOverride.get()?.let {
-                result = it
+        installHook("RemoveMessageSelectionLimit#2") {
+            methodGetSelectedMessageCount.hookBefore {
+                selectedMessageCountOverride.get()?.let {
+                    result = it
+                }
             }
         }
 

@@ -32,11 +32,15 @@ object DisableVideosAutoPlay : SwitchFeature(), IResolveDex {
     }
 
     override fun onEnable() {
-        methodCheckAutoPlay.hookBefore {
-            result = false
+        installHook("DisableVideosAutoPlay#1") {
+            methodCheckAutoPlay.hookBefore {
+                result = false
+            }
         }
-        methodImproveAutoPlayInvoke.hookBefore {
-            result = false
+        installHook("DisableVideosAutoPlay#2") {
+            methodImproveAutoPlayInvoke.hookBefore {
+                result = false
+            }
         }
     }
 }

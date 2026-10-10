@@ -602,15 +602,25 @@ object FloatingChatHeader : ClickableFeature(), IResolveDex {
     }
 
     override fun onEnable() {
+        installHook("cacheAnimationGroupFields") {
         cacheAnimationGroupFields()
+        }
+
+        installHook("tipsExpandAnimation") {
         methodTipsExpandAnimationUpdate.hookAfter {
             val group = animationGroup(thisObject!!) ?: return@hookAfter
             onTipsAnimationFrame(group)
         }
+        }
+
+        installHook("tipsFoldAnimation") {
         methodTipsFoldAnimationUpdate.hookAfter {
             val group = animationGroup(thisObject!!) ?: return@hookAfter
             onTipsAnimationFrame(group)
         }
+        }
+
+        installHook("tipsToFoldMode") {
         // 相册等 Activity 返回后, 微信刷新 Tips 时会再次恢复折叠态的原生分割线和
         // 叠层矩形。必须在下一次测量前隐藏, 否则 pre-draw 才处理会先画出多余底部高度。
         methodTipsToFoldMode.hookAfter {
@@ -620,14 +630,18 @@ object FloatingChatHeader : ClickableFeature(), IResolveDex {
             // 动画路径此刻尚未设好占位层, 完整的行/轮廓更新仍交给后续 reconciliation。
             scheduleReconcile(layout, RECONCILE_TIPS)
         }
+        }
 
+        installHook("chattingUiConstructor") {
         ChattingUILayout::class.reflekt().firstConstructorOrNull {
             parameters(Context::class, AttributeSet::class)
         }?.hookAfter {
             val layout = thisObject as? ChattingUILayout ?: return@hookAfter
             ensureLayoutAttachListener(layout)
         } ?: WeLogger.w(TAG, "ChattingUILayout constructor hook target not found")
+        }
 
+        installHook("chatFooterAttach") {
         // 通知半屏/全屏路径下 ChatFooter 一定存在且稳定 attach, 借它兜底追踪 ChattingUILayout:
         // 这些路径的 ChattingUILayout 可能由微信布局预取线程提前 inflate, 构造 hook/attach 监听会漏。
         ChatFooter::class.reflekt().firstMethodOrNull { name = "onAttachedToWindow" }?.hookAfter {
@@ -637,7 +651,9 @@ object FloatingChatHeader : ClickableFeature(), IResolveDex {
                 trackLayout(layout)
             }
         } ?: WeLogger.w(TAG, "ChatFooter.onAttachedToWindow hook target not found")
+        }
 
+        installHook("chattingUiOnLayout") {
         // 运行中才打开本特性时, 已有会话的布局早已构造完, attach 监听不会再触发;
         // 下一次布局 (切会话/键盘/旋转) 到来时补挂追踪, 之后的 pre-draw 完成全部改造。
         // onLayout 沿继承链命中 KeyboardLinearLayout.onLayout —— ChattingUILayout 运行时
@@ -651,14 +667,18 @@ object FloatingChatHeader : ClickableFeature(), IResolveDex {
             trackLayout(layout)
             scheduleReconcile(layout, RECONCILE_LAYOUT)
         } ?: WeLogger.w(TAG, "onLayout hook target not found")
+        }
 
+        installHook("chattingUiFitSystemWindows") {
         // 状态栏沉浸后，微信仍会把状态栏 inset 吃进 ChattingUILayout.paddingTop。
         // 只清顶部；导航栏相关的底部 padding 由 FloatingChatFooter 独立处理。
         ChattingUILayout::class.reflekt().firstMethodOrNull { name = "fitSystemWindows" }
             ?.hookAfter {
                 zeroChatLayoutTopPadding(thisObject as View)
             } ?: WeLogger.w(TAG, "ChattingUILayout.fitSystemWindows hook target not found")
+        }
 
+        installHook("actionBarOverlayFitSystemWindows") {
         // 外部应用进入的全屏 ChattingMainUI 也使用窗口标题栏。AppCompat 在每次派发
         // insets 时会用系统栏尺寸覆盖它的三边 margin; 等到 pre-draw 才恢复会让本帧
         // 已按原生边距布局的标题栏先画出来。这里在测量/布局前恢复悬浮边距。
@@ -673,7 +693,9 @@ object FloatingChatHeader : ClickableFeature(), IResolveDex {
             } ?: return@hookAfter
             applyMargins(layout, header)
         }
+        }
 
+        installHook("convBoxOnCreate") {
         // ConvBox.onCreate 尾部的 FullScreenHelper 会 post 把 actionBarSize 写入
         // layout nn 根布局的 paddingTop。edge-to-edge 下清掉这份根补偿，
         // 再把会话容器 jmc 对齐到标题栏最终下沿，不影响并列的 bjy。
@@ -688,7 +710,9 @@ object FloatingChatHeader : ClickableFeature(), IResolveDex {
                 applyConvBoxEdgeToEdge(activity)
             }
         } ?: WeLogger.w(TAG, "ConvBoxServiceConversationUI.onCreate hook target not found")
+        }
 
+        installHook("resumeMainFragment") {
         // IdleHandler 首次预加载聊天容器会重包原窗口树；退出聊天后也要
         // 重新收敛列表布局。两条路径最后都调用 resumeMainFragment。
         BASE_CONVERSATION_ACTIVITY_CLASS.toClass().reflekt().firstMethodOrNull {
@@ -701,7 +725,9 @@ object FloatingChatHeader : ClickableFeature(), IResolveDex {
                 if (isActive) applyConvBoxEdgeToEdge(activity)
             }
         } ?: WeLogger.w(TAG, "BaseConversationUI.resumeMainFragment hook target not found")
+        }
 
+        installHook("tipsBarSetListViewPaddingTop") {
         // 置顶消息卡展开/收起时, 微信通过 ChatTipsBarGroup.setListViewPaddingTop 自己给消息
         // 列表补 recycler 高度。它与我们算的悬浮 padding 叠加会重复, 直接关掉这个补偿,
         // 顶部 padding 完全由本特性统一计算。
@@ -713,7 +739,9 @@ object FloatingChatHeader : ClickableFeature(), IResolveDex {
             result = null
             if (layout != null) scheduleReconcile(layout, RECONCILE_TIPS)
         } ?: WeLogger.w(TAG, "ChatTipsBarGroup.setListViewPaddingTop hook target not found")
+        }
 
+        installHook("preloadFirstVisitViewTop") {
         // 历史消息预加载保存的是首个可见消息的 View.top, 恢复时却直接传给
         // setSelectionFromTop → LinearLayoutManager.scrollToPositionWithOffset。
         // 后者会再加 paddingTop; 原生顶部为 0 时无事, 悬浮标题栏会让消息跳动一整段
@@ -731,7 +759,9 @@ object FloatingChatHeader : ClickableFeature(), IResolveDex {
             if (!chatListBasePaddings.containsKey(recycler)) return@hookAfter
             result = top - recycler.paddingTop
         }
+        }
 
+        installHook("tipsBarConstructor") {
         // ChatTipsBarGroup 在树里的实际父容器不猜了: 构造时拿到实例, attach 后反查所属
         // ChattingUILayout 登记。悬浮与 dim 压制都直接走这份登记, 版本差异也能兜住。
         "com.tencent.mm.ui.tipsbar.ChatTipsBarGroup".toClass().reflekt().firstConstructorOrNull {
@@ -740,6 +770,7 @@ object FloatingChatHeader : ClickableFeature(), IResolveDex {
             val group = thisObject as? View ?: return@hookAfter
             ensureTipsGroupAttachListener(group)
         } ?: WeLogger.w(TAG, "ChatTipsBarGroup constructor hook target not found")
+        }
 
     }
 

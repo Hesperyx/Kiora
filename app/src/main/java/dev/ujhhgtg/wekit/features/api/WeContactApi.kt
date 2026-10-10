@@ -122,26 +122,30 @@ object WeContactApi : ApiFeature(), IResolveDex {
     }
 
     override fun onEnable() {
-        ctorNetSceneVerifyUserProbe.constructor.declaringClass.reflekt()
-            .firstMethod { name = "onGYNetEnd" }
-            .hookAfter {
-                val pending = pendingRelationshipProbes.remove(thisObject) ?: return@hookAfter
-                val errType = args[1] as Int
-                val errCode = args[2] as Int
-                val errMsg = args[3] as String?
-                pending.deferred.complete(classifyRelationshipProbe(errType, errCode, errMsg))
-            }
+        installHook("WeContactApi#1") {
+            ctorNetSceneVerifyUserProbe.constructor.declaringClass.reflekt()
+                .firstMethod { name = "onGYNetEnd" }
+                .hookAfter {
+                    val pending = pendingRelationshipProbes.remove(thisObject) ?: return@hookAfter
+                    val errType = args[1] as Int
+                    val errCode = args[2] as Int
+                    val errMsg = args[3] as String?
+                    pending.deferred.complete(classifyRelationshipProbe(errType, errCode, errMsg))
+                }
+        }
 
-        WeMessageApi.methodMsgInfoStorageInsertMessage.hookBefore {
-            val message = MessageInfo(args[0]!!)
-            val suppressionUntil = probeMessageSuppressionUntil[message.talker] ?: return@hookBefore
-            if (suppressionUntil < System.currentTimeMillis()) {
-                probeMessageSuppressionUntil.remove(message.talker, suppressionUntil)
-                return@hookBefore
-            }
-            if (message.typeCode == 10000 && isRelationshipProbeMessage(message.content)) {
-                probeMessageSuppressionUntil.remove(message.talker)
-                result = -1L
+        installHook("WeContactApi#2") {
+            WeMessageApi.methodMsgInfoStorageInsertMessage.hookBefore {
+                val message = MessageInfo(args[0]!!)
+                val suppressionUntil = probeMessageSuppressionUntil[message.talker] ?: return@hookBefore
+                if (suppressionUntil < System.currentTimeMillis()) {
+                    probeMessageSuppressionUntil.remove(message.talker, suppressionUntil)
+                    return@hookBefore
+                }
+                if (message.typeCode == 10000 && isRelationshipProbeMessage(message.content)) {
+                    probeMessageSuppressionUntil.remove(message.talker)
+                    result = -1L
+                }
             }
         }
     }

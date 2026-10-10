@@ -129,38 +129,48 @@ object AutoOpenRedPackets : ClickableFeature(), WeDatabaseListenerApi.IInsertLis
         RedPacketSettings.requireReady()
         WeDatabaseListenerApi.addListener(this)
 
-        WePaymentApi.methodReceiveLuckyMoneyOnGYNetEnd.hookAfter {
-            handleReceiveResponse(args[2] as? JSONObject)
+        installHook("AutoOpenRedPackets#1") {
+            WePaymentApi.methodReceiveLuckyMoneyOnGYNetEnd.hookAfter {
+                handleReceiveResponse(args[2] as? JSONObject)
+            }
         }
-        methodReceiveUnionOnGYNetEnd.hookAfter {
-            handleReceiveResponse(args[2] as? JSONObject)
-        }
-
-        WePaymentApi.methodOpenLuckyMoneyOnGYNetEnd.hookAfter {
-            handleOpenResponse(args[2] as? JSONObject)
-        }
-        methodOpenUnionOnGYNetEnd.hookAfter {
-            handleOpenResponse(args[2] as? JSONObject)
+        installHook("AutoOpenRedPackets#2") {
+            methodReceiveUnionOnGYNetEnd.hookAfter {
+                handleReceiveResponse(args[2] as? JSONObject)
+            }
         }
 
-        classLuckyMoneyNotHookReceiveUI.clazz.declaredMethods
-            .filter { it.name == "onSceneEnd" }
-            .forEach { method ->
-                method.hookAfter(50) {
-                    val activity = thisObject as Activity
-                    val intent = activity.intent
-                    if (intent.getBooleanExtra(EXTRA_CLICK_RECEIVE, false) &&
-                        !intent.getBooleanExtra(EXTRA_CLICK_RECEIVE_SCHEDULED, false)
-                    ) {
-                        intent.putExtra(EXTRA_CLICK_RECEIVE_SCHEDULED, true)
-                        val button = findFirstButton(activity.window.decorView)
-                        if (button != null) {
-                            WeLogger.i(TAG, "auto-clicking receive button in host UI")
-                            button.performClick()
+        installHook("AutoOpenRedPackets#3") {
+            WePaymentApi.methodOpenLuckyMoneyOnGYNetEnd.hookAfter {
+                handleOpenResponse(args[2] as? JSONObject)
+            }
+        }
+        installHook("AutoOpenRedPackets#4") {
+            methodOpenUnionOnGYNetEnd.hookAfter {
+                handleOpenResponse(args[2] as? JSONObject)
+            }
+        }
+
+        installHook("AutoOpenRedPackets#5") {
+            classLuckyMoneyNotHookReceiveUI.clazz.declaredMethods
+                .filter { it.name == "onSceneEnd" }
+                .forEach { method ->
+                    method.hookAfter(50) {
+                        val activity = thisObject as Activity
+                        val intent = activity.intent
+                        if (intent.getBooleanExtra(EXTRA_CLICK_RECEIVE, false) &&
+                            !intent.getBooleanExtra(EXTRA_CLICK_RECEIVE_SCHEDULED, false)
+                        ) {
+                            intent.putExtra(EXTRA_CLICK_RECEIVE_SCHEDULED, true)
+                            val button = findFirstButton(activity.window.decorView)
+                            if (button != null) {
+                                WeLogger.i(TAG, "auto-clicking receive button in host UI")
+                                button.performClick()
+                            }
                         }
                     }
                 }
-            }
+        }
     }
 
     override fun onInsert(table: String, values: ContentValues) {

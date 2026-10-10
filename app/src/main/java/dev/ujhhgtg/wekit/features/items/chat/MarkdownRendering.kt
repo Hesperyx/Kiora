@@ -105,8 +105,9 @@ object MarkdownRendering : ClickableFeature(), IResolveDex {
     }
 
     override fun onEnable() {
-        installNativeRenderer()
+        installHook("nativeMarkdownRenderer") { installNativeRenderer() }
 
+        installHook("neatTextViewOnDraw") {
         MMNeat7extView::class.reflekt()
             .firstMethod { name = "onDraw" }
             .hookBefore {
@@ -184,6 +185,7 @@ object MarkdownRendering : ClickableFeature(), IResolveDex {
                 }
                 result = null
             }
+        }
     }
 
     private fun installNativeRenderer() {

@@ -83,7 +83,7 @@ object FakeMomentsLikes : SwitchFeature(), WeMomentsContextMenuApi.IMenuItemsPro
                 { _, _ -> true }
             ) { moment ->
                 val contacts = WeDatabaseApi.getContacts()
-                val snsInfo = moment.snsInfo!!
+                val snsInfo = moment.snsInfo ?: return@MenuItem
                 val snsId = snsInfo.reflekt().getField("field_snsId", true) as Long
 
                 val currentSelected = fakeLikeWxIds[snsId] ?: emptySet()

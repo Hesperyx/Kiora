@@ -8,7 +8,9 @@ import dev.ujhhgtg.wekit.features.api.core.WeApi
 import dev.ujhhgtg.wekit.features.api.core.WeMessageApi
 import dev.ujhhgtg.wekit.utils.serialization.NativeXmlParser
 import dev.ujhhgtg.wekit.utils.serialization.XmlObject
+import dev.ujhhgtg.wekit.utils.serialization.XmlPrimitive
 import dev.ujhhgtg.wekit.utils.serialization.XmlUtils
+import dev.ujhhgtg.wekit.utils.serialization.XmlValue
 import dev.ujhhgtg.wekit.utils.serialization.asInt
 import dev.ujhhgtg.wekit.utils.serialization.asLong
 import dev.ujhhgtg.wekit.utils.serialization.asString
@@ -194,12 +196,12 @@ class MessageInfo(val instance: Any) {
 
         private val xml = NativeXmlParser.toXmlObject(xmlStr.cleanupXml())
 
-        val title by lazy { xml.getByPath("msg.appmsg.title")!!.asString }
-        val size by lazy { xml.getByPath("msg.appmsg.appattach.totallen")!!.asLong }
-        val ext by lazy { xml.getByPath("msg.appmsg.appattach.fileext")!!.asString }
-        val md5 by lazy { xml.getByPath("msg.appmsg.md5")!!.asString }
-        val url by lazy { xml.getByPath("msg.appmsg.appattach.cdnattachurl")!!.asString }
-        val key by lazy { xml.getByPath("msg.appmsg.appattach.aeskey")!!.asString }
+        val title by lazy { xml.getByPath("msg.appmsg.title").xmlString() }
+        val size by lazy { xml.getByPath("msg.appmsg.appattach.totallen").xmlLong() }
+        val ext by lazy { xml.getByPath("msg.appmsg.appattach.fileext").xmlString() }
+        val md5 by lazy { xml.getByPath("msg.appmsg.md5").xmlString() }
+        val url by lazy { xml.getByPath("msg.appmsg.appattach.cdnattachurl").xmlString() }
+        val key by lazy { xml.getByPath("msg.appmsg.appattach.aeskey").xmlString() }
 
         /**
          * appmsg 内层 `<type>`:
@@ -219,59 +221,59 @@ class MessageInfo(val instance: Any) {
 
         private val xml = NativeXmlParser.toXmlObject(xmlStr.cleanupXml())
 
-        val md5 by lazy { xml.getByPath("msg.img.md5")!!.asString }
-        val bigImgUrl by lazy { xml.getByPath("msg.img.cdnbigimgurl")!!.asString }
-        val midImgUrl by lazy { xml.getByPath("msg.img.cdnmidimgurl")!!.asString }
-        val thumbUrl by lazy { xml.getByPath("msg.img.cdnthumburl")!!.asString }
-        val aesKey by lazy { xml.getByPath("msg.img.aeskey")!!.asString }
+        val md5 by lazy { xml.getByPath("msg.img.md5").xmlString() }
+        val bigImgUrl by lazy { xml.getByPath("msg.img.cdnbigimgurl").xmlString() }
+        val midImgUrl by lazy { xml.getByPath("msg.img.cdnmidimgurl").xmlString() }
+        val thumbUrl by lazy { xml.getByPath("msg.img.cdnthumburl").xmlString() }
+        val aesKey by lazy { xml.getByPath("msg.img.aeskey").xmlString() }
     }
 
     class PatMessage(xmlStr: String) {
 
         private val xml = NativeXmlParser.toXmlObject(xmlStr.cleanupXml())
 
-        val createTime by lazy { recordObj["createTime"]!!.asLong }
-        val fromUser by lazy { recordObj["fromUser"]!!.asString }
-        val pattedUser by lazy { recordObj["pattedUser"]!!.asString }
-        val readStatus by lazy { recordObj["readStatus"]!!.asInt }
-        val recordNum by lazy { xml.getByPath("msg.appmsg.patMsg.records.recordNum")!!.asInt }
-        val showModifyTip by lazy { recordObj["showModifyTip"]!!.asInt }
-        val svrId by lazy { recordObj["svrId"]!!.asLong }
-        val talker by lazy { xml.getByPath("msg.appmsg.patMsg.chatUser")!!.asString }
-        val template by lazy { recordObj["template"]!!.asString }
+        val createTime by lazy { recordObj["createTime"].xmlLong() }
+        val fromUser by lazy { recordObj["fromUser"].xmlString() }
+        val pattedUser by lazy { recordObj["pattedUser"].xmlString() }
+        val readStatus by lazy { recordObj["readStatus"].xmlInt() }
+        val recordNum by lazy { xml.getByPath("msg.appmsg.patMsg.records.recordNum").xmlInt() }
+        val showModifyTip by lazy { recordObj["showModifyTip"].xmlInt() }
+        val svrId by lazy { recordObj["svrId"].xmlLong() }
+        val talker by lazy { xml.getByPath("msg.appmsg.patMsg.chatUser").xmlString() }
+        val template by lazy { recordObj["template"].xmlString() }
         val recordObj by lazy {
-            xml.getByPath("msg.appmsg.patMsg.records.record")!! as XmlObject
+            xml.getByPath("msg.appmsg.patMsg.records.record") as? XmlObject ?: XmlObject(emptyMap())
         }
     }
 
     class QuoteMessage(xmlStr: String) {
         private val xml = NativeXmlParser.toXmlObject(xmlStr.cleanupXml())
 
-        val title by lazy { xml.getByPath("msg.appmsg.title")!!.asString }
-        val chatusr by lazy { xml.getByPath("msg.appmsg.refermsg.chatusr")!!.asString }
-        val displayname by lazy { xml.getByPath("msg.appmsg.refermsg.displayname")!!.asString }
-        val msgsource by lazy { xml.getByPath("msg.appmsg.refermsg.msgsource")!!.asString }
-        val svrid by lazy { xml.getByPath("msg.appmsg.refermsg.svrid")!!.asString.toLong() }
-        val fromusr by lazy { xml.getByPath("msg.appmsg.refermsg.fromusr")!!.asString }
-        val type by lazy { xml.getByPath("msg.appmsg.refermsg.type")!!.asString.toInt() }
-        val content by lazy { xml.getByPath("msg.appmsg.refermsg.content")!!.asString }
+        val title by lazy { xml.getByPath("msg.appmsg.title").xmlString() }
+        val chatusr by lazy { xml.getByPath("msg.appmsg.refermsg.chatusr").xmlString() }
+        val displayname by lazy { xml.getByPath("msg.appmsg.refermsg.displayname").xmlString() }
+        val msgsource by lazy { xml.getByPath("msg.appmsg.refermsg.msgsource").xmlString() }
+        val svrid by lazy { xml.getByPath("msg.appmsg.refermsg.svrid").xmlLong() }
+        val fromusr by lazy { xml.getByPath("msg.appmsg.refermsg.fromusr").xmlString() }
+        val type by lazy { xml.getByPath("msg.appmsg.refermsg.type").xmlInt() }
+        val content by lazy { xml.getByPath("msg.appmsg.refermsg.content").xmlString() }
     }
 
     class TransferMessage(xmlStr: String) {
 
         private val xml = NativeXmlParser.toXmlObject(xmlStr.cleanupXml())
 
-        val title by lazy { xml.getByPath("msg.appmsg.title")!!.asString }
-        val des by lazy { xml.getByPath("msg.appmsg.des")!!.asString }
+        val title by lazy { xml.getByPath("msg.appmsg.title").xmlString() }
+        val des by lazy { xml.getByPath("msg.appmsg.des").xmlString() }
 
         // 'transcationid' is WeChat's typo
-        val transactionId by lazy { xml.getByPath("msg.appmsg.wcpayinfo.transcationid")!!.asString }
-        val transferId by lazy { xml.getByPath("msg.appmsg.wcpayinfo.transferid")!!.asString }
-        val beginTransferTime by lazy { xml.getByPath("msg.appmsg.wcpayinfo.begintransfertime")!!.asString.toLong() }
-        val payerUsername by lazy { xml.getByPath("msg.appmsg.wcpayinfo.payer_username")!!.asString }
-        val receiverUsername by lazy { xml.getByPath("msg.appmsg.wcpayinfo.receiver_username")!!.asString }
-        val invalidTime by lazy { xml.getByPath("msg.appmsg.wcpayinfo.invalidtime")!!.asString.toInt() }
-        val feedesc by lazy { xml.getByPath("msg.appmsg.wcpayinfo.feedesc")!!.asString }
+        val transactionId by lazy { xml.getByPath("msg.appmsg.wcpayinfo.transcationid").xmlString() }
+        val transferId by lazy { xml.getByPath("msg.appmsg.wcpayinfo.transferid").xmlString() }
+        val beginTransferTime by lazy { xml.getByPath("msg.appmsg.wcpayinfo.begintransfertime").xmlLong() }
+        val payerUsername by lazy { xml.getByPath("msg.appmsg.wcpayinfo.payer_username").xmlString() }
+        val receiverUsername by lazy { xml.getByPath("msg.appmsg.wcpayinfo.receiver_username").xmlString() }
+        val invalidTime by lazy { xml.getByPath("msg.appmsg.wcpayinfo.invalidtime").xmlInt() }
+        val feedesc by lazy { xml.getByPath("msg.appmsg.wcpayinfo.feedesc").xmlString() }
         val totalFee by lazy {
             xml.getByPath("msg.appmsg.wcpayinfo.total_fee")?.asString?.toLongOrNull() ?: 0L
         }
@@ -320,3 +322,13 @@ class MessageInfo(val instance: Any) {
         }
     }
 }
+
+// Lenient readers for message XML: WeChat omits optional tags and occasionally ships a value under
+// a shape the parser cannot coerce to a primitive. The strict `asString`/`asLong`/`asInt` helpers
+// throw in both cases, which used to crash any feature that read such a message; these degrade to a
+// neutral value instead.
+private fun XmlValue?.xmlString(): String = (this as? XmlPrimitive)?.value.orEmpty()
+
+private fun XmlValue?.xmlLong(): Long = (this as? XmlPrimitive)?.value?.toLongOrNull() ?: 0L
+
+private fun XmlValue?.xmlInt(): Int = (this as? XmlPrimitive)?.value?.toIntOrNull() ?: 0

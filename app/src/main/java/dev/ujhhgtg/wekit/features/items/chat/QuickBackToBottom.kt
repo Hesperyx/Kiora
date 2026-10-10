@@ -124,28 +124,40 @@ object QuickBackToBottom : SwitchFeature(), IResolveDex {
     }
 
     override fun onEnable() {
-        methodSetShowHistoryMsgTipId.hookBefore {
-            if (SystemClock.elapsedRealtime() < suppressHistoryMsgTipUntil) {
-                suppressHistoryMsgTipUntil = 0
-                result = null
+        installHook("QuickBackToBottom#1") {
+            methodSetShowHistoryMsgTipId.hookBefore {
+                if (SystemClock.elapsedRealtime() < suppressHistoryMsgTipUntil) {
+                    suppressHistoryMsgTipUntil = 0
+                    result = null
+                }
             }
         }
-        methodGetMsgCount.hookAfter {
-            msgCounts[args[0] as String] = result as Int
+        installHook("QuickBackToBottom#2") {
+            methodGetMsgCount.hookAfter {
+                // 类型不符时不能抛：这里在宿主「每次加载/更新舌头」的热路径上，抛出去会打断微信自己的列表刷新。
+                val talker = args.getOrNull(0) as? String ?: return@hookAfter
+                val count = result as? Int ?: return@hookAfter
+                if (count >= 0) msgCounts[talker] = count
+            }
         }
-        methodComponentInit.hookAfter {
-            val component = thisObject!!
-            val fieldValues = component.reflekt().fields { superclass = true }.map { it.get() }
-            val bubble = fieldValues
-                .filterIsInstance<View>()
-                .firstOrNull { it.isNewMessageBubble() } ?: return@hookAfter
-            components[bubble] = component
-            contexts[bubble] = fieldValues.firstOrNull {
-                WeMessageApi.classChattingContext.clazz.isInstance(it)
-            } ?: return@hookAfter
+        installHook("QuickBackToBottom#3") {
+            methodComponentInit.hookAfter {
+                val component = thisObject ?: return@hookAfter
+                val fieldValues = component.reflekt().fields { superclass = true }
+                    .mapNotNull { runCatching { it.get() }.getOrNull() }
+                val bubble = fieldValues
+                    .filterIsInstance<View>()
+                    .firstOrNull { it.isNewMessageBubble() } ?: return@hookAfter
+                components[bubble] = component
+                contexts[bubble] = fieldValues.firstOrNull {
+                    WeMessageApi.classChattingContext.clazz.isInstance(it)
+                } ?: return@hookAfter
+            }
         }
-        ChatFooter::class.reflekt().firstMethod { name = "onAttachedToWindow" }.hookAfter {
-            attachToChat(thisObject as ChatFooter)
+        installHook("QuickBackToBottom#4") {
+            ChatFooter::class.reflekt().firstMethod { name = "onAttachedToWindow" }.hookAfter {
+                attachToChat(thisObject as ChatFooter)
+            }
         }
     }
 
@@ -168,8 +180,13 @@ object QuickBackToBottom : SwitchFeature(), IResolveDex {
             runCatching { footer.viewTreeObserver.removeOnPreDrawListener(old) }
         }
         val listener = ViewTreeObserver.OnPreDrawListener {
-            val bubble = footer.newMessageBubble() ?: return@OnPreDrawListener true
-            updateBubble(footer.chatRecycler(), bubble)
+            // 这个回调每帧都跑：内部任何一步（找不到列表/图标/文本、父容器类型变化）抛异常
+            // 都会直接崩主线程。全部收进 runCatching，失败只记一条日志，绝不冒泡。
+            runCatching {
+                val bubble = footer.newMessageBubble() ?: return@runCatching
+                val recycler = footer.chatRecycler() ?: return@runCatching
+                updateBubble(recycler, bubble)
+            }.onFailure { WeLogger.w(TAG, "pre-draw reconcile failed", it) }
             true
         }
         preDrawListeners[footer] = listener
@@ -191,21 +208,23 @@ object QuickBackToBottom : SwitchFeature(), IResolveDex {
         // 微信只在它自己显示气泡时才会把 layout_gravity 从 XML 的 top|right 改成 bottom|end;
         // 我们强制显示时它没走这套逻辑, 气泡会停在屏幕右上角, 这里主动钉回右下角。
         ensureBottomRight(bubble)
-        val icon = bubble.findViewWhich { it is WeImageView }!! as WeImageView
-        if (icon.rotation != BUBBLE_ICON_ROTATION) icon.rotation = BUBBLE_ICON_ROTATION
+        (bubble.findViewWhich { it is WeImageView } as? WeImageView)?.let { icon ->
+            if (icon.rotation != BUBBLE_ICON_ROTATION) icon.rotation = BUBBLE_ICON_ROTATION
+        }
         // 每帧都接管点击: 微信 H0/update 随时会重挂 zf/eg 等监听, 只在文本变化时替换会漏掉,
         // 点到旧的 zf (D 为空) 会 NPE, 点到旧的 eg 会用过期位置跳到错误消息。
         bubble.setOnClickListener { scrollToLatest(bubble) }
-        val textView = bubble.findViewWhich { it is TextView }!! as TextView
-        if (textView.text.toString() != BUBBLE_TEXT) {
-            textView.text = BUBBLE_TEXT
-            WeLogger.d(TAG, "bubble taken over: remaining=${remaining}px threshold=${threshold}px")
+        (bubble.findViewWhich { it is TextView } as? TextView)?.let { textView ->
+            if (textView.text.toString() != BUBBLE_TEXT) {
+                textView.text = BUBBLE_TEXT
+                WeLogger.d(TAG, "bubble taken over: remaining=${remaining}px threshold=${threshold}px")
+            }
         }
     }
 
     /** 把气泡定位到右下角, 与微信 H0(i16=5) 的 gravity (BOTTOM|END) 一致。 */
     private fun ensureBottomRight(bubble: View) {
-        val lp = bubble.layoutParams as FrameLayout.LayoutParams
+        val lp = bubble.layoutParams as? FrameLayout.LayoutParams ?: return
         if (lp.gravity and Gravity.VERTICAL_GRAVITY_MASK == Gravity.BOTTOM) return
         lp.gravity = Gravity.BOTTOM or Gravity.END
         lp.topMargin = 0
@@ -234,7 +253,13 @@ object QuickBackToBottom : SwitchFeature(), IResolveDex {
             WeLogger.w(TAG, "component/context not captured, click ignored")
             return
         }
-        val talker = WeMessageApi.methodChattingContextGetTalker.method.invoke(context) as String
+        // 反射取值可能为 null/类型变化，点击是用户直接触发，抛异常会直接崩。
+        val talker = runCatching {
+            WeMessageApi.methodChattingContextGetTalker.method.invoke(context) as? String
+        }.getOrNull() ?: run {
+            WeLogger.w(TAG, "talker unavailable, click ignored")
+            return
+        }
         val totalCount = msgCounts[talker] ?: run {
             WeLogger.w(TAG, "total message count not captured, click ignored")
             return
@@ -243,18 +268,19 @@ object QuickBackToBottom : SwitchFeature(), IResolveDex {
         // 下一次 setShowHistoryMsgTipId 调用 (异步到达) 会被跳过并自动消费掉。
         suppressHistoryMsgTipUntil = SystemClock.elapsedRealtime() + SUPPRESS_HISTORY_MSG_TIP_WINDOW_MS
         // m0/p0 是静态方法: receiver 传 null, 组件实例和位置都进参数数组
-        methodLocationByMsgId.method.invoke(null, component, totalCount - 1)
+        runCatching { methodLocationByMsgId.method.invoke(null, component, totalCount - 1) }
+            .onFailure { WeLogger.w(TAG, "locationByMsgId invoke failed", it) }
     }
 
     /**
      * 从 footer 所在的 ChattingScrollLayout 里定位消息列表 RecyclerView。
      */
-    private fun ChatFooter.chatRecycler(): ChattingRecyclerView {
+    private fun ChatFooter.chatRecycler(): ChattingRecyclerView? {
         val cached = chatListRecyclers[this]
         if (cached != null && cached.isAttachedToWindow) return cached
-        val found = ((parent as ChattingScrollLayout)
-            .findViewWhich { it is MMChattingListView }!! as MMChattingListView)
-            .findViewWhich { it is ChattingRecyclerView }!! as ChattingRecyclerView
+        val scroll = parent as? ChattingScrollLayout ?: return null
+        val listView = scroll.findViewWhich { it is MMChattingListView } as? MMChattingListView ?: return null
+        val found = listView.findViewWhich { it is ChattingRecyclerView } as? ChattingRecyclerView ?: return null
         chatListRecyclers[this] = found
         return found
     }
@@ -269,8 +295,8 @@ object QuickBackToBottom : SwitchFeature(), IResolveDex {
         if (cached != null && cached.isAttachedToWindow && (cached.parent as ViewGroup).parent === parent) {
             return cached
         }
-        val content = (parent as ChattingScrollLayout)
-            .findViewWhich { it is ChattingContent }!! as ChattingContent
+        val scroll = parent as? ChattingScrollLayout ?: return null
+        val content = scroll.findViewWhich { it is ChattingContent } as? ChattingContent ?: return null
         for (i in 0 until content.childCount) {
             val candidate = content.getChildAt(i)
             if (candidate.isNewMessageBubble()) {

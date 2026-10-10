@@ -328,27 +328,31 @@ object WeDatabaseApi : ApiFeature(), IResolveDex {
     }
 
     override fun onEnable() {
-        methodGetStorage.method.hookAfter {
-            if (::db.isInitialized) return@hookAfter
+        installHook("WeDatabaseApi#1") {
+            methodGetStorage.method.hookAfter {
+                if (::db.isInitialized) return@hookAfter
 
-            val storageObj = result ?: return@hookAfter
-            initializeDatabase(storageObj)
+                val storageObj = result ?: return@hookAfter
+                initializeDatabase(storageObj)
+            }
         }
 
-        if (Preferences.verboseLog) {
-            SQLiteDatabase::class.reflekt().firstMethod {
-                name = "openDatabase"
-                parameters(BString, ByteArray::class, SQLiteCipherSpec::class, SQLiteDatabase.CursorFactory::class, int, DatabaseErrorHandler::class, int)
-            }.hookBefore {
-                val cipherSpec = args[2] as SQLiteCipherSpec?
-                WeLogger.d(
-                    TAG,
-                    "openDatabase() called with: name=${args[0] as String?}, password=${String(args[1] as? ByteArray? ?: return@hookBefore)}, cipherSpec=${
-                        cipherSpec.run {
-                            "${this?.hmacAlgorithm},${this?.hmacEnabled},${this?.kdfAlgorithm},${this?.kdfIteration},${this?.pageSize}"
-                        }
-                    }"
-                )
+        installHook("WeDatabaseApi#2") {
+            if (Preferences.verboseLog) {
+                SQLiteDatabase::class.reflekt().firstMethod {
+                    name = "openDatabase"
+                    parameters(BString, ByteArray::class, SQLiteCipherSpec::class, SQLiteDatabase.CursorFactory::class, int, DatabaseErrorHandler::class, int)
+                }.hookBefore {
+                    val cipherSpec = args[2] as SQLiteCipherSpec?
+                    WeLogger.d(
+                        TAG,
+                        "openDatabase() called with: name=${args[0] as String?}, password=${String(args[1] as? ByteArray? ?: return@hookBefore)}, cipherSpec=${
+                            cipherSpec.run {
+                                "${this?.hmacAlgorithm},${this?.hmacEnabled},${this?.kdfAlgorithm},${this?.kdfIteration},${this?.pageSize}"
+                            }
+                        }"
+                    )
+                }
             }
         }
     }

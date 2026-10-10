@@ -26,39 +26,46 @@ object RemoveSignatureLimits : SwitchFeature(), IResolveDex {
     private lateinit var setFiltersUnhook: HookHandle
 
     override fun onEnable() {
-        EditSignatureUI::class.reflekt()
-            .firstMethod { name = "initView" }.apply {
-                hookBefore {
-                    setFiltersUnhook = "${PackageNames.WECHAT}.ui.widget.MMEditText".toClass().reflekt()
-                        .firstMethod {
-                            name = "setFilters"
-                        }.hookBeforeDirectly {
-                            result = null
-                        }
-                }
+        installHook("RemoveSignatureLimits#1") {
+            EditSignatureUI::class.reflekt()
+                .firstMethod { name = "initView" }.apply {
+                    hookBefore {
+                        setFiltersUnhook = "${PackageNames.WECHAT}.ui.widget.MMEditText".toClass().reflekt()
+                            .firstMethod {
+                                name = "setFilters"
+                            }.hookBeforeDirectly {
+                                result = null
+                            }
+                    }
 
-                hookAfter {
-                    val activity = thisObject as EditSignatureUI
-                    activity.enableOptionMenu(true)
-                    (activity.reflekt()
-                        .firstField { type = TextView::class }
-                        .get()!! as TextView).visibility = View.GONE
+                    hookAfter {
+                        val activity = thisObject as? EditSignatureUI ?: return@hookAfter
+                        activity.enableOptionMenu(true)
+                        val signatureHint = activity.reflekt()
+                            .firstField { type = TextView::class }
+                            .get() as? TextView
+                        signatureHint?.visibility = View.GONE
+                    }
                 }
-            }
-
-        methodTextWatcherAfterTextChanged.hookBefore {
-            result = null
         }
 
-        methodConfirmButtonOnClickListenerOnClick.apply {
-            hookBefore {
-                stringMatchesMethodUnhook = String::class.java.reflekt()
-                    .firstMethod { name = "matches" }
-                    .hookBeforeDirectly { result = false }
+        installHook("RemoveSignatureLimits#2") {
+            methodTextWatcherAfterTextChanged.hookBefore {
+                result = null
             }
-            hookAfter {
-                stringMatchesMethodUnhook.unhook()
-                setFiltersUnhook.unhook()
+        }
+
+        installHook("RemoveSignatureLimits#3") {
+            methodConfirmButtonOnClickListenerOnClick.apply {
+                hookBefore {
+                    stringMatchesMethodUnhook = String::class.java.reflekt()
+                        .firstMethod { name = "matches" }
+                        .hookBeforeDirectly { result = false }
+                }
+                hookAfter {
+                    stringMatchesMethodUnhook.unhook()
+                    setFiltersUnhook.unhook()
+                }
             }
         }
     }

@@ -56,42 +56,46 @@ object RemoveEmbeddedAds : SwitchFeature(), IResolveDex {
     override fun onEnable() {
         // 不同版本构造函数的 data 参数位置不同 (8.0.65 在 args[1], 8.0.76 在 args[3]),
         // 直接扫描出带 api_name 的那个 JSON 字符串。
-        ctorNetSceneJSOperateWxData.hookBefore {
-            val dataIndex = args.indexOfFirst { arg ->
-                arg is String && runCatching {
-                    JSONObject(arg).optString("api_name") == "webapi_getadvert"
-                }.getOrDefault(false)
+        installHook("RemoveEmbeddedAds#1") {
+            ctorNetSceneJSOperateWxData.hookBefore {
+                val dataIndex = args.indexOfFirst { arg ->
+                    arg is String && runCatching {
+                        JSONObject(arg).optString("api_name") == "webapi_getadvert"
+                    }.getOrDefault(false)
+                }
+                if (dataIndex < 0) return@hookBefore
+                val json = JSONObject(args[dataIndex] as String)
+                val data = json.optJSONObject("data") ?: return@hookBefore
+                if (isRewardedAdRequest(data)) {
+                    return@hookBefore
+                }
+                data.put("ad_unit_id", "")
+                args[dataIndex] = json.toString()
             }
-            if (dataIndex < 0) return@hookBefore
-            val json = JSONObject(args[dataIndex] as String)
-            val data = json.optJSONObject("data") ?: return@hookBefore
-            if (isRewardedAdRequest(data)) {
-                return@hookBefore
-            }
-            data.put("ad_unit_id", "")
-            args[dataIndex] = json.toString()
         }
 
-        methodBaseTransferRequestOnLoad.hookBefore {
-            val transferResultInfo = args[0]!!
-            if (!::protoField.isInitialized) {
-                protoField = transferResultInfo.reflekt()
-                    .firstField {
-                        type { !it.isBuiltin }
-                    }.self
-            }
-
-            val proto = protoField.get(transferResultInfo)
-            proto.reflekt()
-                .fields {
-                    type = String::class
-                }.forEach {
-                    val jsonStr = it.get() as? String? ?: return@forEach
-                    if (jsonStr.isBlank()) return@forEach
-                    val json = runCatching { JSONObject(jsonStr) }.getOrElse { return@forEach }
-                    if (!json.has("ad_slot_data")) return@forEach
-                    it.set("{}")
+        installHook("RemoveEmbeddedAds#2") {
+            methodBaseTransferRequestOnLoad.hookBefore {
+                val transferResultInfo = args[0]!!
+                if (!::protoField.isInitialized) {
+                    protoField = transferResultInfo.reflekt()
+                        .firstField {
+                            type { !it.isBuiltin }
+                        }.self
                 }
+
+                val proto = protoField.get(transferResultInfo)
+                proto.reflekt()
+                    .fields {
+                        type = String::class
+                    }.forEach {
+                        val jsonStr = it.get() as? String? ?: return@forEach
+                        if (jsonStr.isBlank()) return@forEach
+                        val json = runCatching { JSONObject(jsonStr) }.getOrElse { return@forEach }
+                        if (!json.has("ad_slot_data")) return@forEach
+                        it.set("{}")
+                    }
+            }
         }
     }
 

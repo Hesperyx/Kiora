@@ -156,6 +156,7 @@ object HomeSidePanel : SwitchFeature(), IResolveDex {
     }
 
     override fun onEnable() {
+        installHook("walletBalance") {
         HomeSidePanelWalletBalanceSource.install {
             readHomeSidePanelWalletBalance(
                 walletCacheReadMethod = methodWalletCacheRead.method,
@@ -165,6 +166,9 @@ object HomeSidePanel : SwitchFeature(), IResolveDex {
         methodWalletCacheWrite.hookAfter {
             HomeSidePanelWalletBalanceSource.onCacheWrite(args[0], args[1])
         }
+        }
+
+        installHook("launcherEdgeToEdge") {
         LauncherUI::class.reflekt().firstMethodOrNull {
             name = "enableEdge2Edge"
             parameters()
@@ -174,6 +178,9 @@ object HomeSidePanel : SwitchFeature(), IResolveDex {
         LauncherUI::class.hookAfterOnCreate {
             ensureLauncherEdgeToEdge(thisObject as Activity)
         }
+        }
+
+        installHook("moveTaskToBack") {
         LauncherUI::class.reflekt().firstMethod {
             name = "moveTaskToBack"
             parameters(Boolean::class)
@@ -185,6 +192,9 @@ object HomeSidePanel : SwitchFeature(), IResolveDex {
                 result = true
             }
         }
+        }
+
+        installHook("launcherOnResume") {
         LauncherUI::class.reflekt().firstMethod {
             name = "onResume"
             parameters()
@@ -193,6 +203,9 @@ object HomeSidePanel : SwitchFeature(), IResolveDex {
             sessions.values.mapNotNull { it.get() }.firstOrNull { it.ownsActivity(activity) }
                 ?.onLauncherResumed()
         }
+        }
+
+        installHook("launcherStartChatting") {
         LauncherUI::class.reflekt().firstMethod {
             name = "startChatting"
             parameters(String::class, Bundle::class, Boolean::class)
@@ -202,6 +215,9 @@ object HomeSidePanel : SwitchFeature(), IResolveDex {
                 .firstOrNull { it.ownsActivity(activity) }
                 ?.onChatTransition()
         }
+        }
+
+        installHook("launcherCloseChatting") {
         LauncherUI::class.reflekt().firstMethod {
             name = "closeChatting"
             parameters(Boolean::class)
@@ -211,6 +227,9 @@ object HomeSidePanel : SwitchFeature(), IResolveDex {
                 .firstOrNull { it.ownsActivity(activity) }
                 ?.onChatTransition()
         }
+        }
+
+        installHook("launcherOnDestroy") {
         LauncherUI::class.reflekt().firstMethod {
             name = "onDestroy"
             parameters()
@@ -219,6 +238,9 @@ object HomeSidePanel : SwitchFeature(), IResolveDex {
             removePendingEdgeToEdgeAttachListener(activity)
             removeSessionsForActivity(activity)
         }
+        }
+
+        installHook("requestDisallowInterceptTouchEvent") {
         ViewGroup::class.reflekt().firstMethod {
             name = "requestDisallowInterceptTouchEvent"
             parameters(Boolean::class)
@@ -226,6 +248,9 @@ object HomeSidePanel : SwitchFeature(), IResolveDex {
             val pager = thisObject as? WxViewPager ?: return@hookBefore
             if (args[0] as Boolean) sessions[pager]?.get()?.onPagerChildClaimedGesture()
         }
+        }
+
+        installHook("customViewPagerOnInterceptTouchEvent") {
         CustomViewPager::class.reflekt().firstMethod {
             name = "onInterceptTouchEvent"
             parameters(MotionEvent::class)
@@ -235,6 +260,9 @@ object HomeSidePanel : SwitchFeature(), IResolveDex {
             // The native pager must also give children the MOVE that can claim a rightward drag.
             if (session.shouldDeferPagerInterception(args[0] as MotionEvent)) result = false
         }
+        }
+
+        installHook("customViewPagerDispatchTouchEvent") {
         dispatchTouchEventMethod.hookBefore {
             val pager = thisObject as? WxViewPager ?: return@hookBefore
             val session = sessions[pager]?.get() ?: return@hookBefore
@@ -255,6 +283,9 @@ object HomeSidePanel : SwitchFeature(), IResolveDex {
                 }
             ) result = true
         }
+        }
+
+        installHook("mainTabUiOnCreate") {
         WeMainActivityBeautifyApi.methodDoOnCreate.hookAfter {
             val activity = thisObject!!.reflekt()
                 .firstField {
@@ -282,6 +313,7 @@ object HomeSidePanel : SwitchFeature(), IResolveDex {
             val session = HomeSidePanelSession(activity, parent, viewPager, tabsAdapter).also { it.attach() }
             session.setSelectedTab(viewPager.currentItem)
             sessions[viewPager] = WeakReference(session)
+        }
         }
     }
 

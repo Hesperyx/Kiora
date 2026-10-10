@@ -82,61 +82,69 @@ object NoCompressUploadedImages : ClickableFeature(), IResolveDex {
     }
 
     override fun onEnable() {
-        methodImagePreviewSend.hookBefore {
-            val activity = thisObject as Activity
-            if (activity.intent.getIntExtra("query_source_type", -1) != 4) return@hookBefore
-            // SnsUIAction opens the gallery with source 4. forTimeline=true forces
-            // compression and routes a single video through the video editor. Returning
-            // the selected file lists instead is also supported by SnsUIAction.
-            args[1] = false
-            args[2] = false
-            (args[0] as Intent).putExtra("CropImage_Compress_Img", false)
-        }
-
-        Activity::class.reflekt().firstMethod {
-            name = "setResult"
-            parameters(Int::class, Intent::class)
-        }.hookBefore {
-            val activity = thisObject as Activity
-            if (activity.javaClass.name !in GALLERY_RESULT_PAGES ||
-                activity.intent.getIntExtra("query_source_type", -1) != 4 ||
-                args[0] as Int != Activity.RESULT_OK
-            ) return@hookBefore
-            val data = args[1] as? Intent ?: return@hookBefore
-            if (data.hasExtra("CropImage_OutputPath_List") || data.hasExtra("key_select_video_list")) {
-                // Set these before the result is handed to the caller: the gallery writes
-                // key_delete_origin_file late, after constructing the image/video lists.
-                data.putExtra("CropImage_Compress_Img", false)
-                data.putExtra("key_delete_origin_file", false)
+        installHook("noCompressUploadedImages.imagePreviewSend") {
+            methodImagePreviewSend.hookBefore {
+                val activity = thisObject as Activity
+                if (activity.intent.getIntExtra("query_source_type", -1) != 4) return@hookBefore
+                // SnsUIAction opens the gallery with source 4. forTimeline=true forces
+                // compression and routes a single video through the video editor. Returning
+                // the selected file lists instead is also supported by SnsUIAction.
+                args[1] = false
+                args[2] = false
+                (args[0] as Intent).putExtra("CropImage_Compress_Img", false)
             }
         }
 
-        methodCreatePic.hookBefore {
-            if (selectedMode == MODE_CONVERT) {
-                val str6 = args[0] as? String ?: ""
-                val str8 = args[1] as? String ?: ""
-                val str = args[2] as? String ?: ""
-                val strConcat = str6 + str
-
-                val resultBool = methodConvertImg2WxamWithoutZip.method.invoke(null, str8, strConcat) as? Boolean ?: false
-                result = resultBool
+        installHook("noCompressUploadedImages.activityOnCreate") {
+            Activity::class.reflekt().firstMethod {
+                name = "setResult"
+                parameters(Int::class, Intent::class)
+            }.hookBefore {
+                val activity = thisObject as Activity
+                if (activity.javaClass.name !in GALLERY_RESULT_PAGES ||
+                    activity.intent.getIntExtra("query_source_type", -1) != 4 ||
+                    args[0] as Int != Activity.RESULT_OK
+                ) return@hookBefore
+                val data = args[1] as? Intent ?: return@hookBefore
+                if (data.hasExtra("CropImage_OutputPath_List") || data.hasExtra("key_select_video_list")) {
+                    // Set these before the result is handed to the caller: the gallery writes
+                    // key_delete_origin_file late, after constructing the image/video lists.
+                    data.putExtra("CropImage_Compress_Img", false)
+                    data.putExtra("key_delete_origin_file", false)
+                }
             }
         }
 
-        methodCreatePic.hookAfter {
-            if (selectedMode == MODE_COPY) {
-                val str11 = args[0] as? String ?: ""
-                val str13 = args[1] as? String ?: ""
-                val str = args[2] as? String ?: ""
-                val isUpload = args[3] as? Boolean ?: false
+        installHook("noCompressUploadedImages.createPicBefore") {
+            methodCreatePic.hookBefore {
+                if (selectedMode == MODE_CONVERT) {
+                    val str6 = args[0] as? String ?: ""
+                    val str8 = args[1] as? String ?: ""
+                    val str = args[2] as? String ?: ""
+                    val strConcat = str6 + str
 
-                if (isUpload) {
-                    val src = str13.asPath
-                    val strConcat2 = str11 + str
-                    val cachePath = vfsGetCachePathMethod.invoke(null, strConcat2, true) as? String
-                    if (cachePath != null) {
-                        val dst = cachePath.asPath
-                        src.copyTo(dst, overwrite = true)
+                    val resultBool = methodConvertImg2WxamWithoutZip.method.invoke(null, str8, strConcat) as? Boolean ?: false
+                    result = resultBool
+                }
+            }
+        }
+
+        installHook("noCompressUploadedImages.createPicAfter") {
+            methodCreatePic.hookAfter {
+                if (selectedMode == MODE_COPY) {
+                    val str11 = args[0] as? String ?: ""
+                    val str13 = args[1] as? String ?: ""
+                    val str = args[2] as? String ?: ""
+                    val isUpload = args[3] as? Boolean ?: false
+
+                    if (isUpload) {
+                        val src = str13.asPath
+                        val strConcat2 = str11 + str
+                        val cachePath = vfsGetCachePathMethod.invoke(null, strConcat2, true) as? String
+                        if (cachePath != null) {
+                            val dst = cachePath.asPath
+                            src.copyTo(dst, overwrite = true)
+                        }
                     }
                 }
             }

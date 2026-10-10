@@ -80,20 +80,22 @@ object CustomChatInputBarPlaceholderText : ClickableFeature(), IResolveDex, WeDa
             lastDayOfMonth = curDay
         }
 
-        methodChatFooterCanSend.hookAfter {
-            val canSend = args[0] as Boolean
-            if (canSend) return@hookAfter
+        installHook("CustomChatInputBarPlaceholderText#1") {
+            methodChatFooterCanSend.hookAfter {
+                val canSend = args[0] as Boolean
+                if (canSend) return@hookAfter
 
-            thisObject!!.reflekt().invokeMethod(
-                "setHint", text
-                    .replace($$"$totalCount", totC.toString())
-                    .replace($$"$textCount", textC.toString())
-                    .replace($$"$charCount", charC.toString())
-                    .replace($$"$emojiCount", emojiC.toString())
-                    .replace($$"$transferCount", transferC.toString())
-                    .replace($$"$redPacketCount", redPacketC.toString())
-                    .replace($$"$fileCount", fileC.toString())
-            )
+                thisObject!!.reflekt().invokeMethod(
+                    "setHint", text
+                        .replace($$"$totalCount", totC.toString())
+                        .replace($$"$textCount", textC.toString())
+                        .replace($$"$charCount", charC.toString())
+                        .replace($$"$emojiCount", emojiC.toString())
+                        .replace($$"$transferCount", transferC.toString())
+                        .replace($$"$redPacketCount", redPacketC.toString())
+                        .replace($$"$fileCount", fileC.toString())
+                )
+            }
         }
     }
 

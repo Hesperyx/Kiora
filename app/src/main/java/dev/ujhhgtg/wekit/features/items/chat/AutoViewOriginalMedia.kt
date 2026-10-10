@@ -53,7 +53,10 @@ object AutoViewOriginalMedia : SwitchFeature(), IResolveDex {
                 }
             }
         }
-        methodSetImageHdImgBtnVisibility.setDescriptor(results.single())
+        methodSetImageHdImgBtnVisibility.setDescriptor(
+            results.singleOrNull()
+                ?: error("expected exactly one ImageGalleryUI HD-image method, found ${results.size}")
+        )
 
         methodCheckNeedShowOriginVideoBtn.find(dexKit) {
             matcher {
@@ -143,53 +146,57 @@ object AutoViewOriginalMedia : SwitchFeature(), IResolveDex {
     }
 
     override fun onEnable() {
-        listOf(
-            methodSetImageHdImgBtnVisibility,
-            methodCheckNeedShowOriginVideoBtn
-        ).forEach { method ->
-            if (method.isPlaceholder) return@forEach
+        installHook("AutoViewOriginalMedia#1") {
+            listOf(
+                methodSetImageHdImgBtnVisibility,
+                methodCheckNeedShowOriginVideoBtn
+            ).forEach { method ->
+                if (method.isPlaceholder) return@forEach
 
-            method.hookAfter {
-                clickVisibleOriginalMediaButtons(thisObject!!)
+                method.hookAfter {
+                    clickVisibleOriginalMediaButtons(thisObject!!)
+                }
             }
         }
 
-        if (!methodUpdateMediaGalleryVideoOriginButton.isPlaceholder) {
-            methodUpdateMediaGalleryVideoOriginButton.hookAfter {
-                if (args[1] as Boolean) return@hookAfter
+        installHook("AutoViewOriginalMedia#2") {
+            if (!methodUpdateMediaGalleryVideoOriginButton.isPlaceholder) {
+                methodUpdateMediaGalleryVideoOriginButton.hookAfter {
+                    if (args[1] as Boolean) return@hookAfter
 
-                val binding = thisObject!!.reflekt().firstField {
-                    type { !it.isPrimitive }
-                }.get()!!
-                val originalVideoButton = binding.reflekt().firstField {
-                    type = Button::class
-                }.get() as Button
-                clickOriginalMediaButton(originalVideoButton)
-            }
-            methodBindMediaGalleryChatLiveBottomBar.hookAfter {
-                val layer = thisObject!!
-                val bindContext = args[0]!!
-                if (lastLivePhotoBindings[layer] === bindContext) return@hookAfter
-                lastLivePhotoBindings[layer] = bindContext
+                    val binding = thisObject!!.reflekt().firstField {
+                        type { !it.isPrimitive }
+                    }.get()!!
+                    val originalVideoButton = binding.reflekt().firstField {
+                        type = Button::class
+                    }.get() as Button
+                    clickOriginalMediaButton(originalVideoButton)
+                }
+                methodBindMediaGalleryChatLiveBottomBar.hookAfter {
+                    val layer = thisObject!!
+                    val bindContext = args[0]!!
+                    if (lastLivePhotoBindings[layer] === bindContext) return@hookAfter
+                    lastLivePhotoBindings[layer] = bindContext
 
-                val binding = layer.reflekt().firstField {
-                    type { candidate ->
-                        candidate.reflekt().fields {
-                            type = MEDIA_DOWNLOAD_TEXT_CLASS
-                        }.isNotEmpty()
-                    }
-                }.get()!!
-                val originalImageControl = binding.reflekt().firstField {
-                    type = MEDIA_DOWNLOAD_TEXT_CLASS
-                }.get() as View
+                    val binding = layer.reflekt().firstField {
+                        type { candidate ->
+                            candidate.reflekt().fields {
+                                type = MEDIA_DOWNLOAD_TEXT_CLASS
+                            }.isNotEmpty()
+                        }
+                    }.get()!!
+                    val originalImageControl = binding.reflekt().firstField {
+                        type = MEDIA_DOWNLOAD_TEXT_CLASS
+                    }.get() as View
 
-                originalImageControl.post {
-                    if (lastLivePhotoBindings[layer] === bindContext &&
-                        originalImageControl.isShown &&
-                        originalImageControl.isEnabled &&
-                        originalImageControl.hasVisibleOriginalMediaLabel()
-                    ) {
-                        originalImageControl.performClick()
+                    originalImageControl.post {
+                        if (lastLivePhotoBindings[layer] === bindContext &&
+                            originalImageControl.isShown &&
+                            originalImageControl.isEnabled &&
+                            originalImageControl.hasVisibleOriginalMediaLabel()
+                        ) {
+                            originalImageControl.performClick()
+                        }
                     }
                 }
             }

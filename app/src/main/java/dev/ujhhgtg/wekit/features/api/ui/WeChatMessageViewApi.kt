@@ -98,59 +98,68 @@ object WeChatMessageViewApi : ApiFeature(), IResolveDex {
     }
 
     override fun onEnable() {
-        methodChatItemSetNickname.hookAfter {
-            if (args[1] != null) return@hookAfter
-            val holder = args[0] ?: return@hookAfter
-            val userTv = holder.reflekt()
-                .firstFieldOrNull { name = "userTV"; superclass() }
-                ?.get() as? TextView ?: return@hookAfter
-            userTv.text = null
-        }
-
-        methodChatItemOnBindView.hookAfter {
-            val holder = args[0]!!
-            val view = holder.reflekt()
-                .firstField {
-                    type = View::class
-                    superclass()
-                }
-                .get()!! as View
-            val message = getMsgInfoFromParam(this)
-            ensureAttachStateListener(view)
-
-            val previous = synchronized(currentBindings) { currentBindings[view] }
-            val bindingChanged = previous?.instance !== message.instance
-            if (view.isAttachedToWindow && bindingChanged && previous != null) {
-                dispatchLifecycle { it.onMessageViewDetached(view, previous) }
-            }
-            synchronized(currentBindings) {
-                currentBindings[view] = message
-            }
-            if (view.isAttachedToWindow && bindingChanged) {
-                dispatchLifecycle { it.onMessageViewAttached(view, message) }
-            }
-
-            for (listener in listeners) {
-                try {
-                    listener.onCreateView(this, view)
-                } catch (ex: Exception) {
-                    WeLogger.e(TAG, "listener ${listener.javaClass.name} threw", ex)
-                }
+        installHook("WeChatMessageViewApi#1") {
+            methodChatItemSetNickname.hookAfter {
+                if (args[1] != null) return@hookAfter
+                val holder = args[0] ?: return@hookAfter
+                val userTv = holder.reflekt()
+                    .firstFieldOrNull { name = "userTV"; superclass() }
+                    ?.get() as? TextView ?: return@hookAfter
+                userTv.text = null
             }
         }
 
-        methodChatItemOnViewRecycled.hookBefore {
-            val holder = args[0]!!
-            val view = holder.reflekt()
-                .firstField {
-                    type = View::class
-                    superclass()
+        installHook("WeChatMessageViewApi#2") {
+            methodChatItemOnBindView.hookAfter {
+                // Any of these reflections can legitimately fail (WeChat's holder shape varies across
+                // versions and the msg item can be temporarily absent). Never let a `!!` here throw
+                // through the PASSTHROUGH hook and crash the host: bail out instead.
+                val holder = args[0] ?: return@hookAfter
+                val view = holder.reflekt()
+                    .firstFieldOrNull {
+                        type = View::class
+                        superclass()
+                    }
+                    ?.get() as? View ?: return@hookAfter
+                val message = getMsgInfoFromParam(this)
+                ensureAttachStateListener(view)
+
+                val previous = synchronized(currentBindings) { currentBindings[view] }
+                val bindingChanged = previous?.instance !== message.instance
+                if (view.isAttachedToWindow && bindingChanged && previous != null) {
+                    dispatchLifecycle { it.onMessageViewDetached(view, previous) }
                 }
-                .get()!! as View
-            val message = synchronized(currentBindings) { currentBindings[view] } ?: return@hookBefore
-            dispatchLifecycle { it.onMessageViewRecycled(view, message) }
-            synchronized(currentBindings) {
-                currentBindings.remove(view)
+                synchronized(currentBindings) {
+                    currentBindings[view] = message
+                }
+                if (view.isAttachedToWindow && bindingChanged) {
+                    dispatchLifecycle { it.onMessageViewAttached(view, message) }
+                }
+
+                for (listener in listeners) {
+                    try {
+                        listener.onCreateView(this, view)
+                    } catch (ex: Exception) {
+                        WeLogger.e(TAG, "listener ${listener.javaClass.name} threw", ex)
+                    }
+                }
+            }
+        }
+
+        installHook("WeChatMessageViewApi#3") {
+            methodChatItemOnViewRecycled.hookBefore {
+                val holder = args[0] ?: return@hookBefore
+                val view = holder.reflekt()
+                    .firstFieldOrNull {
+                        type = View::class
+                        superclass()
+                    }
+                    ?.get() as? View ?: return@hookBefore
+                val message = synchronized(currentBindings) { currentBindings[view] } ?: return@hookBefore
+                dispatchLifecycle { it.onMessageViewRecycled(view, message) }
+                synchronized(currentBindings) {
+                    currentBindings.remove(view)
+                }
             }
         }
     }

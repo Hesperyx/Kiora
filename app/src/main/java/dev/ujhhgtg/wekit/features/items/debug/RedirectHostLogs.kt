@@ -36,76 +36,78 @@ object RedirectHostLogs : ClickableFeature() {
     private const val KEY_PREFIX = "redirect_"
 
     override fun onEnable() {
-        Log::class.reflekt().apply {
-            if (getBoolOrFalse("${KEY_PREFIX}v"))
-                firstMethod {
-                    name = "v"
-                    parameterCount = 3
-                    modifiers(Modifiers.STATIC)
-                }.hookBefore {
-                    runCatching {
-                        val tag = args[0] as String
-                        var formatString = args[1] as String
-                        formatString = formatString.format(*(args[2] as Array<*>))
-                        WeLogger.v(TAG, "[V] [$tag] $formatString")
+        installHook("redirectHostLogs.logHooks") {
+            Log::class.reflekt().apply {
+                if (getBoolOrFalse("${KEY_PREFIX}v"))
+                    firstMethod {
+                        name = "v"
+                        parameterCount = 3
+                        modifiers(Modifiers.STATIC)
+                    }.hookBefore {
+                        runCatching {
+                            val tag = args[0] as String
+                            var formatString = args[1] as String
+                            formatString = formatString.format(*(args[2] as Array<*>))
+                            WeLogger.v(TAG, "[V] [$tag] $formatString")
+                        }
                     }
-                }
 
-            if (getBoolOrFalse("${KEY_PREFIX}d"))
-                firstMethod {
-                    name = "d"
-                    parameterCount = 3
-                    modifiers(Modifiers.STATIC)
-                }.hookBefore {
-                    runCatching {
-                        val tag = args[0] as String
-                        var formatString = args[1] as String
-                        formatString = formatString.format(*(args[2] as Array<*>))
-                        WeLogger.d(TAG, "[D] [$tag] $formatString")
+                if (getBoolOrFalse("${KEY_PREFIX}d"))
+                    firstMethod {
+                        name = "d"
+                        parameterCount = 3
+                        modifiers(Modifiers.STATIC)
+                    }.hookBefore {
+                        runCatching {
+                            val tag = args[0] as String
+                            var formatString = args[1] as String
+                            formatString = formatString.format(*(args[2] as Array<*>))
+                            WeLogger.d(TAG, "[D] [$tag] $formatString")
+                        }
                     }
-                }
 
-            if (getBoolOrFalse("${KEY_PREFIX}i"))
-                firstMethod {
-                    name = "i"
-                    parameterCount = 3
-                    modifiers(Modifiers.STATIC)
-                }.hookBefore {
-                    runCatching {
-                        val tag = args[0] as String
-                        var formatString = args[1] as String
-                        formatString = formatString.format(*(args[2] as Array<*>))
-                        WeLogger.i(TAG, "[I] [$tag] $formatString")
+                if (getBoolOrFalse("${KEY_PREFIX}i"))
+                    firstMethod {
+                        name = "i"
+                        parameterCount = 3
+                        modifiers(Modifiers.STATIC)
+                    }.hookBefore {
+                        runCatching {
+                            val tag = args[0] as String
+                            var formatString = args[1] as String
+                            formatString = formatString.format(*(args[2] as Array<*>))
+                            WeLogger.i(TAG, "[I] [$tag] $formatString")
+                        }
                     }
-                }
 
-            if (getBoolOrFalse("${KEY_PREFIX}w"))
-                firstMethod {
-                    name = "w"
-                    parameterCount = 3
-                    modifiers(Modifiers.STATIC)
-                }.hookBefore {
-                    runCatching {
-                        val tag = args[0] as String
-                        var formatString = args[1] as String
-                        formatString = formatString.format(*(args[2] as Array<*>))
-                        WeLogger.w(TAG, "[W] [$tag] $formatString")
+                if (getBoolOrFalse("${KEY_PREFIX}w"))
+                    firstMethod {
+                        name = "w"
+                        parameterCount = 3
+                        modifiers(Modifiers.STATIC)
+                    }.hookBefore {
+                        runCatching {
+                            val tag = args[0] as String
+                            var formatString = args[1] as String
+                            formatString = formatString.format(*(args[2] as Array<*>))
+                            WeLogger.w(TAG, "[W] [$tag] $formatString")
+                        }
                     }
-                }
 
-            if (getBoolOrFalse("${KEY_PREFIX}e"))
-                firstMethod {
-                    name = "e"
-                    parameterCount = 3
-                    modifiers(Modifiers.STATIC)
-                }.hookBefore {
-                    runCatching {
-                        val tag = args[0] as String
-                        var formatString = args[1] as String
-                        formatString = formatString.format(*(args[2] as Array<*>))
-                        WeLogger.e(TAG, "[E] [$tag] $formatString")
+                if (getBoolOrFalse("${KEY_PREFIX}e"))
+                    firstMethod {
+                        name = "e"
+                        parameterCount = 3
+                        modifiers(Modifiers.STATIC)
+                    }.hookBefore {
+                        runCatching {
+                            val tag = args[0] as String
+                            var formatString = args[1] as String
+                            formatString = formatString.format(*(args[2] as Array<*>))
+                            WeLogger.e(TAG, "[E] [$tag] $formatString")
+                        }
                     }
-                }
+            }
         }
     }
 

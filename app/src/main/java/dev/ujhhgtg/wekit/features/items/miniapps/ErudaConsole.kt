@@ -32,13 +32,17 @@ object ErudaConsole : SwitchFeature() {
     override val targetProcesses = setOf(TargetProcess.MAIN, TargetProcess.APPBRAND)
 
     override fun onEnable() {
-        WeWebViewApi.xwebOnPageFinished.hookAfter {
-            WeLogger.i(TAG, "injecting into xwebOnPageFinished: ${args[0]}")
-            injectEruda(args[0]!!)
+        installHook("ErudaConsole#1") {
+            WeWebViewApi.xwebOnPageFinished.hookAfter {
+                WeLogger.i(TAG, "injecting into xwebOnPageFinished: ${args[0]}")
+                injectEruda(args[0]!!)
+            }
         }
-        WeWebViewApi.androidOnPageFinished.hookAfter {
-            WeLogger.i(TAG, "injecting into androidOnPageFinished: ${args[0]}")
-            injectEruda(args[0]!!)
+        installHook("ErudaConsole#2") {
+            WeWebViewApi.androidOnPageFinished.hookAfter {
+                WeLogger.i(TAG, "injecting into androidOnPageFinished: ${args[0]}")
+                injectEruda(args[0]!!)
+            }
         }
     }
 

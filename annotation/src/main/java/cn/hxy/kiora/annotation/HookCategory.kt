@@ -4,6 +4,7 @@ object HookCategory {
     const val CHAT = "聊天"
     const val MSG = "消息"
     const val GROUP = "群聊"
+    const val FRIEND_DETECT = "单向好友检测"
     const val PURIFY = "净化"
     const val DEVICE = "设备"
     const val FILE = "文件"
@@ -17,7 +18,7 @@ object HookCategory {
     const val OTHER = "其他"
 
     val ORDER = listOf(
-        CHAT, MSG, GROUP, SOCIAL, AUTO, RED_PACKET, APPEARANCE, PURIFY, DEVICE, FILE,
+        CHAT, MSG, GROUP, FRIEND_DETECT, SOCIAL, AUTO, RED_PACKET, APPEARANCE, PURIFY, DEVICE, FILE,
         NOTIFICATION, MISC, DEBUG, OTHER
     )
 }

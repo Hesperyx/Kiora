@@ -80,63 +80,65 @@ object WeContactPrefsScreenApi : ApiFeature() {
     override fun onEnable() {
         initReflection()
 
-        listOf(
-            ContactInfoUI::class,
-            ChatroomInfoUI::class
-        ).forEach {
-            it.reflekt().apply {
-                firstMethod { name = "initView" }
-                    .hookAfter {
-                        val adapterInstance = adapterField.get(thisObject as Activity)
-                        for (provider in providers) {
-                            try {
-                                val items = provider.getContactInfoItem(thisObject as Activity)
-                                for (item in items) {
-                                    val pref = prefConstructor.newInstance(thisObject as Context)
-                                    val key = "wekit_contact_pref_${keySequence.incrementAndGet()}"
-                                    synchronized(clickHandlers) {
-                                        clickHandlers.getOrPut(thisObject as Activity) { mutableMapOf() }[key] =
-                                            ClickHandler(provider, item.onClick)
+        installHook("WeContactPrefsScreenApi#1") {
+            listOf(
+                ContactInfoUI::class,
+                ChatroomInfoUI::class
+            ).forEach {
+                it.reflekt().apply {
+                    firstMethod { name = "initView" }
+                        .hookAfter {
+                            val adapterInstance = adapterField.get(thisObject as Activity)
+                            for (provider in providers) {
+                                try {
+                                    val items = provider.getContactInfoItem(thisObject as Activity)
+                                    for (item in items) {
+                                        val pref = prefConstructor.newInstance(thisObject as Context)
+                                        val key = "wekit_contact_pref_${keySequence.incrementAndGet()}"
+                                        synchronized(clickHandlers) {
+                                            clickHandlers.getOrPut(thisObject as Activity) { mutableMapOf() }[key] =
+                                                ClickHandler(provider, item.onClick)
+                                        }
+                                        setKeyMethod.invoke(pref, key)
+                                        setTitleMethod.invoke(pref, item.title)
+                                        item.summary?.let { summary -> setSummaryMethod.invoke(pref, summary) }
+                                        addPreferenceMethod.invoke(adapterInstance, pref, item.position)
                                     }
-                                    setKeyMethod.invoke(pref, key)
-                                    setTitleMethod.invoke(pref, item.title)
-                                    item.summary?.let { summary -> setSummaryMethod.invoke(pref, summary) }
-                                    addPreferenceMethod.invoke(adapterInstance, pref, item.position)
+                                } catch (ex: Exception) {
+                                    WeLogger.e(
+                                        TAG,
+                                        "provider ${provider.javaClass.name} threw while providing contact info item",
+                                        ex
+                                    )
                                 }
-                            } catch (ex: Exception) {
-                                WeLogger.e(
-                                    TAG,
-                                    "provider ${provider.javaClass.name} threw while providing contact info item",
-                                    ex
-                                )
                             }
+                        }
+
+                    firstMethod {
+                        name = "onDestroy"
+                    }.hookAfter {
+                        synchronized(clickHandlers) {
+                            clickHandlers.remove(thisObject as Activity)
                         }
                     }
 
-                firstMethod {
-                    name = "onDestroy"
-                }.hookAfter {
-                    synchronized(clickHandlers) {
-                        clickHandlers.remove(thisObject as Activity)
-                    }
-                }
-
-                firstMethod {
-                    name = "onPreferenceTreeClick"
-                }.hookBefore {
-                    val preference = args[1] ?: return@hookBefore
-                    val key = prefKeyField.get(preference) as? String ?: return@hookBefore
-                    val activity = thisObject as Activity
-                    val clickHandler = synchronized(clickHandlers) {
-                        clickHandlers[activity]?.get(key)
-                    } ?: return@hookBefore
-                    if (!providers.contains(clickHandler.provider)) return@hookBefore
-                    try {
-                        clickHandler.callback?.invoke(activity)
-                    } catch (ex: Exception) {
-                        WeLogger.e(TAG, "contact preference click handler threw", ex)
-                    } finally {
-                        result = true
+                    firstMethod {
+                        name = "onPreferenceTreeClick"
+                    }.hookBefore {
+                        val preference = args[1] ?: return@hookBefore
+                        val key = prefKeyField.get(preference) as? String ?: return@hookBefore
+                        val activity = thisObject as Activity
+                        val clickHandler = synchronized(clickHandlers) {
+                            clickHandlers[activity]?.get(key)
+                        } ?: return@hookBefore
+                        if (!providers.contains(clickHandler.provider)) return@hookBefore
+                        try {
+                            clickHandler.callback?.invoke(activity)
+                        } catch (ex: Exception) {
+                            WeLogger.e(TAG, "contact preference click handler threw", ex)
+                        } finally {
+                            result = true
+                        }
                     }
                 }
             }

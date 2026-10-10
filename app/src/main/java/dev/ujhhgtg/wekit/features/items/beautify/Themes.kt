@@ -1454,19 +1454,21 @@ object Themes : ClickableFeature(), IResolveDex {
     override fun onEnable() {
         loadCurrentTheme()
         WeConversationListViewApi.addListener(recyclerConversationBindListener)
-        registerEjImageHooks()
-        hookB() // BackgroundBanHook
-        hookC() // BounceViewHook
-        hookD() // ChatHook
-        hookE() // ConversationUIHook
-        hookF() // HomeUIHook
-        hookG() // MMActivityHook
-        hookH() // MMSwitchBtnHook
-        hookI() // PopupWindowHook
-        hookJ() // SettingActivityHook
-        hookK() // SplashHook
-        hookL() // TextColorBanHook
-        hookPreference() // C0465dy PreferenceHook
+        // 每组子钩子单独隔离：某个宿主版本缺少某个类/方法时只跳过该组，否则任意一组抛异常都会
+        // 让整个「主题」功能被 enable() 判为启用失败并 unhookAll()——表现就是开关开着、主题全无效。
+        installHook("registerEjImageHooks") { registerEjImageHooks() }
+        installHook("hookB") { hookB() } // BackgroundBanHook
+        installHook("hookC") { hookC() } // BounceViewHook
+        installHook("hookD") { hookD() } // ChatHook
+        installHook("hookE") { hookE() } // ConversationUIHook
+        installHook("hookF") { hookF() } // HomeUIHook
+        installHook("hookG") { hookG() } // MMActivityHook
+        installHook("hookH") { hookH() } // MMSwitchBtnHook
+        installHook("hookI") { hookI() } // PopupWindowHook
+        installHook("hookJ") { hookJ() } // SettingActivityHook
+        installHook("hookK") { hookK() } // SplashHook
+        installHook("hookL") { hookL() } // TextColorBanHook
+        installHook("hookPreference") { hookPreference() } // C0465dy PreferenceHook
     }
 
     override fun onDisable() {

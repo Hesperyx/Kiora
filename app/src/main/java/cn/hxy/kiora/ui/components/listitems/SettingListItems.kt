@@ -81,7 +81,9 @@ fun SwitchActionCard(
     isAvailable: Boolean = true,
     /** 不可用的具体原因；为空时按「当前环境不可用」表述。 */
     disabledHint: String? = null,
-    onClick: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null,
+    /** 纯动作项（不显示开关）：右侧不渲染开关，行内点击继续走 [onClick]。 */
+    showSwitch: Boolean = true
 ) {
     val displaySubtitle = when {
         isAvailable -> subtitle
@@ -97,9 +99,15 @@ fun SwitchActionCard(
         leadingIcon = leadingIcon,
         isAvailable = isAvailable,
         onClick = onClick ?: { if (isAvailable) onCheckedChange(!isChecked) },
-        trailingContent = {
-            KioraSwitch(isChecked, { if (isAvailable) onCheckedChange(it) }, enabled = isAvailable)
-        }
+        trailingContent = if (showSwitch) {
+            {
+                KioraSwitch(
+                    isChecked,
+                    { if (isAvailable) onCheckedChange(it) },
+                    enabled = isAvailable
+                )
+            }
+        } else null
     )
 }
 

@@ -30,16 +30,20 @@ object DisableLowAvailableStorageDetection : SwitchFeature(), IResolveDex {
     }
 
     override fun onEnable() {
-        methodSplashActivitySplashFinished.hookBefore {
-            classStaticValuesHolder.clazz.reflekt()
-                .firstField { type = Boolean::class }
-                .setStatic(false)
+        installHook("DisableLowAvailableStorageDetection#1") {
+            methodSplashActivitySplashFinished.hookBefore {
+                classStaticValuesHolder.clazz.reflekt()
+                    .firstField { type = Boolean::class }
+                    .setStatic(false)
+            }
         }
 
-        "com.tencent.mm.plugin.clean.ui.fileindexui.StorageDisableAlertUI"
-            .toClass().hookAfterOnCreate {
-                val activity = thisObject as Activity
-                activity.finish()
-            }
+        installHook("DisableLowAvailableStorageDetection#2") {
+            "com.tencent.mm.plugin.clean.ui.fileindexui.StorageDisableAlertUI"
+                .toClass().hookAfterOnCreate {
+                    val activity = thisObject as Activity
+                    activity.finish()
+                }
+        }
     }
 }

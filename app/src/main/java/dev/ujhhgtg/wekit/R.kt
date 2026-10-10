@@ -796,6 +796,10 @@ object R {
         val contacts_detect_back = cn.hxy.kiora.R.string.contacts_detect_back
         val contacts_detect_create_label_failed = cn.hxy.kiora.R.string.contacts_detect_create_label_failed
         val contacts_detect_delete_all = cn.hxy.kiora.R.string.contacts_detect_delete_all
+        val contacts_detect_friends_count = cn.hxy.kiora.R.string.contacts_detect_friends_count
+        val contacts_detect_last_summary = cn.hxy.kiora.R.string.contacts_detect_last_summary
+        val contacts_detect_load_failed = cn.hxy.kiora.R.string.contacts_detect_load_failed
+        val contacts_detect_loading_friends = cn.hxy.kiora.R.string.contacts_detect_loading_friends
         val contacts_detect_mark_label = cn.hxy.kiora.R.string.contacts_detect_mark_label
         val contacts_detect_marking_done = cn.hxy.kiora.R.string.contacts_detect_marking_done
         val contacts_detect_mode = cn.hxy.kiora.R.string.contacts_detect_mode
@@ -803,9 +807,12 @@ object R {
         val contacts_detect_mode_verify_user = cn.hxy.kiora.R.string.contacts_detect_mode_verify_user
         val contacts_detect_new_label = cn.hxy.kiora.R.string.contacts_detect_new_label
         val contacts_detect_nickname = cn.hxy.kiora.R.string.contacts_detect_nickname
+        val contacts_detect_no_friends = cn.hxy.kiora.R.string.contacts_detect_no_friends
         val contacts_detect_rate_limited = cn.hxy.kiora.R.string.contacts_detect_rate_limited
         val contacts_detect_remark = cn.hxy.kiora.R.string.contacts_detect_remark
         val contacts_detect_request_delay = cn.hxy.kiora.R.string.contacts_detect_request_delay
+        val contacts_detect_retry_unresolved = cn.hxy.kiora.R.string.contacts_detect_retry_unresolved
+        val contacts_detect_scanning_friend = cn.hxy.kiora.R.string.contacts_detect_scanning_friend
         val contacts_detect_status_account_restricted = cn.hxy.kiora.R.string.contacts_detect_status_account_restricted
         val contacts_detect_status_blacklisted = cn.hxy.kiora.R.string.contacts_detect_status_blacklisted
         val contacts_detect_status_deleted = cn.hxy.kiora.R.string.contacts_detect_status_deleted

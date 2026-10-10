@@ -128,71 +128,81 @@ object AntiMomentCommentsDelete : SwitchFeature(), IResolveDex {
 
     override fun onEnable() {
         // Safety net: block any raw DELETE SQL that bypasses the storage methods.
-        listOf(
-            methodSnsSqliteDbExecSql1,
-            methodSnsSqliteDbExecSql2
-        ).forEach {
-            if (it.isPlaceholder) return@forEach
-            it.hookBefore {
-                val table = args.getOrNull(0) as? String ?: return@hookBefore
-                val sql = args.getOrNull(1) as? String ?: return@hookBefore
-                if (table == SNS_COMMENT && sql.lowercase().contains("delete from")) {
-                    result = false
+        installHook("antiMomentCommentsDelete.blockRawSql") {
+            listOf(
+                methodSnsSqliteDbExecSql1,
+                methodSnsSqliteDbExecSql2
+            ).forEach {
+                if (it.isPlaceholder) return@forEach
+                it.hookBefore {
+                    val table = args.getOrNull(0) as? String ?: return@hookBefore
+                    val sql = args.getOrNull(1) as? String ?: return@hookBefore
+                    if (table == SNS_COMMENT && sql.lowercase().contains("delete from")) {
+                        result = false
+                    }
                 }
             }
         }
 
         // Block WeChat's own in-memory soft-delete bit so the object stays "live".
-        methodSnsCommentSetCommentDelFlag.hookBefore {
-            result = null
+        installHook("antiMomentCommentsDelete.setDelFlag") {
+            methodSnsCommentSetCommentDelFlag.hookBefore {
+                result = null
+            }
         }
 
         // Rescue comments that were soft-deleted before the module was active.
         // These rows are still in the DB but carry WeChat's delete bit (bit 0) in commentflag.
         // hookAfter ensures all fields are populated from the cursor before we inspect them.
-        methodSnsCommentConvertFromCursor.hookAfter {
-            val flagField = thisObject!!.reflekt().firstField {
-                name = "field_commentflag"
-                superclass()
+        installHook("antiMomentCommentsDelete.convertFromCursor") {
+            methodSnsCommentConvertFromCursor.hookAfter {
+                val flagField = thisObject!!.reflekt().firstField {
+                    name = "field_commentflag"
+                    superclass()
+                }
+                val flag = flagField.get() as? Int ?: return@hookAfter
+
+                // Bit 0 = WeChat's own delete marker; bit 8 = our INTERCEPTED_FLAG.
+                // Only act on rows WeChat deleted but we haven't yet processed.
+                if (flag and 1 == 0) return@hookAfter
+
+                // Clear WeChat's delete bit so the comment is treated as live,
+                // and stamp our intercepted bit so markAndBlockDelete skips it on future deletes.
+                flagField.set(flag and 1.inv() or INTERCEPTED_FLAG)
+
+                // Inject the visual marker into the comment text in memory.
+                val bufField = thisObject!!.reflekt().firstField {
+                    name = "field_curActionBuf"
+                    superclass()
+                }
+                val buf = bufField.get() as? ByteArray ?: return@hookAfter
+                bufField.set(injectMarkerIntoBuf(buf))
             }
-            val flag = flagField.get() as? Int ?: return@hookAfter
-
-            // Bit 0 = WeChat's own delete marker; bit 8 = our INTERCEPTED_FLAG.
-            // Only act on rows WeChat deleted but we haven't yet processed.
-            if (flag and 1 == 0) return@hookAfter
-
-            // Clear WeChat's delete bit so the comment is treated as live,
-            // and stamp our intercepted bit so markAndBlockDelete skips it on future deletes.
-            flagField.set(flag and 1.inv() or INTERCEPTED_FLAG)
-
-            // Inject the visual marker into the comment text in memory.
-            val bufField = thisObject!!.reflekt().firstField {
-                name = "field_curActionBuf"
-                superclass()
-            }
-            val buf = bufField.get() as? ByteArray ?: return@hookAfter
-            bufField.set(injectMarkerIntoBuf(buf))
         }
 
         // deleteComment(snsId: Long, commentSvrId: Long, type: Int) — single comment
-        methodSnsCommentStorageDeleteComment.hookBefore {
-            val snsId = args[0] as Long
-            val commentSvrId = args[1] as Long
-            markAndBlockDelete(
-                param = this,
-                whereClause = "snsID = ? AND commentSvrID = ?",
-                whereArgs = arrayOf(snsId.toString(), commentSvrId.toString()),
-            )
+        installHook("antiMomentCommentsDelete.storageDeleteComment") {
+            methodSnsCommentStorageDeleteComment.hookBefore {
+                val snsId = args[0] as Long
+                val commentSvrId = args[1] as Long
+                markAndBlockDelete(
+                    param = this,
+                    whereClause = "snsID = ? AND commentSvrID = ?",
+                    whereArgs = arrayOf(snsId.toString(), commentSvrId.toString()),
+                )
+            }
         }
 
         // deleteBySnsId(snsId: Long) — all comments on a moment
-        methodSnsCommentStorageDeleteCommentBySnsId.hookBefore {
-            val snsId = args[0] as Long
-            markAndBlockDelete(
-                param = this,
-                whereClause = "snsID = ?",
-                whereArgs = arrayOf(snsId.toString()),
-            )
+        installHook("antiMomentCommentsDelete.storageDeleteBySnsId") {
+            methodSnsCommentStorageDeleteCommentBySnsId.hookBefore {
+                val snsId = args[0] as Long
+                markAndBlockDelete(
+                    param = this,
+                    whereClause = "snsID = ?",
+                    whereArgs = arrayOf(snsId.toString()),
+                )
+            }
         }
     }
 

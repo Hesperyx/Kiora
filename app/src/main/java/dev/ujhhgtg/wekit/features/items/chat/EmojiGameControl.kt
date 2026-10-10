@@ -201,70 +201,76 @@ object EmojiGameControl : ClickableFeature(), IResolveDex {
     }
 
     override fun onEnable() {
-        methodRandom.hookAfter {
-            val type = args[0] as Int
-            // Arg 0 determines type: 2 is Morra, 5 is Dice
-            result = when (type) {
-                2 -> valMorra
-                5 -> valDice
-                else -> result
+        installHook("emojiGameControl.random") {
+            methodRandom.hookAfter {
+                val type = args[0] as Int
+                // Arg 0 determines type: 2 is Morra, 5 is Dice
+                result = when (type) {
+                    2 -> valMorra
+                    5 -> valDice
+                    else -> result
+                }
             }
         }
 
         // Start accelerometer when entering a conversation (first time: 20s)
-        ChatFooter::class.reflekt()
-            .firstMethod {
-                name = "setUserName"
-            }.hookAfter {
-                val conv = args[0] as? String
-                if (!conv.isNullOrEmpty()) {
-                    ensureSensorAlive(20000L)
+        installHook("emojiGameControl.setUserName") {
+            ChatFooter::class.reflekt()
+                .firstMethod {
+                    name = "setUserName"
+                }.hookAfter {
+                    val conv = args[0] as? String
+                    if (!conv.isNullOrEmpty()) {
+                        ensureSensorAlive(20000L)
+                    }
                 }
-            }
+        }
 
-        methodPanelClick.hookBefore {
-            val obj = args[3] ?: return@hookBefore
+        installHook("emojiGameControl.panelClick") {
+            methodPanelClick.hookBefore {
+                val obj = args[3] ?: return@hookBefore
 
-            val infoType = obj.reflekt().firstField {
-                type = int
-                modifiers(Modifiers.FINAL)
-            }.get() as Int
+                val infoType = obj.reflekt().firstField {
+                    type = int
+                    modifiers(Modifiers.FINAL)
+                }.get() as Int
 
-            if (infoType != 0) return@hookBefore
+                if (infoType != 0) return@hookBefore
 
-            val emojiInfo = obj.reflekt().firstFieldOrNull {
-                type = IEmojiInfo::class
-            }?.get() as? IEmojiInfo? ?: return@hookBefore
+                val emojiInfo = obj.reflekt().firstFieldOrNull {
+                    type = IEmojiInfo::class
+                }?.get() as? IEmojiInfo? ?: return@hookBefore
 
-            val emojiMd5 = emojiInfo.md5
-            val isDice = emojiMd5 == MD5_DICE
-            val isMorra = emojiMd5 == MD5_MORRA
+                val emojiMd5 = emojiInfo.md5
+                val isDice = emojiMd5 == MD5_DICE
+                val isMorra = emojiMd5 == MD5_MORRA
 
-            if (!isDice && !isMorra) return@hookBefore
+                if (!isDice && !isMorra) return@hookBefore
 
-            val activity = ((args[0] as View).context as ContextThemeWrapper).baseContext as Activity
+                val activity = ((args[0] as View).context as ContextThemeWrapper).baseContext as Activity
 
-            if (stealthMode) {
-                result = null
-                ensureSensorAlive(10000L)
+                if (stealthMode) {
+                    result = null
+                    ensureSensorAlive(10000L)
 
-                val (ax, ay, az) = latestAccel.let { Triple(it[0], it[1], it[2]) }
-                val value = mapToValue(ax, ay, az, isDice)
-                if (isDice) valDice = value else valMorra = value
+                    val (ax, ay, az) = latestAccel.let { Triple(it[0], it[1], it[2]) }
+                    val value = mapToValue(ax, ay, az, isDice)
+                    if (isDice) valDice = value else valMorra = value
 
-                val name = if (isDice) DiceFace.entries[value].chineseName
-                else activity.localizedChatString(MorraType.entries[value].nameRes)
-                showToast(
-                    activity,
-                    activity.localizedChatString(
-                        if (isDice) R.string.chat_emoji_game_dice_result else R.string.chat_emoji_game_morra_result,
-                        name,
-                    ),
-                )
+                    val name = if (isDice) DiceFace.entries[value].chineseName
+                    else activity.localizedChatString(MorraType.entries[value].nameRes)
+                    showToast(
+                        activity,
+                        activity.localizedChatString(
+                            if (isDice) R.string.chat_emoji_game_dice_result else R.string.chat_emoji_game_morra_result,
+                            name,
+                        ),
+                    )
 
-                invokeOriginalMethod()
-            } else {
-                showSelectDialog(this, isDice, activity)
+                    invokeOriginalMethod()
+                } else {
+                    showSelectDialog(this, isDice, activity)
+                }
             }
         }
     }

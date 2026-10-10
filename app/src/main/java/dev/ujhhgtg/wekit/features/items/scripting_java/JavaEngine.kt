@@ -606,7 +606,9 @@ object JavaEngine {
                     }
                     val snapPath = "$resolved.bshs"
                     runCatching {
-                        plugin.interpreter.compileSnapshot(resolved, snapPath, null)
+                        // writeEncrypted 的 key 参数非空，传 null 会在写快照前抛异常，
+                        // 之后被 runCatching 静默吞掉 —— compileSnapshot 等于永远不生效。
+                        plugin.interpreter.compileSnapshot(resolved, snapPath, BshSnapshotDecompiler.SECRET_KEY)
                     }.onFailure { e ->
                         WeLogger.e(TAG, "compileSnapshot failed for $resolved", e)
                     }

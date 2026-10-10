@@ -46,9 +46,12 @@ object RemoveTextStatusLengthLimit : SwitchFeature(), IResolveDex {
 
     override fun onEnable() {
         val limitField = fieldStatusTextLengthLimit.field
-        limitField.declaringClass.reflekt().constructors().forEach { constructor ->
-            constructor.hookAfter {
-                limitField.setInt(thisObject!!, MAX_STATUS_TEXT_LENGTH)
+        installHook("RemoveTextStatusLengthLimit#1") {
+            limitField.declaringClass.reflekt().constructors().forEach { constructor ->
+                constructor.hookAfter {
+                    val target = thisObject ?: return@hookAfter
+                    limitField.setInt(target, MAX_STATUS_TEXT_LENGTH)
+                }
             }
         }
     }

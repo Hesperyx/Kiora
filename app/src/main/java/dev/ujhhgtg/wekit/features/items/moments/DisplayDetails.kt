@@ -83,27 +83,31 @@ object DisplayDetails : ClickableFeature(), IResolveDex {
     )
 
     override fun onEnable() {
-        listOf(
-            ImproveSnsTimelineUI::class.java,
-            SnsUserUI::class.java
-        ).forEach { clazz ->
-            clazz.reflekt().firstMethod {
-                name = "onCreate"
-                parameters(Bundle::class)
-            }.hookAfter {
-                val activity = thisObject as Activity
-                scheduleAttach(activity)
+        installHook("DisplayDetails#1") {
+            listOf(
+                ImproveSnsTimelineUI::class.java,
+                SnsUserUI::class.java
+            ).forEach { clazz ->
+                clazz.reflekt().firstMethod {
+                    name = "onCreate"
+                    parameters(Bundle::class)
+                }.hookAfter {
+                    val activity = thisObject as Activity
+                    scheduleAttach(activity)
+                }
             }
         }
 
-        if (!methodGetTimeString.isPlaceholder) methodGetTimeString.hookAfter {
-            val snsInfo = thisObject
-            val snsId = (fieldSnsId.field.get(snsInfo) as? Number)?.toLong() ?: return@hookAfter
-            val userName = (fieldUserName.field.get(snsInfo) as? String).orEmpty()
-            val createTime = (fieldCreateTime.field.get(snsInfo) as? Number)?.toInt() ?: 0
-            val type = (fieldType.field.get(snsInfo) as? Number)?.toInt() ?: 0
-            val originalText = result as? String ?: ""
-            result = buildBottomText(snsId, userName, createTime, type, originalText)
+        installHook("DisplayDetails#2") {
+            if (!methodGetTimeString.isPlaceholder) methodGetTimeString.hookAfter {
+                val snsInfo = thisObject
+                val snsId = (fieldSnsId.field.get(snsInfo) as? Number)?.toLong() ?: return@hookAfter
+                val userName = (fieldUserName.field.get(snsInfo) as? String).orEmpty()
+                val createTime = (fieldCreateTime.field.get(snsInfo) as? Number)?.toInt() ?: 0
+                val type = (fieldType.field.get(snsInfo) as? Number)?.toInt() ?: 0
+                val originalText = result as? String ?: ""
+                result = buildBottomText(snsId, userName, createTime, type, originalText)
+            }
         }
     }
 

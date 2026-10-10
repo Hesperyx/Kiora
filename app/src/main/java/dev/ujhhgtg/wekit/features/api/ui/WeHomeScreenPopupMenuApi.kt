@@ -132,91 +132,95 @@ object WeHomeScreenPopupMenuApi : ApiFeature(), IResolveDex {
 
     override fun onEnable() {
         // WeChat 8.0.70 moved this to com.tencent.mm.ui.HomeUI
-        methodAddItem.hookAfter {
-            var thisObj = thisObject!!
+        installHook("WeHomeScreenPopupMenuApi#1") {
+            methodAddItem.hookAfter {
+                var thisObj = thisObject!!
 
-            if (thisObj.javaClass.simpleName == "HomeUI") {
-                thisObj = thisObj.reflekt()
-                    .firstField { type = methodHandleItemClick.method.declaringClass }
-                    .get()!!
-            }
-
-            @Suppress("UNCHECKED_CAST")
-            val items = thisObj.reflekt()
-                .firstField {
-                    type = SparseArray::class
+                if (thisObj.javaClass.simpleName == "HomeUI") {
+                    thisObj = thisObj.reflekt()
+                        .firstField { type = methodHandleItemClick.method.declaringClass }
+                        .get()!!
                 }
-                .get()!! as SparseArray<Any>
-            val baseAdapter = thisObj.reflekt()
-                .firstField {
-                    type { it isSubclassOf BaseAdapter::class }
-                }
-                .get()!! as BaseAdapter
 
-            hookAdapterGetViewOnce(baseAdapter)
-
-            for (provider in providers) {
-                try {
-                    for (item in provider.getMenuItems(this)) {
-                        fakeResIdToResMap[item.fakeResId] = item.drawable
-
-                        val itemData = classMenuItemData.clazz.createInstance(
-                            item.id,
-                            item.text,
-                            "",
-                            item.fakeResId,
-                            0
-                        )
-                        val itemWrapper =
-                            classMenuItemWrapper.clazz.createInstance(itemData)
-                        items.put(items.size, itemWrapper)
-
-                        runOnUiThread {
-                            baseAdapter.notifyDataSetChanged()
-                        }
+                @Suppress("UNCHECKED_CAST")
+                val items = thisObj.reflekt()
+                    .firstField {
+                        type = SparseArray::class
                     }
-                } catch (ex: Exception) {
-                    WeLogger.e(
-                        TAG,
-                        "provider ${provider.javaClass.name} threw while providing menu items",
-                        ex
-                    )
-                }
-            }
+                    .get()!! as SparseArray<Any>
+                val baseAdapter = thisObj.reflekt()
+                    .firstField {
+                        type { it isSubclassOf BaseAdapter::class }
+                    }
+                    .get()!! as BaseAdapter
 
-            runOnUiThread {
-                baseAdapter.notifyDataSetChanged()
+                hookAdapterGetViewOnce(baseAdapter)
+
+                for (provider in providers) {
+                    try {
+                        for (item in provider.getMenuItems(this)) {
+                            fakeResIdToResMap[item.fakeResId] = item.drawable
+
+                            val itemData = classMenuItemData.clazz.createInstance(
+                                item.id,
+                                item.text,
+                                "",
+                                item.fakeResId,
+                                0
+                            )
+                            val itemWrapper =
+                                classMenuItemWrapper.clazz.createInstance(itemData)
+                            items.put(items.size, itemWrapper)
+
+                            runOnUiThread {
+                                baseAdapter.notifyDataSetChanged()
+                            }
+                        }
+                    } catch (ex: Exception) {
+                        WeLogger.e(
+                            TAG,
+                            "provider ${provider.javaClass.name} threw while providing menu items",
+                            ex
+                        )
+                    }
+                }
+
+                runOnUiThread {
+                    baseAdapter.notifyDataSetChanged()
+                }
             }
         }
 
-        methodHandleItemClick.hookBefore {
-            val thisObj = thisObject!!
+        installHook("WeHomeScreenPopupMenuApi#2") {
+            methodHandleItemClick.hookBefore {
+                val thisObj = thisObject!!
 
-            @Suppress("UNCHECKED_CAST")
-            val items = thisObj.reflekt()
-                .firstField {
-                    type = SparseArray::class
-                }
-                .get()!! as SparseArray<Any>
-            val position = args[2] as Int
-            val itemWrapper = items.get(position)
-            val itemData = itemWrapper.reflekt()
-                .firstField { type = classMenuItemData.clazz }.get()!!
-            val id = itemData.reflekt()
-                .fields { type = Int::class }[1].get()!! as Int
+                @Suppress("UNCHECKED_CAST")
+                val items = thisObj.reflekt()
+                    .firstField {
+                        type = SparseArray::class
+                    }
+                    .get()!! as SparseArray<Any>
+                val position = args[2] as Int
+                val itemWrapper = items.get(position)
+                val itemData = itemWrapper.reflekt()
+                    .firstField { type = classMenuItemData.clazz }.get()!!
+                val id = itemData.reflekt()
+                    .fields { type = Int::class }[1].get()!! as Int
 
-            for (provider in providers) {
-                for (item in provider.getMenuItems(this)) {
-                    if (item.id == id) {
-                        try {
-                            item.onClick()
-                            return@hookBefore
-                        } catch (ex: Exception) {
-                            WeLogger.e(
-                                TAG,
-                                "provider ${provider.javaClass.name} threw while handling click event",
-                                ex
-                            )
+                for (provider in providers) {
+                    for (item in provider.getMenuItems(this)) {
+                        if (item.id == id) {
+                            try {
+                                item.onClick()
+                                return@hookBefore
+                            } catch (ex: Exception) {
+                                WeLogger.e(
+                                    TAG,
+                                    "provider ${provider.javaClass.name} threw while handling click event",
+                                    ex
+                                )
+                            }
                         }
                     }
                 }

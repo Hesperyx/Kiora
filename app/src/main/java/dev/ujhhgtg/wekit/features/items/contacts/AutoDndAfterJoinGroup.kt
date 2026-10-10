@@ -75,7 +75,10 @@ object AutoDndAfterJoinGroup : SwitchFeature(), IResolveDex {
             "expected one ChatroomMembersLogic sync method, found ${matches.size}: " +
                 matches.joinToString { it.descriptor }
         }
-        methodSyncChatroomMembers.setDescriptor(matches.single())
+        methodSyncChatroomMembers.setDescriptor(
+            matches.singleOrNull()
+                ?: error("ChatroomMembersLogic sync method disappeared after the size check")
+        )
     }
 
     override fun onEnable() {

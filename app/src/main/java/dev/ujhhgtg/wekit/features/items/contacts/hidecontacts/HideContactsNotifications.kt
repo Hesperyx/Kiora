@@ -143,11 +143,13 @@ object HideContactsNotifications : ApiFeature(), IResolveDex {
         // switch, which would make turning 隐藏联系人 on require a WeChat restart to suppress
         // notifications.
 
-        NotificationsEvolved.methodDealNotify.hookBefore(100) {
-            val talker = args[1] as? String ?: return@hookBefore
-            if (!isSuppressed(talker)) return@hookBefore
-            WeLogger.i(TAG, "suppressing message notification from $talker")
-            result = null
+        installHook("HideContactsNotifications#1") {
+            NotificationsEvolved.methodDealNotify.hookBefore(100) {
+                val talker = args[1] as? String ?: return@hookBefore
+                if (!isSuppressed(talker)) return@hookBefore
+                WeLogger.i(TAG, "suppressing message notification from $talker")
+                result = null
+            }
         }
 
         if (methodNotifyForLightPush.isPlaceholder) {
@@ -155,11 +157,13 @@ object HideContactsNotifications : ApiFeature(), IResolveDex {
             return
         }
 
-        methodNotifyForLightPush.hookBefore(100) {
-            val userName = args[1] as? String ?: return@hookBefore
-            if (!isSuppressed(userName)) return@hookBefore
-            WeLogger.i(TAG, "suppressing LightPush notification from $userName")
-            result = null
+        installHook("HideContactsNotifications#2") {
+            methodNotifyForLightPush.hookBefore(100) {
+                val userName = args[1] as? String ?: return@hookBefore
+                if (!isSuppressed(userName)) return@hookBefore
+                WeLogger.i(TAG, "suppressing LightPush notification from $userName")
+                result = null
+            }
         }
     }
 }

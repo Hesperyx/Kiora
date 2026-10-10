@@ -66,38 +66,42 @@ object FingerprintPay : ClickableFeature() {
             return
         }
 
-        MyKeyboardWindow::class.reflekt().firstMethod { name = "setInputEditText" }.hookAfter {
-            if (args[0] == null) return@hookAfter
+        installHook("FingerprintPay#1") {
+            MyKeyboardWindow::class.reflekt().firstMethod { name = "setInputEditText" }.hookAfter {
+                if (args[0] == null) return@hookAfter
 
-            WeLogger.i(TAG, "MyKeyboardWindow initialized, requesting biometric auth")
+                WeLogger.i(TAG, "MyKeyboardWindow initialized, requesting biometric auth")
 
-            val thiz = thisObject as MyKeyboardWindow
-            val digitViews = MyKeyboardWindow::class.reflekt()
-                .fields { type = View::class }
-                .map { it.get(thisObject as MyKeyboardWindow)!! as View }
+                val thiz = thisObject as? MyKeyboardWindow ?: return@hookAfter
+                val digitViews = MyKeyboardWindow::class.reflekt()
+                    .fields { type = View::class }
+                    .map { it.get(thiz) as? View }
 
-            val context = thiz.context
+                val context = thiz.context
 
-            val rawEncData = encryptedData ?: run {
-                showToast(localizedPaymentString(R.string.payment_fingerprint_password_not_configured))
-                return@hookAfter
-            }
-            val splitRawEncData = rawEncData.split(SPLIT_CHAR)
-            val encData = EncryptedData(splitRawEncData[0], splitRawEncData[1])
-            decryptWithBiometric(context, encData) { plaintext ->
-                showToast(localizedPaymentString(R.string.payment_fingerprint_decrypted))
-                for (char in plaintext) {
-                    val digit = char.digitToInt()
-                    digitViews[digit].performClick()
-                    Thread.sleep(20)
+                val rawEncData = encryptedData ?: run {
+                    showToast(localizedPaymentString(R.string.payment_fingerprint_password_not_configured))
+                    return@hookAfter
+                }
+                val splitRawEncData = rawEncData.split(SPLIT_CHAR)
+                val encData = EncryptedData(splitRawEncData[0], splitRawEncData[1])
+                decryptWithBiometric(context, encData) { plaintext ->
+                    showToast(localizedPaymentString(R.string.payment_fingerprint_decrypted))
+                    for (char in plaintext) {
+                        val digit = char.digitToInt()
+                        digitViews[digit]?.performClick()
+                        Thread.sleep(20)
+                    }
                 }
             }
         }
 
-        FingerPrintAuthTransparentUI::class.java.hookBeforeOnCreate {
-            // hide 'enable fingerprint pay' guide dialog
-            val bundle = args[0] as Bundle
-            bundle.putBoolean("key_show_guide", false)
+        installHook("FingerprintPay#2") {
+            FingerPrintAuthTransparentUI::class.java.hookBeforeOnCreate {
+                // hide 'enable fingerprint pay' guide dialog
+                val bundle = args[0] as Bundle
+                bundle.putBoolean("key_show_guide", false)
+            }
         }
     }
 

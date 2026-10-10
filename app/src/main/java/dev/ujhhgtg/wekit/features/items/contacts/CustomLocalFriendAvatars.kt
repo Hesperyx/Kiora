@@ -228,7 +228,8 @@ object CustomLocalFriendAvatars : ClickableFeature(), IContactInfoProvider, IRes
                         name = "invalidate"
                     }
                 }
-            }.single()
+            }.singleOrNull()
+                ?: error("no avatar drawable load method found for ${classAvatarDrawable.data.name}")
         )
     }
 
@@ -333,87 +334,97 @@ object CustomLocalFriendAvatars : ClickableFeature(), IContactInfoProvider, IRes
     fun hasCustomAvatar(wxId: String): Boolean = wxId in avatarUsernames
 
     override fun onEnable() {
-        methodNotificationAvatar.hookBefore {
-            if (!AvatarScope.NOTIFICATIONS.enabled) return@hookBefore
-            val username = args[1] as? String ?: return@hookBefore
-            val bitmap = decodeAvatarBitmap(username, 192, round = false, radiusFactor = 0f)
-                ?: return@hookBefore
-            // WeChat recycles the bitmap returned by this loader after posting a
-            // notification. Never lend it a bitmap owned by our cache or a bound View.
-            result = bitmap.copy(Bitmap.Config.ARGB_8888, false)
+        installHook("CustomLocalFriendAvatars#1") {
+            methodNotificationAvatar.hookBefore {
+                if (!AvatarScope.NOTIFICATIONS.enabled) return@hookBefore
+                val username = args[1] as? String ?: return@hookBefore
+                val bitmap = decodeAvatarBitmap(username, 192, round = false, radiusFactor = 0f)
+                    ?: return@hookBefore
+                // WeChat recycles the bitmap returned by this loader after posting a
+                // notification. Never lend it a bitmap owned by our cache or a bound View.
+                result = bitmap.copy(Bitmap.Config.ARGB_8888, false)
+            }
         }
         if (!TargetProcesses.isInMain) return
 
         importLegacyAvatars()
 
-        methodAddressLayout.hookAfter {
-            // MvvmAddressUI's root and row holders are generic Views/obfuscated classes;
-            // its fragment type is the stable owner of the contacts page.
-            (result as View).setTag(VIEW_TAG_AVATAR_SCOPE, AvatarScope.CONTACTS)
+        installHook("CustomLocalFriendAvatars#2") {
+            methodAddressLayout.hookAfter {
+                // MvvmAddressUI's root and row holders are generic Views/obfuscated classes;
+                // its fragment type is the stable owner of the contacts page.
+                (result as View).setTag(VIEW_TAG_AVATAR_SCOPE, AvatarScope.CONTACTS)
+            }
         }
 
-        methodDesktopShortcut.hookAfter {
-            if (!AvatarScope.SHORTCUTS.enabled || !(args[2] as Boolean)) return@hookAfter
-            val intent = result as? Intent ?: return@hookAfter
-            @Suppress("DEPRECATION")
-            val original = intent.getParcelableExtra<Bitmap>(Intent.EXTRA_SHORTCUT_ICON) ?: return@hookAfter
-            val bitmap = decodeAvatarBitmap(args[1] as String, original.width, round = false, radiusFactor = 0f)
-                ?: return@hookAfter
-            // Both legacy shortcut broadcasts and the host's ShortcutInfo builder use
-            // this result. Keep all launch/account identity extras untouched.
-            @Suppress("DEPRECATION")
-            intent.putExtra(Intent.EXTRA_SHORTCUT_ICON, bitmap.copy(Bitmap.Config.ARGB_8888, false))
+        installHook("CustomLocalFriendAvatars#3") {
+            methodDesktopShortcut.hookAfter {
+                if (!AvatarScope.SHORTCUTS.enabled || !(args[2] as Boolean)) return@hookAfter
+                val intent = result as? Intent ?: return@hookAfter
+                @Suppress("DEPRECATION")
+                val original = intent.getParcelableExtra<Bitmap>(Intent.EXTRA_SHORTCUT_ICON) ?: return@hookAfter
+                val bitmap = decodeAvatarBitmap(args[1] as String, original.width, round = false, radiusFactor = 0f)
+                    ?: return@hookAfter
+                // Both legacy shortcut broadcasts and the host's ShortcutInfo builder use
+                // this result. Keep all launch/account identity extras untouched.
+                @Suppress("DEPRECATION")
+                intent.putExtra(Intent.EXTRA_SHORTCUT_ICON, bitmap.copy(Bitmap.Config.ARGB_8888, false))
+            }
         }
 
         WeContactPrefsScreenApi.addProvider(this)
 
-        listOf(
-            methodConversationAvatar,
-            methodMvvmLoadAvatar1,
-            methodMvvmLoadAvatar2,
-            methodFeatureAvatarSimple1,
-            methodPluginsdkLoadAvatar
-        ).filterNot { it.isPlaceholder }.forEach { target ->
-            target.hookBefore {
-                // The host explicitly accepts a null ImageView in these avatar loaders.
-                val imageView = args[0] as ImageView? ?: return@hookBefore
-                val wxId = args[1] as? String ?: return@hookBefore
-                // Cancel pending re-application from a previous recycled binding even
-                // when this binding has no override or its scope has just been disabled.
-                imageView.setTag(VIEW_TAG_CUSTOM_AVATAR, null)
-                boundAvatarViews.remove(imageView)
-                imageView.removeOnAttachStateChangeListener(avatarAttachListener)
-                hostAvatarRequests.remove(imageView)
+        installHook("CustomLocalFriendAvatars#4") {
+            listOf(
+                methodConversationAvatar,
+                methodMvvmLoadAvatar1,
+                methodMvvmLoadAvatar2,
+                methodFeatureAvatarSimple1,
+                methodPluginsdkLoadAvatar
+            ).filterNot { it.isPlaceholder }.forEach { target ->
+                target.hookBefore {
+                    // The host explicitly accepts a null ImageView in these avatar loaders.
+                    val imageView = args[0] as ImageView? ?: return@hookBefore
+                    val wxId = args[1] as? String ?: return@hookBefore
+                    // Cancel pending re-application from a previous recycled binding even
+                    // when this binding has no override or its scope has just been disabled.
+                    imageView.setTag(VIEW_TAG_CUSTOM_AVATAR, null)
+                    boundAvatarViews.remove(imageView)
+                    imageView.removeOnAttachStateChangeListener(avatarAttachListener)
+                    hostAvatarRequests.remove(imageView)
 
-                val redirectedId = fallbackUsernameProvider?.invoke(wxId)
-                if (redirectedId != null) {
-                    args[1] = redirectedId
-                    return@hookBefore
-                }
+                    val redirectedId = fallbackUsernameProvider?.invoke(wxId)
+                    if (redirectedId != null) {
+                        args[1] = redirectedId
+                        return@hookBefore
+                    }
 
-                if (!avatarUsernames.contains(wxId)) return@hookBefore
-                val scopeEnabled = isViewScopeEnabled(imageView)
-                // Do not retain the ImageView in the value of its WeakHashMap entry.
-                hostAvatarRequests[imageView] = HostAvatarRequest(
-                    target.method, thisObject, args.copyOf().also { it[0] = null }, scopeEnabled,
-                )
-                imageView.addOnAttachStateChangeListener(avatarAttachListener)
-                if (scopeEnabled && applyCustomAvatar(imageView, wxId, roundAvatarRadiusFactor)) {
-                    result = null
+                    if (!avatarUsernames.contains(wxId)) return@hookBefore
+                    val scopeEnabled = isViewScopeEnabled(imageView)
+                    // Do not retain the ImageView in the value of its WeakHashMap entry.
+                    hostAvatarRequests[imageView] = HostAvatarRequest(
+                        target.method, thisObject, args.copyOf().also { it[0] = null }, scopeEnabled,
+                    )
+                    imageView.addOnAttachStateChangeListener(avatarAttachListener)
+                    if (scopeEnabled && applyCustomAvatar(imageView, wxId, roundAvatarRadiusFactor)) {
+                        result = null
+                    }
                 }
             }
         }
 
-        if (!methodHdGallerySetUsername.isPlaceholder) {
-            methodHdGallerySetUsername.hookBefore {
-                if (!AvatarScope.PROFILE.enabled) return@hookBefore
-                val username = args[0] as? String ?: return@hookBefore
-                val gallery = thisObject
-                if (applyCustomHdAvatar(gallery, username)) {
-                    result = null
-                    (gallery as? View)?.let { view ->
-                        view.post { applyCustomHdAvatar(gallery, username) }
-                        view.postDelayed({ applyCustomHdAvatar(gallery, username) }, 300L)
+        installHook("CustomLocalFriendAvatars#5") {
+            if (!methodHdGallerySetUsername.isPlaceholder) {
+                methodHdGallerySetUsername.hookBefore {
+                    if (!AvatarScope.PROFILE.enabled) return@hookBefore
+                    val username = args[0] as? String ?: return@hookBefore
+                    val gallery = thisObject
+                    if (applyCustomHdAvatar(gallery, username)) {
+                        result = null
+                        (gallery as? View)?.let { view ->
+                            view.post { applyCustomHdAvatar(gallery, username) }
+                            view.postDelayed({ applyCustomHdAvatar(gallery, username) }, 300L)
+                        }
                     }
                 }
             }

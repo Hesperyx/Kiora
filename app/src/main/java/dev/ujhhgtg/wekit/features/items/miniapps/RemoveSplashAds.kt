@@ -65,32 +65,44 @@ object RemoveSplashAds : SwitchFeature(), IResolveDex {
     override val targetProcesses = setOf(TargetProcess.MAIN, TargetProcess.APPBRAND)
 
     override fun onEnable() {
-        methodIsAdContact.hookBefore {
-            result = false
+        installHook("RemoveSplashAds#1") {
+            methodIsAdContact.hookBefore {
+                result = false
+            }
         }
 
-        methodCheckCanShowAd.hookBefore {
-            result = false
+        installHook("RemoveSplashAds#2") {
+            methodCheckCanShowAd.hookBefore {
+                result = false
+            }
         }
 
-        methodAdDataCallback.hookBefore {
-            result = null
-        }
-
-        methodSendShouldShowAd.hookBefore {
-            if (args.getOrNull(0) as? Int == 2) {
+        installHook("RemoveSplashAds#3") {
+            methodAdDataCallback.hookBefore {
                 result = null
             }
         }
 
-        methodShowSplashAd.hookBefore {
-            (args.getOrNull(1) as? JSONObject)?.put("show", false)
+        installHook("RemoveSplashAds#4") {
+            methodSendShouldShowAd.hookBefore {
+                if (args.getOrNull(0) as? Int == 2) {
+                    result = null
+                }
+            }
         }
 
-        AppBrandAdUI::class.java.hookBeforeOnCreate {
-            val activity = thisObject as Activity
-            activity.finish()
-            result = null
+        installHook("RemoveSplashAds#5") {
+            methodShowSplashAd.hookBefore {
+                (args.getOrNull(1) as? JSONObject)?.put("show", false)
+            }
+        }
+
+        installHook("RemoveSplashAds#6") {
+            AppBrandAdUI::class.java.hookBeforeOnCreate {
+                val activity = thisObject as Activity
+                activity.finish()
+                result = null
+            }
         }
     }
 }

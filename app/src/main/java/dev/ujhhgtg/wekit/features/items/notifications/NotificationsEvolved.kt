@@ -628,7 +628,7 @@ object NotificationsEvolved : ClickableFeature(), IResolveDex {
             // Append before launching so replacement publishers keep every message in arrival
             // order. Cancelling a publisher must not cancel media needed by its replacement.
             appendHistory(context.talker, entry)
-            val history = messageHistory[context.talker]!!.toList()
+            val history = messageHistory[context.talker]?.toList() ?: emptyList()
             notif.contentIntent?.let { setContentIntent(context.talker, it) }
             notificationTalkers[key] = context.talker
             pending.job = mediaScope.launch(start = CoroutineStart.LAZY) {
@@ -945,84 +945,99 @@ object NotificationsEvolved : ClickableFeature(), IResolveDex {
         mediaScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         mediaScope.launch { cleanupNotificationMediaCache() }
 
-        WeMessageApi.methodMsgInfoStorageInsertMessage.hookAfter {
-            val insertedMessageId = result as Long
-            if (insertedMessageId < 0L) return@hookAfter
-            enqueueMessage(MessageInfo(args[0]!!), insertedMessageId)
+        installHook("notificationsEvolved.msgInfoInsert") {
+            WeMessageApi.methodMsgInfoStorageInsertMessage.hookAfter {
+                val insertedMessageId = result as Long
+                if (insertedMessageId < 0L) return@hookAfter
+                val rawMessage = args[0] ?: return@hookAfter
+                enqueueMessage(MessageInfo(rawMessage), insertedMessageId)
+            }
         }
 
         // x.d -> m0.a -> e0.b -> NotificationItem -> NotificationManager.notify() runs
         // synchronously on the main thread in the host. Capture its context until publication;
         // the notify hook below takes a snapshot and returns before any media wait or rendering.
-        methodDealNotify.hookBefore {
-            val talker = args[1] as String
-            synchronized(stateLock) {
-                notificationContext.set(
-                    NotificationContext(
-                        talker = talker,
-                        rawContent = args[2] as String,
-                        generation = conversationGenerations.getOrPut(talker) { Any() },
+        installHook("notificationsEvolved.dealNotifyBefore") {
+            methodDealNotify.hookBefore {
+                val talker = args[1] as String
+                synchronized(stateLock) {
+                    notificationContext.set(
+                        NotificationContext(
+                            talker = talker,
+                            rawContent = args[2] as String,
+                            generation = conversationGenerations.getOrPut(talker) { Any() },
+                        )
                     )
-                )
+                }
             }
         }
-        methodDealNotify.hookAfter {
-            notificationContext.get()?.let(::discardPendingMessage)
-            notificationContext.remove()
+        installHook("notificationsEvolved.dealNotifyAfter") {
+            methodDealNotify.hookAfter {
+                notificationContext.get()?.let(::discardPendingMessage)
+                notificationContext.remove()
+            }
         }
 
         // WeChat calls ConversationStorage.updateUnreadByTalker(talker) when a conversation's
         // unread state is cleared outside our receiver (chat opened, read elsewhere, ...). Drop
         // that talker's accumulated history so the next notification doesn't replay stale messages.
-        WeConversationApi.methodUpdateUnreadByTalker.hookBefore {
-            clearConversationState(args[0] as String)
+        installHook("notificationsEvolved.updateUnreadByTalker") {
+            WeConversationApi.methodUpdateUnreadByTalker.hookBefore {
+                clearConversationState(args[0] as String)
+            }
         }
 
-        NotificationManager::class.reflekt()
-            .firstMethod {
-                name = "notify"
-                parameters(String::class, Int::class, Notification::class)
-            }
-            .hookBefore {
-                val key = NotificationKey(args[0] as String?, args[1] as Int)
-                val notif = args[2] as Notification
-                val notifyContext = notificationContext.get()
-                if (notifyContext == null || notif.channelId != "message_channel_new_id") {
+        installHook("notificationsEvolved.notifyHook") {
+            NotificationManager::class.reflekt()
+                .firstMethod {
+                    name = "notify"
+                    parameters(String::class, Int::class, Notification::class)
+                }
+                .hookBefore {
+                    val key = NotificationKey(args[0] as String?, args[1] as Int)
+                    val notif = args[2] as Notification
+                    val notifyContext = notificationContext.get()
+                    if (notifyContext == null || notif.channelId != "message_channel_new_id") {
+                        synchronized(stateLock) {
+                            invalidatePendingNotifications { it.key == key }
+                            notificationTalkers.remove(key)
+                        }
+                        return@hookBefore
+                    }
+                    notificationContext.remove()
+                    val originalNotify = captureOriginalMethod()
+                    scheduleNotification(key, notif.clone(), notifyContext, originalNotify)
+                    result = null
+                }
+        }
+
+        installHook("notificationsEvolved.cancelHook") {
+            NotificationManager::class.reflekt()
+                .firstMethod {
+                    name = "cancel"
+                    parameters(String::class, Int::class)
+                }
+                .hookBefore {
+                    val key = NotificationKey(args[0] as String?, args[1] as Int)
                     synchronized(stateLock) {
                         invalidatePendingNotifications { it.key == key }
                         notificationTalkers.remove(key)
                     }
-                    return@hookBefore
                 }
-                notificationContext.remove()
-                val originalNotify = captureOriginalMethod()
-                scheduleNotification(key, notif.clone(), notifyContext, originalNotify)
-                result = null
-            }
-
-        NotificationManager::class.reflekt()
-            .firstMethod {
-                name = "cancel"
-                parameters(String::class, Int::class)
-            }
-            .hookBefore {
-                val key = NotificationKey(args[0] as String?, args[1] as Int)
-                synchronized(stateLock) {
-                    invalidatePendingNotifications { it.key == key }
-                    notificationTalkers.remove(key)
+        }
+        installHook("notificationsEvolved.cancelAllHook") {
+            NotificationManager::class.reflekt()
+                .firstMethod {
+                    name = "cancelAll"
+                    parameters()
                 }
-            }
-        NotificationManager::class.reflekt()
-            .firstMethod {
-                name = "cancelAll"
-                parameters()
-            }
-            .hookBefore {
-                synchronized(stateLock) {
-                    invalidatePendingNotifications { true }
-                    notificationTalkers.clear()
+                .hookBefore {
+                    synchronized(stateLock) {
+                        invalidatePendingNotifications { true }
+                        notificationTalkers.clear()
+                    }
                 }
-            }
+        }
 
         val filter = IntentFilter().apply {
             addAction(ACTION_REPLY)

@@ -88,10 +88,12 @@ object FakeLocation : ClickableFeature(), IResolveDex {
     private var wechatPickerHooked = false
 
     override fun onEnable() {
-        listOf(methodListener, methodListenerWgs84, methodDefaultManager).forEach {
-            it.hookBefore {
-                val tencentLocation = args[0]
-                hookTencentLocation(tencentLocation)
+        installHook("FakeLocation#1") {
+            listOf(methodListener, methodListenerWgs84, methodDefaultManager).forEach {
+                it.hookBefore {
+                    val tencentLocation = args[0]
+                    hookTencentLocation(tencentLocation)
+                }
             }
         }
 
@@ -99,16 +101,18 @@ object FakeLocation : ClickableFeature(), IResolveDex {
         // chat attachment panel, however, belongs exclusively to the main process.
         if (!TargetProcesses.isInMain) return
 
-        WeChatInputBarMenuApi.methodAppGridGetView.hookAfter {
-            val itemView = result as View
-            val isLocationItem = isLocationItem(itemView)
-            synchronized(locationItemViews) {
-                if (isLocationItem) locationItemViews.add(itemView)
-                else locationItemViews.remove(itemView)
-            }
-            if (isLocationItem) {
-                val appGrid = args[2] as AdapterView<*>
-                hookAppGridLongClick(appGrid.onItemLongClickListener!!)
+        installHook("FakeLocation#2") {
+            WeChatInputBarMenuApi.methodAppGridGetView.hookAfter {
+                val itemView = result as View
+                val isLocationItem = isLocationItem(itemView)
+                synchronized(locationItemViews) {
+                    if (isLocationItem) locationItemViews.add(itemView)
+                    else locationItemViews.remove(itemView)
+                }
+                if (isLocationItem) {
+                    val appGrid = args[2] as AdapterView<*>
+                    appGrid.onItemLongClickListener?.let { hookAppGridLongClick(it) }
+                }
             }
         }
     }

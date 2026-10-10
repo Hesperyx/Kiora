@@ -65,7 +65,9 @@ data class FunctionData(
      * 非空时卡片置灰且不可点 —— 二选一的功能里，只把开关拨回去不够，
      * 用户会以为是自己没点中。
      */
-    val lockedBy: String? = null
+    val lockedBy: String? = null,
+    /** 是否显示右侧开关；纯动作项（如批量操作、调试工具）为 false，只保留行点击。 */
+    val showSwitch: Boolean = true
 )
 
 @Composable
@@ -229,7 +231,8 @@ private fun SearchModeContent(
                 onCheckedChange = { onFunctionToggle(item.id, it) },
                 isAvailable = item.isAvailable && item.lockedBy == null,
                 disabledHint = item.lockedBy?.let { "已由「$it」接管" },
-                onClick = if (item.isClickable) { { onFunctionClick(item.id) } } else null
+                onClick = if (item.isClickable) { { onFunctionClick(item.id) } } else null,
+                showSwitch = item.showSwitch
             )
         }
     }
@@ -285,7 +288,8 @@ private fun DetailPage(
                     onCheckedChange = { onFunctionToggle(item.id, it) },
                     isAvailable = item.isAvailable && item.lockedBy == null,
                     disabledHint = item.lockedBy?.let { "已由「$it」接管" },
-                    onClick = if (item.isClickable) { { onFunctionClick(item.id) } } else null
+                    onClick = if (item.isClickable) { { onFunctionClick(item.id) } } else null,
+                    showSwitch = item.showSwitch
                 )
             }
         }

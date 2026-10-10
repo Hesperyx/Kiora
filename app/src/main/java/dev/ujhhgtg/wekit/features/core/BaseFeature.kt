@@ -209,6 +209,21 @@ abstract class BaseFeature {
         }
     }
 
+    /**
+     * 隔离「安装一个子钩子」的失败。
+     *
+     * 大型功能的 [onEnable] 往往是若干互不依赖的子钩子的串联（主题、会话聚合、隐藏联系人…）。
+     * 只要其中一个子钩子因为宿主版本差异（缺类、缺方法、DexKit 锚点未命中）抛异常，异常就会
+     * 冒泡到 [enable]，命中它的 catch 分支并 [unhookAll]，把**整个**功能判为启用失败 —— 用户看到
+     * 的就是「开关明明是开的，功能却完全不生效」。逐项隔离后，失败的那一项只记一条日志，其余
+     * 子钩子照常安装，功能降级而不是整体失效。
+     */
+    fun installHook(name: String, block: () -> Unit) {
+        runCatching(block).onFailure { e ->
+            WeLogger.w(TAG, "failed to install sub-hook '$name' of $technicalPath", e)
+        }
+    }
+
     companion object {
         private const val TAG = "BaseFeature"
     }

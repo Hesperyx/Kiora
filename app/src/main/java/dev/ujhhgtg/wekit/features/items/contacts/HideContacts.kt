@@ -203,62 +203,68 @@ object HideContacts : ClickableFeature(), IResolveDex, WeChatInputBarApi.IInputB
         // Hide at query time: inject `username NOT IN (...)` into WeChat's list queries so hidden
         // contacts are filtered on every full read. Covers the homepage conversation list, the
         // contact selector / 群聊 / 标签 / 公众号 lists, and global search.
-        installSqlHooks()
+        // 隐藏联系人由多个彼此独立的子钩子组成（SQL 重写、列表/搜索/VoIP/朋友圈适配、
+        // 定时任务……）。任意一组因宿主版本差异抛异常时，不应把**整个**功能判为启用失败。
+        installHook("installSqlHooks") { installSqlHooks() }
 
         // Block the per-row live-update notification that WeChat fires (type 3) when a new
         // message arrives. Without this the native ConversationStorage dispatcher pushes the
         // hidden contact's row directly to the list adapter — bypassing the SQL hook above —
         // and the contact reappears until the next full query. Cancelling the notification at
         // source means the adapter never sees the row, so there is no flash at all.
-        hookNewMessageNotification()
+        installHook("hookNewMessageNotification") { hookNewMessageNotification() }
 
         // Drop 拍一拍 messages sent by a hidden contact before they become a row.
-        hookPatMessage()
+        installHook("hookPatMessage") { hookPatMessage() }
 
-        WeMainActivityBeautifyApi.methodDoOnCreate.hookAfter {
-            migrateLegacyHiddenParentRef()
+        installHook("hookMainActivityOnCreate") {
+            WeMainActivityBeautifyApi.methodDoOnCreate.hookAfter {
+                migrateLegacyHiddenParentRef()
 
-            val context = thisObject!!.reflekt()
-                .firstField { type { it isSubclassOf Activity::class } }
-                .get()!! as Activity
+                val context = thisObject!!.reflekt()
+                    .firstField { type { it isSubclassOf Activity::class } }
+                    .get()!! as Activity
 
-            registerScreenOffReceiver()
+                registerScreenOffReceiver()
 
-            // Triple-click on the main-screen title to toggle temporary show/hide.
-            val titleView = context.window?.decorView
-                ?.findViewById<TextView>(android.R.id.text1) ?: return@hookAfter
-            var clickCount = 0
-            var lastClickTime = Instant.DISTANT_PAST
-            titleView.setOnClickListener {
-                if (!tripleClickTitle) return@setOnClickListener
-                val now = now()
-                if (now - lastClickTime > TRIPLE_TAP_WINDOW) clickCount = 1 else clickCount++
-                lastClickTime = now
-                if (clickCount >= 3) {
-                    clickCount = 0
-                    toggleTemporarilyShown(context)
+                // Triple-click on the main-screen title to toggle temporary show/hide.
+                val titleView = context.window?.decorView
+                    ?.findViewById<TextView>(android.R.id.text1) ?: return@hookAfter
+                var clickCount = 0
+                var lastClickTime = Instant.DISTANT_PAST
+                titleView.setOnClickListener {
+                    if (!tripleClickTitle) return@setOnClickListener
+                    val now = now()
+                    if (now - lastClickTime > TRIPLE_TAP_WINDOW) clickCount = 1 else clickCount++
+                    lastClickTime = now
+                    if (clickCount >= 3) {
+                        clickCount = 0
+                        toggleTemporarilyShown(context)
+                    }
                 }
             }
         }
 
         // --- shake to leave ---
 
-        ChattingUI::class.reflekt().apply {
-            firstMethod { name = "onResume" }.hookAfter {
-                val activity = thisObject as ChattingUI
+        installHook("hookChattingUiLifecycle") {
+            ChattingUI::class.reflekt().apply {
+                firstMethod { name = "onResume" }.hookAfter {
+                    val activity = thisObject as ChattingUI
 
-                chattingUi = WeakReference(activity)
+                    chattingUi = WeakReference(activity)
 
-                val wxId = activity.intent.getStringExtra("Chat_User")
-                if (temporarilyShown || wxId !in hiddenContacts) return@hookAfter
+                    val wxId = activity.intent.getStringExtra("Chat_User")
+                    if (temporarilyShown || wxId !in hiddenContacts) return@hookAfter
 
-                ShakeDetector.start(activity)
-            }
+                    ShakeDetector.start(activity)
+                }
 
-            firstMethod { name = "onPause" }.hookAfter {
-                chattingUi?.clear()
-                chattingUi = null
-                ShakeDetector.stop()
+                firstMethod { name = "onPause" }.hookAfter {
+                    chattingUi?.clear()
+                    chattingUi = null
+                    ShakeDetector.stop()
+                }
             }
         }
 
@@ -267,13 +273,13 @@ object HideContacts : ClickableFeature(), IResolveDex, WeChatInputBarApi.IInputB
         // Everything whose rows never pass through a query the SQL rewriter above can see. See
         // hidecontacts/HideContactsLists.kt.
 
-        installListHooks()
+        installHook("installListHooks") { installListHooks() }
 
         // --- global search results the SQL rewriter cannot reach ---
         //
         // 群聊内搜索成员 and 共同群聊好友建议. See hidecontacts/HideContactsSearch.kt.
 
-        installSearchHooks()
+        installHook("installSearchHooks") { installSearchHooks() }
 
         // NB: the 通讯录 -> 群聊 list (ChatroomContactAdapter) is NOT hooked at the adapter level.
         // Its cursor comes from ContactStorage.y(), whose SQL carries `from rcontact` + `pyInitial`
@@ -288,11 +294,11 @@ object HideContacts : ClickableFeature(), IResolveDex, WeChatInputBarApi.IInputB
 
         // --- voip ---
 
-        installVoipHooks()
+        installHook("installVoipHooks") { installVoipHooks() }
 
         // --- moments inline likes/comments (mutual-friend posts) ---
 
-        installMomentsHooks()
+        installHook("installMomentsHooks") { installMomentsHooks() }
 
         // --- command ---
 
@@ -316,7 +322,7 @@ object HideContacts : ClickableFeature(), IResolveDex, WeChatInputBarApi.IInputB
         // passed while the process was down. See hidecontacts/HideContactsSchedule.kt — the catch-up
         // deliberately touches nothing but temporarilyShown, since no Activity exists at this point.
 
-        installSchedules()
+        installHook("installSchedules") { installSchedules() }
 
         WeConversationApi.reloadConversations()
     }

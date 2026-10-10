@@ -355,17 +355,29 @@ object ConversationGrouping : ClickableFeature(), IResolveDex {
     private val noUnread = ConversationUnreadState()
 
     override fun onEnable() {
+        installHook("groupsAndDatabaseListener") {
         loadGroups()
         WeDatabaseListenerApi.addListener(contactUnreadListener)
+        }
+
+        installHook("conversationStorageRefresh") {
         WeConversationApi.methodNotifyConversationChanged.hookAfter {
             // This method belongs to the shared storage base; ignore other storage instances.
             if (WeConversationApi.classConversationStorage.clazz.isInstance(thisObject)) {
                 unreadRefreshVersion.update { it + 1 }
             }
         }
-        hookConversationListAdapter()
-        if (takeOverHorizontalScroll || rememberScrollState) ensureSwipeHooks()
+        }
 
+        installHook("conversationListAdapter") {
+        hookConversationListAdapter()
+        }
+
+        installHook("horizontalScroll") {
+        if (takeOverHorizontalScroll || rememberScrollState) ensureSwipeHooks()
+        }
+
+        installHook("mainTabUi") {
         methodOnTabCreate.hookAfter {
             val mainUi = thisObject!!
             val conversationHostView = WeConversationListViewApi.hostView(mainUi)
@@ -508,7 +520,11 @@ object ConversationGrouping : ClickableFeature(), IResolveDex {
                 swipeSessions[pager] = WeakReference(session)
             }
         }
+        }
+
+        installHook("positionProvider") {
         WeConversationListViewApi.addPositionProvider(adapterPositionProvider)
+        }
     }
 
     override fun onDisable() {

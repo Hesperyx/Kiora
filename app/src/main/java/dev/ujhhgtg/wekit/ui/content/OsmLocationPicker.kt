@@ -499,7 +499,11 @@ private class CustomOsmMarker(mapView: MapView) : Overlay() {
     var position: GeoPoint?
         get() = mPosition
         set(position) {
-            mPosition = position!!.clone()
+            if (position == null) {
+                mPosition = null
+                return
+            }
+            mPosition = position.clone()
             mBounds = BoundingBox(
                 position.latitude,
                 position.longitude,
@@ -547,7 +551,7 @@ private class CustomOsmMarker(mapView: MapView) : Overlay() {
             if (mOnMarkerClickListener == null) {
                 onMarkerClickDefault(this, mapView)
             } else {
-                mOnMarkerClickListener!!.onMarkerClick(this, mapView)
+                mOnMarkerClickListener?.onMarkerClick(this, mapView) ?: false
             }
         } else false
     }
@@ -569,7 +573,7 @@ private class CustomOsmMarker(mapView: MapView) : Overlay() {
         if (touched) {
             if (mDraggable) {
                 mIsDragged = true
-                if (mOnMarkerDragListener != null) mOnMarkerDragListener!!.onMarkerDragStart(this)
+                mOnMarkerDragListener?.onMarkerDragStart(this)
                 moveToEventPosition(event, mapView)
             }
         }
@@ -581,13 +585,13 @@ private class CustomOsmMarker(mapView: MapView) : Overlay() {
             when (event.action) {
                 MotionEvent.ACTION_UP -> {
                     mIsDragged = false
-                    if (mOnMarkerDragListener != null) mOnMarkerDragListener!!.onMarkerDragEnd(this)
+                    mOnMarkerDragListener?.onMarkerDragEnd(this)
                     return true
                 }
 
                 MotionEvent.ACTION_MOVE -> {
                     moveToEventPosition(event, mapView)
-                    if (mOnMarkerDragListener != null) mOnMarkerDragListener!!.onMarkerDrag(this)
+                    mOnMarkerDragListener?.onMarkerDrag(this)
                     return true
                 }
 
@@ -612,8 +616,9 @@ private class CustomOsmMarker(mapView: MapView) : Overlay() {
     }
 
     private fun drawAt(pCanvas: Canvas, pX: Int, pY: Int, pOrientation: Float) {
-        val markerWidth = mIcon!!.intrinsicWidth
-        val markerHeight = mIcon!!.intrinsicHeight
+        val icon = mIcon ?: return
+        val markerWidth = icon.intrinsicWidth
+        val markerHeight = icon.intrinsicHeight
         val offsetX = pX - (markerWidth * mAnchorU).roundToInt()
         val offsetY = pY - (markerHeight * mAnchorV).roundToInt()
         mRect.set(offsetX, offsetY, offsetX + markerWidth, offsetY + markerHeight)
@@ -629,9 +634,9 @@ private class CustomOsmMarker(mapView: MapView) : Overlay() {
             pCanvas.save()
             pCanvas.rotate(pOrientation, pX.toFloat(), pY.toFloat())
         }
-        mIcon!!.alpha = (alpha * 255).toInt()
-        mIcon!!.bounds = mRect
-        mIcon!!.draw(pCanvas)
+        icon.alpha = (alpha * 255).toInt()
+        icon.bounds = mRect
+        icon.draw(pCanvas)
         if (pOrientation != 0f) {
             pCanvas.restore()
         }

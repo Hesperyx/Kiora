@@ -85,45 +85,57 @@ object WeShortVideosShareMenuApi : ApiFeature(), IResolveDex {
     }
 
     override fun onEnable() {
-        methodCreateMenu1.hookBefore {
-            val menu = args[0] as ContextMenu
-            handleCreateMenu(menu)
+        installHook("WeShortVideosShareMenuApi#1") {
+            methodCreateMenu1.hookBefore {
+                val menu = args[0] as ContextMenu
+                handleCreateMenu(menu)
+            }
         }
 
-        methodOnSelectMenuItem1.hookBefore {
-            val menuItem = args[0] as android.view.MenuItem
-            val baseFinderFeed = thisObject!!.reflekt()
-                .firstField {
-                    type = "com.tencent.mm.plugin.finder.model.BaseFinderFeed"
-                }
-                .get()!!
-            handleOnSelectMenuItem(this, menuItem, baseFinderFeed)
+        installHook("WeShortVideosShareMenuApi#2") {
+            methodOnSelectMenuItem1.hookBefore {
+                val menuItem = args[0] as android.view.MenuItem
+                val baseFinderFeed = thisObject!!.reflekt()
+                    .firstField {
+                        type = "com.tencent.mm.plugin.finder.model.BaseFinderFeed"
+                    }
+                    .get()!!
+                handleOnSelectMenuItem(this, menuItem, baseFinderFeed)
+            }
         }
 
-        methodCreateMenu2.hookBefore {
-            val menu = args[1] as ContextMenu
-            handleCreateMenu(menu)
+        installHook("WeShortVideosShareMenuApi#3") {
+            methodCreateMenu2.hookBefore {
+                val menu = args[1] as ContextMenu
+                handleCreateMenu(menu)
+            }
         }
 
-        methodOnSelectMenuItem2.hookBefore {
-            val menuItem = args[1] as android.view.MenuItem
-            val baseFinderFeed = args[0]!!
-            handleOnSelectMenuItem(this, menuItem, baseFinderFeed)
+        installHook("WeShortVideosShareMenuApi#4") {
+            methodOnSelectMenuItem2.hookBefore {
+                val menuItem = args[1] as android.view.MenuItem
+                val baseFinderFeed = args[0]!!
+                handleOnSelectMenuItem(this, menuItem, baseFinderFeed)
+            }
         }
 
-        methodCreateMenu3.hookBefore {
-            val menu = args[0] as ContextMenu
-            handleCreateMenu(menu)
+        installHook("WeShortVideosShareMenuApi#5") {
+            methodCreateMenu3.hookBefore {
+                val menu = args[0] as ContextMenu
+                handleCreateMenu(menu)
+            }
         }
 
-        methodOnSelectMenuItem3.hookBefore {
-            val menuItem = args[0] as android.view.MenuItem
-            val baseFinderFeed = thisObject!!.reflekt()
-                .firstField {
-                    type = "com.tencent.mm.plugin.finder.model.BaseFinderFeed"
-                }
-                .get()!!
-            handleOnSelectMenuItem(this, menuItem, baseFinderFeed)
+        installHook("WeShortVideosShareMenuApi#6") {
+            methodOnSelectMenuItem3.hookBefore {
+                val menuItem = args[0] as android.view.MenuItem
+                val baseFinderFeed = thisObject!!.reflekt()
+                    .firstField {
+                        type = "com.tencent.mm.plugin.finder.model.BaseFinderFeed"
+                    }
+                    .get()!!
+                handleOnSelectMenuItem(this, menuItem, baseFinderFeed)
+            }
         }
     }
 

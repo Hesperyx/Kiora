@@ -52,27 +52,35 @@ object DisablePinnedChatsCollapsing : SwitchFeature(), IResolveDex {
     override fun onEnable() {
         staleFoldConversationCleaned.set(false)
 
-        methodAddCollapseChatItem.hookBefore {
-            result = null
+        installHook("DisablePinnedChatsCollapsing#1") {
+            methodAddCollapseChatItem.hookBefore {
+                result = null
+            }
         }
 
-        methodIfShouldAddCollapseChatItem.hookBefore {
-            if (staleFoldConversationCleaned.get()) result = false
+        installHook("DisablePinnedChatsCollapsing#2") {
+            methodIfShouldAddCollapseChatItem.hookBefore {
+                if (staleFoldConversationCleaned.get()) result = false
+            }
         }
 
-        methodIfShouldAddCollapseChatItem.hookAfter {
-            cleanupStaleFoldConversationOnce()
-            result = false
-        }
-
-        if (!methodRecyclerShouldShowFoldItem.isPlaceholder) {
-            methodRecyclerShouldShowFoldItem.hookBefore {
+        installHook("DisablePinnedChatsCollapsing#3") {
+            methodIfShouldAddCollapseChatItem.hookAfter {
                 cleanupStaleFoldConversationOnce()
                 result = false
             }
-            methodRecyclerShouldShowFoldItem.hookAfter {
-                cleanupStaleFoldConversationOnce()
-                result = false
+        }
+
+        installHook("DisablePinnedChatsCollapsing#4") {
+            if (!methodRecyclerShouldShowFoldItem.isPlaceholder) {
+                methodRecyclerShouldShowFoldItem.hookBefore {
+                    cleanupStaleFoldConversationOnce()
+                    result = false
+                }
+                methodRecyclerShouldShowFoldItem.hookAfter {
+                    cleanupStaleFoldConversationOnce()
+                    result = false
+                }
             }
         }
 

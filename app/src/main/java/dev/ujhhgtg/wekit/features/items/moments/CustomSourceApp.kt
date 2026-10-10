@@ -56,23 +56,27 @@ object CustomSourceApp : ClickableFeature(), IResolveDex {
     private var appName by prefOption("custom_app_name", "")
 
     override fun onEnable() {
-        methodSnsUploadUIInitView.hookAfter {
-            val controller = thisObject!!.reflekt().getField("mController", true)!!
-            val elements = controller.reflekt().firstField { type = LinkedList::class; superclass() }.get()!! as LinkedList<*>
-            elements.last().reflekt().firstField { type = View.OnLongClickListener::class }.set(View.OnLongClickListener { view ->
-                showConfigDialog(view.context)
-                return@OnLongClickListener true
-            })
+        installHook("CustomSourceApp#1") {
+            methodSnsUploadUIInitView.hookAfter {
+                val controller = thisObject!!.reflekt().getField("mController", true)!!
+                val elements = controller.reflekt().firstField { type = LinkedList::class; superclass() }.get()!! as LinkedList<*>
+                elements.last().reflekt().firstField { type = View.OnLongClickListener::class }.set(View.OnLongClickListener { view ->
+                    showConfigDialog(view.context)
+                    return@OnLongClickListener true
+                })
+            }
         }
 
-        WeMomentsApi.methodCommit.hookBefore {
-            if (appId.isNotBlank()) {
-                WeMomentsApi.methodSetSdkId.method.invoke(thisObject, appId)
-                WeLogger.i(TAG, "modified app id: $appId")
-            }
-            if (appName.isNotBlank()) {
-                WeMomentsApi.methodSetSdkAppName.method.invoke(thisObject, appName)
-                WeLogger.i(TAG, "modified app name: $appName")
+        installHook("CustomSourceApp#2") {
+            WeMomentsApi.methodCommit.hookBefore {
+                if (appId.isNotBlank()) {
+                    WeMomentsApi.methodSetSdkId.method.invoke(thisObject, appId)
+                    WeLogger.i(TAG, "modified app id: $appId")
+                }
+                if (appName.isNotBlank()) {
+                    WeMomentsApi.methodSetSdkAppName.method.invoke(thisObject, appName)
+                    WeLogger.i(TAG, "modified app name: $appName")
+                }
             }
         }
     }

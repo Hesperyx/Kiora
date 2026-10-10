@@ -161,68 +161,76 @@ object VirtualVoipVideo : ClickableFeature(), IResolveDex {
         }
 
     override fun onEnable() {
-        methodStartCamera.hookBefore {
-            isVoipUiActive = true
-            WeLogger.d(TAG, "entered voip ui: MicroMsg.ILinkVoIPCameraHelper")
+        installHook("virtualVoipVideo.startCamera") {
+            methodStartCamera.hookBefore {
+                isVoipUiActive = true
+                WeLogger.d(TAG, "entered voip ui: MicroMsg.ILinkVoIPCameraHelper")
+            }
         }
 
-        methodLaunchVoipPage.hookBefore {
-            isVoipUiActive = true
-            WeLogger.d(TAG, "entered voip ui: MicroMsg.VoIPMP.Launcher")
+        installHook("virtualVoipVideo.launchVoipPage") {
+            methodLaunchVoipPage.hookBefore {
+                isVoipUiActive = true
+                WeLogger.d(TAG, "entered voip ui: MicroMsg.VoIPMP.Launcher")
+            }
         }
 
-        listOf(
-            "com.tencent.mm.plugin.voip.ui.VideoActivity",
-            "com.tencent.mm.plugin.multitalk.ui.MultiTalkMainUI"
-        ).forEach { className ->
-            className.toClass().apply {
-                firstMethod { name = "onCreate" }.hookBefore {
-                    isVoipUiActive = true
-                    WeLogger.d(TAG, "entered voip ui: $className")
-                }
+        installHook("virtualVoipVideo.voipActivities") {
+            listOf(
+                "com.tencent.mm.plugin.voip.ui.VideoActivity",
+                "com.tencent.mm.plugin.multitalk.ui.MultiTalkMainUI"
+            ).forEach { className ->
+                className.toClass().apply {
+                    firstMethod { name = "onCreate" }.hookBefore {
+                        isVoipUiActive = true
+                        WeLogger.d(TAG, "entered voip ui: $className")
+                    }
 
-                firstMethod { name = "onDestroy" }.hookBefore {
-                    isVoipUiActive = false
-                    releasePlayer("left voip ui: $className")
+                    firstMethod { name = "onDestroy" }.hookBefore {
+                        isVoipUiActive = false
+                        releasePlayer("left voip ui: $className")
+                    }
                 }
             }
         }
 
-        Camera::class.apply {
-            firstMethod { name = "setPreviewTexture" }.hookBefore {
-                WeLogger.i(TAG, "Camera::setPreviewTexture is called")
+        installHook("virtualVoipVideo.camera1") {
+            Camera::class.apply {
+                firstMethod { name = "setPreviewTexture" }.hookBefore {
+                    WeLogger.i(TAG, "Camera::setPreviewTexture is called")
 
-                if (!shouldInterceptCamera) return@hookBefore
+                    if (!shouldInterceptCamera) return@hookBefore
 
-                WeLogger.i(TAG, "should intercept Camera::setPreviewTexture, starting virtual video...")
+                    WeLogger.i(TAG, "should intercept Camera::setPreviewTexture, starting virtual video...")
 
-                val targetTexture = args[0] as? SurfaceTexture? ?: return@hookBefore
+                    val targetTexture = args[0] as? SurfaceTexture? ?: return@hookBefore
 
-                args[0] = dummySurfaceTexture
-                startVirtualVideo(
-                    surface = Surface(targetTexture),
-                    ownsSurface = true
-                )
-                WeLogger.d(TAG, "camera1 preview texture replaced")
-            }
-
-            firstMethod {
-                name = "getCameraInfo"
-                parameters(int, Camera.CameraInfo::class)
-            }.hookAfter {
-                if (!shouldInterceptCamera) return@hookAfter
-                val info = args[1] as? Camera.CameraInfo ?: return@hookAfter
-
-                if (isVideoPortrait) {
-                    val isFront = info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT
-                    info.orientation = if (isFront) 90 else 270
-                    WeLogger.i(TAG, "portrait video detected: forcing camera orientation to ${info.orientation}")
-                } else {
-                    info.orientation = 0
-                    WeLogger.i(TAG, "landscape video detected: forcing camera orientation to 0")
+                    args[0] = dummySurfaceTexture
+                    startVirtualVideo(
+                        surface = Surface(targetTexture),
+                        ownsSurface = true
+                    )
+                    WeLogger.d(TAG, "camera1 preview texture replaced")
                 }
-                info.facing = Camera.CameraInfo.CAMERA_FACING_BACK
-                WeLogger.i(TAG, "forcing camera facing to back")
+
+                firstMethod {
+                    name = "getCameraInfo"
+                    parameters(int, Camera.CameraInfo::class)
+                }.hookAfter {
+                    if (!shouldInterceptCamera) return@hookAfter
+                    val info = args[1] as? Camera.CameraInfo ?: return@hookAfter
+
+                    if (isVideoPortrait) {
+                        val isFront = info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT
+                        info.orientation = if (isFront) 90 else 270
+                        WeLogger.i(TAG, "portrait video detected: forcing camera orientation to ${info.orientation}")
+                    } else {
+                        info.orientation = 0
+                        WeLogger.i(TAG, "landscape video detected: forcing camera orientation to 0")
+                    }
+                    info.facing = Camera.CameraInfo.CAMERA_FACING_BACK
+                    WeLogger.i(TAG, "forcing camera facing to back")
+                }
             }
         }
 
@@ -235,39 +243,43 @@ object VirtualVoipVideo : ClickableFeature(), IResolveDex {
             return
         }
 
-        cameraDeviceImpl.declaredMethods.filter {
-            it.name in CAMERA2_METHODS
-        }.forEach { method ->
-            method.hookBefore {
-                WeLogger.i(TAG, "Camera2::$method is called")
-                if (!shouldInterceptCamera) return@hookBefore
-                WeLogger.i(TAG, "should intercept Camera2::$method, starting virtual video...")
-                hijackCamera2Session(this)
+        installHook("VirtualVoipVideo#1") {
+            cameraDeviceImpl.declaredMethods.filter {
+                it.name in CAMERA2_METHODS
+            }.forEach { method ->
+                method.hookBefore {
+                    WeLogger.i(TAG, "Camera2::$method is called")
+                    if (!shouldInterceptCamera) return@hookBefore
+                    WeLogger.i(TAG, "should intercept Camera2::$method, starting virtual video...")
+                    hijackCamera2Session(this)
+                }
             }
         }
 
-        CameraCharacteristics::class.firstMethod { name = "get" }.hookAfter {
-            if (camera2HookBypass.get()!!) return@hookAfter
-            if (!shouldInterceptCamera) return@hookAfter
-            val key = args[0] as? CameraCharacteristics.Key<*>? ?: return@hookAfter
+        installHook("virtualVoipVideo.camera2Characteristics") {
+            CameraCharacteristics::class.firstMethod { name = "get" }.hookAfter {
+                if (camera2HookBypass.get()!!) return@hookAfter
+                if (!shouldInterceptCamera) return@hookAfter
+                val key = args[0] as? CameraCharacteristics.Key<*>? ?: return@hookAfter
 
-            if (key == CameraCharacteristics.SENSOR_ORIENTATION) {
-                if (isVideoPortrait) {
-                    camera2HookBypass.set(true)
-                    val characteristics = thisObject as? CameraCharacteristics
-                    val lensFacing = runCatching { characteristics?.get(CameraCharacteristics.LENS_FACING) }.getOrNull()
-                    camera2HookBypass.set(false)
+                if (key == CameraCharacteristics.SENSOR_ORIENTATION) {
+                    if (isVideoPortrait) {
+                        camera2HookBypass.set(true)
+                        val characteristics = thisObject as? CameraCharacteristics
+                        val lensFacing = runCatching { characteristics?.get(CameraCharacteristics.LENS_FACING) }.getOrNull()
+                        camera2HookBypass.set(false)
 
-                    val isFront = lensFacing == CameraCharacteristics.LENS_FACING_FRONT
-                    result = if (isFront) 90 else 270
-                    WeLogger.i(TAG, "portrait video detected: forcing Camera2 SENSOR_ORIENTATION to $result")
-                } else {
-                    result = 0
-                    WeLogger.i(TAG, "landscape video detected: forcing Camera2 SENSOR_ORIENTATION to 0")
+                        val isFront = lensFacing == CameraCharacteristics.LENS_FACING_FRONT
+                        result = if (isFront) 90 else 270
+                        WeLogger.i(TAG, "portrait video detected: forcing Camera2 SENSOR_ORIENTATION to $result")
+                    } else {
+                        result = 0
+                        WeLogger.i(TAG, "landscape video detected: forcing Camera2 SENSOR_ORIENTATION to 0")
+                    }
+                } else if (key == CameraCharacteristics.LENS_FACING) {
+                    WeLogger.i(TAG, "forcing lens facing to BACK")
+                    result = CameraCharacteristics.LENS_FACING_BACK
                 }
-            } else if (key == CameraCharacteristics.LENS_FACING) {
-                WeLogger.i(TAG, "forcing lens facing to BACK")
-                result = CameraCharacteristics.LENS_FACING_BACK
             }
         }
     }

@@ -68,45 +68,53 @@ object MonetEngine : ApiFeature() {
             return
         }
 
-        "com.tencent.mm.ui.widget.MMSwitchBtn".toClass().constructors.forEach {
-            it.hookAfter {
-                thisObject!!.reflekt()
-                    .fields {
-                        type = Int::class
-                        superclass()
-                    }.forEach { field ->
-                        if (field.get()!! as Int == DEFAULT_COLOR)
-                            field.set(primaryColor)
-                    }
+        installHook("MonetEngine#1") {
+            "com.tencent.mm.ui.widget.MMSwitchBtn".toClass().constructors.forEach {
+                it.hookAfter {
+                    thisObject!!.reflekt()
+                        .fields {
+                            type = Int::class
+                            superclass()
+                        }.forEach { field ->
+                            if (field.get()!! as Int == DEFAULT_COLOR)
+                                field.set(primaryColor)
+                        }
+                }
             }
         }
 
         // GradientDrawable/PaintDrawable fills (incl. WeChat's green button shapes) draw through
         // Paint.setColor, so swapping the brand green here recolors those backgrounds to primary.
-        Paint::class.reflekt()
-            .firstMethod { name = "setColor" }
-            .hookBefore {
-                val color = args[0] as Int
-                if (color != DEFAULT_COLOR) return@hookBefore
-                args[0] = primaryColor
-            }
+        installHook("MonetEngine#2") {
+            Paint::class.reflekt()
+                .firstMethod { name = "setColor" }
+                .hookBefore {
+                    val color = args[0] as Int
+                    if (color != DEFAULT_COLOR) return@hookBefore
+                    args[0] = primaryColor
+                }
+        }
 
         // ColorDrawable draws via Canvas.drawColor (not Paint.setColor), so it needs its own swap.
-        View::class.reflekt().firstMethod { name = "setBackgroundDrawable" }.hookBefore {
-            val drawable = args[0] as? Drawable? ?: return@hookBefore
-            if (drawable is ColorDrawable && drawable.color == DEFAULT_COLOR) {
-                drawable.color = primaryColor
+        installHook("MonetEngine#3") {
+            View::class.reflekt().firstMethod { name = "setBackgroundDrawable" }.hookBefore {
+                val drawable = args[0] as? Drawable? ?: return@hookBefore
+                if (drawable is ColorDrawable && drawable.color == DEFAULT_COLOR) {
+                    drawable.color = primaryColor
+                }
             }
         }
 
         // Green (brand) buttons already get their background recolored to primary by the Paint /
         // ColorDrawable hooks above. Neutral / cancel buttons keep their own colors —
         // we deliberately don't blanket-tint every Button.
-        View::class.reflekt().firstMethod { name = "onFinishInflate" }.hookAfter {
-            val button = thisObject as? Button ?: return@hookAfter
-            if (button.background?.hasBrandGreen() == true) {
-                button.setTextColor(onPrimaryColor)
-                button.backgroundTintList = ColorStateList.valueOf(primaryColor)
+        installHook("MonetEngine#4") {
+            View::class.reflekt().firstMethod { name = "onFinishInflate" }.hookAfter {
+                val button = thisObject as? Button ?: return@hookAfter
+                if (button.background?.hasBrandGreen() == true) {
+                    button.setTextColor(onPrimaryColor)
+                    button.backgroundTintList = ColorStateList.valueOf(primaryColor)
+                }
             }
         }
 
@@ -114,19 +122,21 @@ object MonetEngine : ApiFeature() {
             return
         }
 
-        TextView::class.reflekt().firstMethod { name = "onAttachedToWindow" }.hookAfter {
-            val editText = thisObject as? EditText? ?: return@hookAfter
-            editText.apply {
-                textCursorDrawable?.apply {
-                    setTint(primaryColor)
-                    editText.textCursorDrawable = this
-                }
+        installHook("MonetEngine#5") {
+            TextView::class.reflekt().firstMethod { name = "onAttachedToWindow" }.hookAfter {
+                val editText = thisObject as? EditText? ?: return@hookAfter
+                editText.apply {
+                    textCursorDrawable?.apply {
+                        setTint(primaryColor)
+                        editText.textCursorDrawable = this
+                    }
 
-                // android views are weird
-                val handle = textSelectHandle ?: return@apply
-                handle.mutate()
-                setTextSelectHandle(handle)
-                textSelectHandle!!.setTint(primaryColor)
+                    // android views are weird
+                    val handle = textSelectHandle ?: return@apply
+                    handle.mutate()
+                    setTextSelectHandle(handle)
+                    textSelectHandle!!.setTint(primaryColor)
+                }
             }
         }
     }

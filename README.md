@@ -13,6 +13,8 @@
 一款基于 Xposed 框架开发的 QQ / TIM / 微信功能增强模块。
 本项目采用了 **Kotlin** + **Jetpack Compose** 的现代 Android 技术栈构建。
 
+完整版本记录见 [CHANGELOG.md](CHANGELOG.md)。
+
 # 功能列表
 
 ### 模块功能

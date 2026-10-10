@@ -1514,13 +1514,15 @@ object ApiServer : ClickableFeature() {
             route("contacts/{wxId}") {
                 // GET /api/contacts/{wxId}
                 get {
-                    val wxId = call.parameters["wxId"]!!
+                    val wxId = call.parameters["wxId"]
+                        ?: return@get call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing 'wxId' path parameter"))
                     call.respondResult(WeChatService.getContactDetail(wxId)) { respond(HttpStatusCode.OK, it) }
                 }
 
                 // GET /api/contacts/{wxId}/display-name
                 get("display-name") {
-                    val wxId = call.parameters["wxId"]!!
+                    val wxId = call.parameters["wxId"]
+                        ?: return@get call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing 'wxId' path parameter"))
                     call.respondResult(WeChatService.getDisplayNameByConvId(wxId)) { name ->
                         respond(HttpStatusCode.OK, DisplayNameResponse(name))
                     }
@@ -1953,7 +1955,8 @@ object ApiServer : ClickableFeature() {
             route("conversations/{convId}") {
                 // GET /api/conversations/{convId}/history?page-index=1&page-size=20
                 get("history") {
-                    val convId = call.parameters["convId"]!!
+                    val convId = call.parameters["convId"]
+                        ?: return@get call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing 'convId' path parameter"))
                     val pageIndex = call.request.queryParameters["page-index"]?.toIntOrNull() ?: 1
                     val pageSize = call.request.queryParameters["page-size"]?.toIntOrNull() ?: 20
                     call.respondResult(WeChatService.listMessages(convId, pageIndex, pageSize)) { messages ->
@@ -2021,7 +2024,8 @@ object ApiServer : ClickableFeature() {
             route("groups/{groupId}") {
                 // GET /api/groups/{groupId}/members
                 get("members") {
-                    val groupId = call.parameters["groupId"]!!
+                    val groupId = call.parameters["groupId"]
+                        ?: return@get call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing 'groupId' path parameter"))
                     call.respondResult(WeChatService.listGroupMembers(groupId)) { members ->
                         respond(HttpStatusCode.OK, members)
                     }
@@ -2029,7 +2033,8 @@ object ApiServer : ClickableFeature() {
 
                 // POST /api/groups/{groupId}/members/add
                 post("members/add") {
-                    val groupId = call.parameters["groupId"]!!
+                    val groupId = call.parameters["groupId"]
+                        ?: return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing 'groupId' path parameter"))
                     val req = runCatching { call.receive<MemberRequest>() }.getOrNull()
                         ?: return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid request body"))
                     if (req.memberWxids != null) {
@@ -2043,7 +2048,8 @@ object ApiServer : ClickableFeature() {
 
                 // POST /api/groups/{groupId}/members/delete
                 post("members/delete") {
-                    val groupId = call.parameters["groupId"]!!
+                    val groupId = call.parameters["groupId"]
+                        ?: return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing 'groupId' path parameter"))
                     val req = runCatching { call.receive<MemberRequest>() }.getOrNull()
                         ?: return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid request body"))
                     if (req.memberWxids != null) {
@@ -2057,7 +2063,8 @@ object ApiServer : ClickableFeature() {
 
                 // POST /api/groups/{groupId}/members/invite
                 post("members/invite") {
-                    val groupId = call.parameters["groupId"]!!
+                    val groupId = call.parameters["groupId"]
+                        ?: return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing 'groupId' path parameter"))
                     val req = runCatching { call.receive<MemberRequest>() }.getOrNull()
                         ?: return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid request body"))
                     if (req.memberWxids != null) {
@@ -2078,14 +2085,16 @@ object ApiServer : ClickableFeature() {
 
                 // GET /api/labels/{labelIdOrName}/contacts
                 get("{labelIdOrName}/contacts") {
-                    val labelIdOrName = call.parameters["labelIdOrName"]!!
+                    val labelIdOrName = call.parameters["labelIdOrName"]
+                        ?: return@get call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing 'labelIdOrName' path parameter"))
                     call.respondResult(WeChatService.getContactsByLabel(labelIdOrName)) { respond(HttpStatusCode.OK, it) }
                 }
             }
 
             // POST /api/contacts/{wxId}/labels
             post("contacts/{wxId}/labels") {
-                val wxId = call.parameters["wxId"]!!
+                val wxId = call.parameters["wxId"]
+                    ?: return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Missing 'wxId' path parameter"))
                 val req = runCatching { call.receive<LabelsModifyRequest>() }.getOrNull()
                     ?: return@post call.respond(HttpStatusCode.BadRequest, ErrorResponse("Invalid request body"))
                 call.respondResult(WeChatService.modifyContactLabels(wxId, req.labels)) { respond(HttpStatusCode.OK, SuccessResponse()) }

@@ -19,10 +19,12 @@ object DisableTypingStatusUploading : SwitchFeature(), IResolveDex {
     override fun onEnable() {
         if (classMmTypingSendReq.isPlaceholder) return
 
-        classMmTypingSendReq.reflekt().firstMethod { name = "doScene" }
-            .hookBefore {
-                result = -1
-            }
+        installHook("DisableTypingStatusUploading#1") {
+            classMmTypingSendReq.reflekt().firstMethod { name = "doScene" }
+                .hookBefore {
+                    result = -1
+                }
+        }
     }
 
     override fun resolveDex(dexKit: DexKitBridge) {

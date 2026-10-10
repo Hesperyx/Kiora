@@ -304,10 +304,12 @@ object SplitGroupCall : ClickableFeature(), IContactInfoProvider, IResolveDex {
                 declaredClass = classILinkService.data.name
                 usingStrings("start audio device failed")
             }
-        }.single()
+        }.singleOrNull()
+            ?: error("expected one ILinkService audio-device reader method, found none")
         val roomIdField = readerMethod.usingFields
             .map { it.field }
-            .single { it.className == iLinkServiceName && it.typeName == "java.lang.String" }
+            .singleOrNull { it.className == iLinkServiceName && it.typeName == "java.lang.String" }
+            ?: error("ILinkService roomId field not found")
         fieldRoomId.setDescriptor(roomIdField)
     }
 

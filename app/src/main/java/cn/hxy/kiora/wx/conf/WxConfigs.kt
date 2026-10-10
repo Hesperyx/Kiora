@@ -22,45 +22,15 @@ data class WxMsgFormatConfig(
     val timeFormat: String = "HH:mm:ss"
 )
 
-/** 语音时长（WA `VoiceLengthHook`）：发送的语音消息显示为多少秒。 */
-@Serializable
-data class WxVoiceLengthConfig(
-    val seconds: Int = 1
-)
-
-/** 运动步数（WA `SportStepHook`）：展示值，内部还会与 98800 取小。 */
-@Serializable
-data class WxSportStepConfig(
-    val step: Long = 88888L
-)
-
 /**
- * 虚拟定位（WA `LocationHook`）。
+ * 自动点击登录（WA `AutoLoginWinHook`）：三个勾选项。
  *
- * 默认值沿用 WA：上海（31.135633, 121.66625）—— 这个点本身没有含义，
- * 只是明显与真实定位不同，方便确认功能生效。
+ * 这是微信端**没有 WeKit 对应项**的原生功能（WeKit 只有「自动批准设备登录」，
+ * 语义不同），因此不能随重复项一起删除，否则整条功能会从设置页消失。
  */
-@Serializable
-data class WxLocationConfig(
-    val latitude: Float = 31.135633f,
-    val longitude: Float = 121.66625f
-)
-
-/** 自动点击登录（WA `AutoLoginWinHook`）：三个勾选项。 */
 @Serializable
 data class WxAutoLoginConfig(
     val autoSyncMsg: Boolean = true,
     val showLoginDevice: Boolean = true,
     val autoLoginDevice: Boolean = false
-)
-
-/**
- * 屏蔽通话铃声（WA `DisableRingtonePlayHook`）。
- *
- * 两个开关分开配：呼出与呼入的场景常不一样（比如只想去掉自己的呼出铃声）。
- */
-@Serializable
-data class WxRingtoneConfig(
-    val blockOutCall: Boolean = true,
-    val blockInCall: Boolean = false
 )

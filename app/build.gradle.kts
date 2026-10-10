@@ -40,8 +40,8 @@ extensions.configure<ApplicationExtension> {
         applicationId = "cn.hxy.kiora"
         minSdk = 26
         targetSdk = 37
-        versionCode = 30
-        versionName = "1.3.8"
+        versionCode = 35
+        versionName = "1.3.13"
 
         buildConfigField("String", "GIT_COMMIT", "\"${gitValue("rev-parse", "HEAD")}\"")
         buildConfigField("String", "GIT_COMMIT_TIME", "\"${gitValue("log", "-1", "--format=%cI")}\"")

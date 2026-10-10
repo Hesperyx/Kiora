@@ -79,55 +79,59 @@ object OpenHistoryRedPackets : SwitchFeature(), WeContactPrefsScreenApi.IContact
     override fun onEnable() {
         WeContactPrefsScreenApi.addProvider(this)
 
-        WePaymentApi.methodReceiveLuckyMoneyOnGYNetEnd.hookAfter {
-            val json = args[2] as? JSONObject ?: return@hookAfter
-            val sendId = json.optString("sendId")
-            val timingIdentifier = json.optString("timingIdentifier")
+        installHook("OpenHistoryRedPackets#1") {
+            WePaymentApi.methodReceiveLuckyMoneyOnGYNetEnd.hookAfter {
+                val json = args[2] as? JSONObject ?: return@hookAfter
+                val sendId = json.optString("sendId")
+                val timingIdentifier = json.optString("timingIdentifier")
 
-            if (timingIdentifier.isNullOrEmpty() || sendId.isNullOrEmpty()) return@hookAfter
+                if (timingIdentifier.isNullOrEmpty() || sendId.isNullOrEmpty()) return@hookAfter
 
-            val info = currentRedPacketMap[sendId] ?: return@hookAfter
+                val info = currentRedPacketMap[sendId] ?: return@hookAfter
 
-            thread(name = "OpenHistoryRedPacketThread") {
-                try {
-                    val openReq = WePaymentApi.classOpenLuckyMoney.clazz.createInstance(
-                        info.msgType, info.channelId, info.sendId, info.nativeUrl,
-                        info.headImg, info.nickName, info.talker,
-                        "v1.0", timingIdentifier, ""
-                    )
-                    WeNetSceneApi.sendNetScene(openReq)
-                } catch (e: Throwable) {
-                    WeLogger.e(TAG, "failed to open request", e)
-                    currentRedPacketMap.remove(sendId)
-                    updateLog(R.string.payment_history_open_request_failed, info.nickName)
+                thread(name = "OpenHistoryRedPacketThread") {
+                    try {
+                        val openReq = WePaymentApi.classOpenLuckyMoney.clazz.createInstance(
+                            info.msgType, info.channelId, info.sendId, info.nativeUrl,
+                            info.headImg, info.nickName, info.talker,
+                            "v1.0", timingIdentifier, ""
+                        )
+                        WeNetSceneApi.sendNetScene(openReq)
+                    } catch (e: Throwable) {
+                        WeLogger.e(TAG, "failed to open request", e)
+                        currentRedPacketMap.remove(sendId)
+                        updateLog(R.string.payment_history_open_request_failed, info.nickName)
+                    }
                 }
             }
         }
 
-        WePaymentApi.methodOpenLuckyMoneyOnGYNetEnd.hookAfter {
-            val json = args[2] as? JSONObject ?: return@hookAfter
+        installHook("OpenHistoryRedPackets#2") {
+            WePaymentApi.methodOpenLuckyMoneyOnGYNetEnd.hookAfter {
+                val json = args[2] as? JSONObject ?: return@hookAfter
 
-            val sendId = json.optString("sendId")
-            if (sendId.isNullOrEmpty()) return@hookAfter
+                val sendId = json.optString("sendId")
+                if (sendId.isNullOrEmpty()) return@hookAfter
 
-            val info = currentRedPacketMap.remove(sendId) ?: return@hookAfter
-            val retCode = json.optInt("retcode", -1)
+                val info = currentRedPacketMap.remove(sendId) ?: return@hookAfter
+                val retCode = json.optInt("retcode", -1)
 
-            if (retCode != 0) {
-                updateLog(R.string.payment_history_receive_failed, info.nickName, retCode)
-                return@hookAfter
-            }
-
-            when (val receiveStatus = json.optInt("receiveStatus", -1)) {
-                2 -> {
-                    val amount = json.optInt("amount", 0)
-                    val displayAmount = amount / 100.0
-                    updateLog(R.string.payment_history_receive_success, info.nickName, displayAmount)
+                if (retCode != 0) {
+                    updateLog(R.string.payment_history_receive_failed, info.nickName, retCode)
+                    return@hookAfter
                 }
 
-                3 -> updateLog(R.string.payment_history_expired, info.nickName)
-                4 -> updateLog(R.string.payment_history_empty, info.nickName)
-                else -> updateLog(R.string.payment_history_unknown_status, info.nickName, receiveStatus)
+                when (val receiveStatus = json.optInt("receiveStatus", -1)) {
+                    2 -> {
+                        val amount = json.optInt("amount", 0)
+                        val displayAmount = amount / 100.0
+                        updateLog(R.string.payment_history_receive_success, info.nickName, displayAmount)
+                    }
+
+                    3 -> updateLog(R.string.payment_history_expired, info.nickName)
+                    4 -> updateLog(R.string.payment_history_empty, info.nickName)
+                    else -> updateLog(R.string.payment_history_unknown_status, info.nickName, receiveStatus)
+                }
             }
         }
     }

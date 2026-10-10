@@ -194,6 +194,9 @@ class ViewBackdrop(
 
     private fun currentCaptureKey(view: View): ViewBackdropCaptureKey? {
         if (!lifecycleStarted || !view.isAttachedToWindow) return null
+        // updateEnvironment() populates sourceIdentity; guard against a capture being requested
+        // before the source identity is established instead of crashing the backdrop.
+        val source = sourceIdentity ?: return null
         val windowIdentity = windowIdentityState.update(view.windowToken) {
             captureState.invalidate()
             offsetResidualX = 0f
@@ -201,7 +204,7 @@ class ViewBackdrop(
         }
             ?: return null
         return ViewBackdropCaptureKey(
-            source = sourceIdentity!!,
+            source = source,
             window = windowIdentity,
             generation = generation,
             width = view.width,

@@ -144,27 +144,33 @@ object AutoRefresh : ClickableFeature(), IResolveDex {
 
     override fun onEnable() {
         // The type=1 doFpList branch constructs its scene synchronously before enqueueing it.
-        ctorTimelineRequest.hookAfter {
-            val request = submittingRefresh.get() ?: return@hookAfter
-            if (throwable == null && pendingRefresh.get() === request) {
-                request.scene = thisObject!!
+        installHook("AutoRefresh#1") {
+            ctorTimelineRequest.hookAfter {
+                val request = submittingRefresh.get() ?: return@hookAfter
+                if (throwable == null && pendingRefresh.get() === request) {
+                    request.scene = thisObject!!
+                }
             }
         }
-        methodHandleNormalResponse.hookAfter {
-            val request = pendingRefresh.get() ?: return@hookAfter
-            if (request.scene !== thisObject || throwable != null) return@hookAfter
-            val errType = args[0] as Int
-            val errCode = args[1] as Int
-            // The host also handles the timeline's 207 response as a valid result.
-            request.handledValidResponse = (errType == 0 && errCode == 0) ||
-                    (errType == 4 && errCode == 207)
+        installHook("AutoRefresh#2") {
+            methodHandleNormalResponse.hookAfter {
+                val request = pendingRefresh.get() ?: return@hookAfter
+                if (request.scene !== thisObject || throwable != null) return@hookAfter
+                val errType = args[0] as Int
+                val errCode = args[1] as Int
+                // The host also handles the timeline's 207 response as a valid result.
+                request.handledValidResponse = (errType == 0 && errCode == 0) ||
+                        (errType == 4 && errCode == 207)
+            }
         }
-        methodTimelineResponseEnd.hookAfter {
-            val request = pendingRefresh.get() ?: return@hookAfter
-            if (request.scene !== thisObject) return@hookAfter
-            // Includes failures which never enter handleNormalResp. List writes have completed
-            // before the normal-response handler returns; this does not wait for media downloads.
-            request.completion.complete(throwable == null && request.handledValidResponse)
+        installHook("AutoRefresh#3") {
+            methodTimelineResponseEnd.hookAfter {
+                val request = pendingRefresh.get() ?: return@hookAfter
+                if (request.scene !== thisObject) return@hookAfter
+                // Includes failures which never enter handleNormalResp. List writes have completed
+                // before the normal-response handler returns; this does not wait for media downloads.
+                request.completion.complete(throwable == null && request.handledValidResponse)
+            }
         }
         startRefreshingJob()
     }

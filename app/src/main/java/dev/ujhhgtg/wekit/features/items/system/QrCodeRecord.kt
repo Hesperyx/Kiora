@@ -48,10 +48,12 @@ object QrCodeRecord : ClickableFeature(), IResolveDex, WeHomeScreenPopupMenuApi.
 
     override fun onEnable() {
         val codeTypeIndex = if (methodQBarString.method.parameterCount == 16) 6 else 5
-        methodQBarString.hookBefore {
-            if ((args[0] as Activity).intent.getBooleanExtra(EXTRA_REPLAY, false)) return@hookBefore
-            val content = args[1] as String? ?: return@hookBefore
-            record(content, args[codeTypeIndex] as Int, args[codeTypeIndex + 1] as Int)
+        installHook("QrCodeRecord#1") {
+            methodQBarString.hookBefore {
+                if ((args[0] as Activity).intent.getBooleanExtra(EXTRA_REPLAY, false)) return@hookBefore
+                val content = args[1] as String? ?: return@hookBefore
+                record(content, args[codeTypeIndex] as Int, args[codeTypeIndex + 1] as Int)
+            }
         }
         WeHomeScreenPopupMenuApi.addProvider(this)
     }
