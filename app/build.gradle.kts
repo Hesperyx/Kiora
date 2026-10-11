@@ -211,7 +211,7 @@ dependencies {
         implementation("androidx.customview:customview:1.2.0") {
             because("biometric -> appcompat 1.8.0 -> drawerlayout 1.0.0 -> customview 1.0.0 不在离线缓存")
         }
-        implementation("androidx.drawerlayout:drawerlayout:1.1.1") {
+        implementation("androidx.drawerlayout:drawerlayout:1.2.0") {
             because("biometric -> appcompat 1.8.0 -> drawerlayout 1.0.0 不在离线缓存")
         }
     }
@@ -233,7 +233,7 @@ ksp {
 
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:4.36.1"
+        artifact = "com.google.protobuf:protoc:4.36.2"
     }
 
     generateProtoTasks {
